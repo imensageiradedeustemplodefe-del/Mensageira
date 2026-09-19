@@ -48,7 +48,8 @@ export function GoogleDriveManager() {
         if (eventUrlSetting.setting_value) setEventScriptSaved(true);
       }
       
-      if (urlSetting && folderSetting) {
+      // Basta a URL do script estar salva para liberar a sincronização e a visualização
+      if (urlSetting?.setting_value?.trim()) {
         setIsSaved(true);
       }
     } catch (error) {
@@ -265,8 +266,8 @@ export function GoogleDriveManager() {
                       Sincronizar Álbuns com Banco de Dados
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Sincronize os álbuns do Google Drive para o banco de dados do Supabase. 
-                      Isso permitirá que as notificações funcionem quando novos álbuns forem adicionados.
+                      Busca as pastas do Google Drive e atualiza os álbuns da galeria (nome, capa e quantidade de fotos).
+                      Rode sempre que criar uma pasta nova ou adicionar fotos. Álbuns novos geram notificação para todos.
                     </p>
                   </div>
                 </div>
