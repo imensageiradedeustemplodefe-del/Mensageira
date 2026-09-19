@@ -1,0 +1,352 @@
+// Mensageira de Deus – Templo de Fé
+// Prisma schema (Postgres). Table/column names mirror the original Supabase schema.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AppRole {
+  admin
+  moderator
+  user
+}
+
+// ---------- Auth ----------
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  name         String?
+  passwordHash String   @map("password_hash")
+  role         AppRole  @default(user)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// ---------- Site content ----------
+
+model SiteSetting {
+  id           String   @id @default(uuid()) @db.Uuid
+  settingKey   String   @unique @map("setting_key")
+  settingValue String?  @map("setting_value")
+  settingType  String   @default("text") @map("setting_type")
+  category     String   @default("general")
+  displayName  String   @map("display_name")
+  description  String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model DailyVerse {
+  id             String   @id @default(uuid()) @db.Uuid
+  verseText      String   @map("verse_text")
+  verseReference String   @map("verse_reference")
+  bookName       String   @map("book_name")
+  chapter        Int
+  verseNumber    String   @map("verse_number")
+  category       String?
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([bookName])
+  @@map("daily_verses")
+}
+
+model CustomNotification {
+  id        String   @id @default(uuid()) @db.Uuid
+  title     String
+  message   String
+  icon      String?  @default("🔔")
+  url       String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdBy String?  @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("custom_notifications")
+}
+
+// ---------- Events ----------
+
+model Event {
+  id                   String   @id @default(uuid()) @db.Uuid
+  title                String
+  description          String?
+  eventDate            DateTime @map("event_date")
+  endDate              DateTime? @map("end_date")
+  location             String?
+  category             String   @default("geral")
+  imageUrl             String?  @map("image_url")
+  isPublished          Boolean  @default(false) @map("is_published")
+  maxParticipants      Int?     @map("max_participants")
+  registrationRequired Boolean  @default(false) @map("registration_required")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  contacts           EventContact[]
+  registrationFields EventRegistrationField[]
+  registrations      EventRegistration[]
+
+  @@index([eventDate])
+  @@map("events")
+}
+
+model EventContact {
+  id          String   @id @default(uuid()) @db.Uuid
+  eventId     String   @unique @map("event_id") @db.Uuid
+  contactInfo String   @map("contact_info")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_contacts")
+}
+
+model EventTemplate {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  title       String
+  category    String
+  description String?
+  location    String?
+  isDefault   Boolean  @default(false) @map("is_default")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("event_templates")
+}
+
+model EventRegistrationField {
+  id               String   @id @default(uuid()) @db.Uuid
+  eventId          String   @map("event_id") @db.Uuid
+  fieldName        String   @map("field_name")
+  fieldLabel       String   @map("field_label")
+  fieldType        String   @default("text") @map("field_type")
+  fieldPlaceholder String?  @map("field_placeholder")
+  fieldOptions     String[] @default([]) @map("field_options")
+  fieldOrder       Int      @default(0) @map("field_order")
+  isRequired       Boolean  @default(false) @map("is_required")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@map("event_registration_fields")
+}
+
+model EventRegistration {
+  id               String    @id @default(uuid()) @db.Uuid
+  eventId          String    @map("event_id") @db.Uuid
+  registrationData Json      @map("registration_data")
+  spreadsheetId    String?   @map("spreadsheet_id")
+  syncedToSheets   Boolean   @default(false) @map("synced_to_sheets")
+  syncedAt         DateTime? @map("synced_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@map("event_registrations")
+}
+
+// ---------- Gallery ----------
+
+model GalleryCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  icon      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  photos GalleryPhoto[]
+
+  @@map("gallery_categories")
+}
+
+model GalleryAlbum {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String
+  description   String?
+  coverPhotoUrl String?   @map("cover_photo_url")
+  eventDate     DateTime? @map("event_date") @db.Date
+  driveFolderId String?   @map("drive_folder_id")
+  isPublished   Boolean   @default(false) @map("is_published")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  photos GalleryPhoto[]
+
+  @@index([name])
+  @@map("gallery_albums")
+}
+
+model GalleryPhoto {
+  id           String    @id @default(uuid()) @db.Uuid
+  title        String
+  description  String?
+  imageUrl     String    @map("image_url")
+  albumId      String?   @map("album_id") @db.Uuid
+  categoryId   String?   @map("category_id") @db.Uuid
+  eventDate    DateTime? @map("event_date") @db.Date
+  participants Int?      @default(0)
+  isPublished  Boolean   @default(false) @map("is_published")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  album    GalleryAlbum?    @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  category GalleryCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([albumId])
+  @@map("gallery_photos")
+}
+
+// Reactions on Google Drive photos (photo_id is the Drive file id)
+model PhotoReaction {
+  id           String   @id @default(uuid()) @db.Uuid
+  photoId      String   @map("photo_id")
+  userId       String   @map("user_id")
+  reactionType String   @map("reaction_type")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@unique([photoId, userId])
+  @@index([photoId])
+  @@map("photo_reactions")
+}
+
+// ---------- Live ----------
+
+model LiveStream {
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  platform    String    @default("youtube")
+  streamUrl   String    @map("stream_url")
+  embedUrl    String?   @map("embed_url")
+  thumbnailUrl String?  @map("thumbnail_url")
+  isLive      Boolean   @default(false) @map("is_live")
+  isActive    Boolean   @default(true) @map("is_active")
+  chatEnabled Boolean   @default(true) @map("chat_enabled")
+  viewerCount Int?      @default(0) @map("viewer_count")
+  scheduledAt DateTime? @map("scheduled_at")
+  startedAt   DateTime? @map("started_at")
+  endedAt     DateTime? @map("ended_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("live_streams")
+}
+
+// ---------- Media ----------
+
+model MediaCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  icon      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  items MediaItem[]
+
+  @@map("media_categories")
+}
+
+model MediaItem {
+  id           String   @id @default(uuid()) @db.Uuid
+  title        String
+  description  String?
+  artist       String?
+  mediaUrl     String   @map("media_url")
+  thumbnailUrl String?  @map("thumbnail_url")
+  duration     Int?
+  categoryId   String?  @map("category_id") @db.Uuid
+  isPublished  Boolean  @default(false) @map("is_published")
+  isRadio      Boolean  @default(false) @map("is_radio")
+  playCount    Int      @default(0) @map("play_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  category MediaCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@map("media_items")
+}
+
+// ---------- Prayer ----------
+
+model PrayerRequest {
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String
+  requestText      String    @map("request_text")
+  category         String?   @default("geral")
+  isUrgent         Boolean   @default(false) @map("is_urgent")
+  allowPublicShare Boolean   @default(false) @map("allow_public_share")
+  hasContactInfo   Boolean   @default(false) @map("has_contact_info")
+  isApproved       Boolean   @default(false) @map("is_approved")
+  approvedAt       DateTime? @map("approved_at")
+  approvedBy       String?   @map("approved_by") @db.Uuid
+  isCompleted      Boolean   @default(false) @map("is_completed")
+  completedAt      DateTime? @map("completed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  encryptedContact EncryptedContact?
+
+  @@index([isApproved, allowPublicShare])
+  @@map("prayer_requests")
+}
+
+model EncryptedContact {
+  id                String   @id @default(uuid()) @db.Uuid
+  prayerRequestId   String   @unique @map("prayer_request_id") @db.Uuid
+  encryptedEmail    String?  @map("encrypted_email")
+  encryptedPhone    String?  @map("encrypted_phone")
+  encryptionKeyHash String   @map("encryption_key_hash")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  prayerRequest PrayerRequest @relation(fields: [prayerRequestId], references: [id], onDelete: Cascade)
+
+  @@map("encrypted_contacts")
+}
+
+// ---------- Testimonies ----------
+
+model Testimony {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  content    String
+  isApproved Boolean  @default(false) @map("is_approved")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("testimonies")
+}
+
+// ---------- Push ----------
+
+model PushSubscription {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id")
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("push_subscriptions")
+}

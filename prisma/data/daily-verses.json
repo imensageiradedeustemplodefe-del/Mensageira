@@ -1,0 +1,954 @@
+[
+  {
+    "verseText": "Porque eu bem sei os pensamentos que tenho a vosso respeito, diz o SENHOR; pensamentos de paz, e não de mal, para vos dar o fim que esperais.",
+    "verseReference": "Jeremias 29:11",
+    "bookName": "Jeremias",
+    "chapter": 29,
+    "verseNumber": "11",
+    "category": "esperanca"
+  },
+  {
+    "verseText": "Tudo posso naquele que me fortalece.",
+    "verseReference": "Filipenses 4:13",
+    "bookName": "Filipenses",
+    "chapter": 4,
+    "verseNumber": "13",
+    "category": "forca"
+  },
+  {
+    "verseText": "O SENHOR é o meu pastor; nada me faltará.",
+    "verseReference": "Salmos 23:1",
+    "bookName": "Salmos",
+    "chapter": 23,
+    "verseNumber": "1",
+    "category": "confianca"
+  },
+  {
+    "verseText": "Entrega o teu caminho ao SENHOR; confia nele, e ele tudo fará.",
+    "verseReference": "Salmos 37:5",
+    "bookName": "Salmos",
+    "chapter": 37,
+    "verseNumber": "5",
+    "category": "confianca"
+  },
+  {
+    "verseText": "E sabemos que todas as coisas contribuem juntamente para o bem daqueles que amam a Deus.",
+    "verseReference": "Romanos 8:28",
+    "bookName": "Romanos",
+    "chapter": 8,
+    "verseNumber": "28",
+    "category": "esperanca"
+  },
+  {
+    "verseText": "Não tema, porque eu sou contigo; não te assombres, porque eu sou teu Deus; eu te fortaleço, e te ajudo, e te sustento com a destra da minha justiça.",
+    "verseReference": "Isaías 41:10",
+    "bookName": "Isaías",
+    "chapter": 41,
+    "verseNumber": "10",
+    "category": "coragem"
+  },
+  {
+    "verseText": "Buscar-me-eis, e me achareis, quando me buscardes com todo o vosso coração.",
+    "verseReference": "Jeremias 29:13",
+    "bookName": "Jeremias",
+    "chapter": 29,
+    "verseNumber": "13",
+    "category": "busca"
+  },
+  {
+    "verseText": "Deixo-vos a paz, a minha paz vos dou; não vo-la dou como o mundo a dá. Não se turbe o vosso coração, nem se atemorize.",
+    "verseReference": "João 14:27",
+    "bookName": "João",
+    "chapter": 14,
+    "verseNumber": "27",
+    "category": "paz"
+  },
+  {
+    "verseText": "Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei.",
+    "verseReference": "Mateus 11:28",
+    "bookName": "Mateus",
+    "chapter": 11,
+    "verseNumber": "28",
+    "category": "descanso"
+  },
+  {
+    "verseText": "A paz vos deixo, a minha paz vos dou.",
+    "verseReference": "João 14:27a",
+    "bookName": "João",
+    "chapter": 14,
+    "verseNumber": "27",
+    "category": "paz"
+  },
+  {
+    "verseText": "Aquietai-vos, e sabei que eu sou Deus.",
+    "verseReference": "Salmos 46:10",
+    "bookName": "Salmos",
+    "chapter": 46,
+    "verseNumber": "10",
+    "category": "paz"
+  },
+  {
+    "verseText": "Em paz me deitarei, e logo dormirei, porque só tu, SENHOR, me fazes repousar seguro.",
+    "verseReference": "Salmos 4:8",
+    "bookName": "Salmos",
+    "chapter": 4,
+    "verseNumber": "8",
+    "category": "descanso"
+  },
+  {
+    "verseText": "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.",
+    "verseReference": "João 3:16",
+    "bookName": "João",
+    "chapter": 3,
+    "verseNumber": "16",
+    "category": "amor"
+  },
+  {
+    "verseText": "Mas Deus prova o seu amor para conosco, em que Cristo morreu por nós, sendo nós ainda pecadores.",
+    "verseReference": "Romanos 5:8",
+    "bookName": "Romanos",
+    "chapter": 5,
+    "verseNumber": "8",
+    "category": "amor"
+  },
+  {
+    "verseText": "Nisto conhecemos o amor de Deus: em que Cristo deu a sua vida por nós.",
+    "verseReference": "1 João 3:16",
+    "bookName": "1 João",
+    "chapter": 3,
+    "verseNumber": "16",
+    "category": "amor"
+  },
+  {
+    "verseText": "O amor de Deus está derramado em nossos corações pelo Espírito Santo.",
+    "verseReference": "Romanos 5:5b",
+    "bookName": "Romanos",
+    "chapter": 5,
+    "verseNumber": "5",
+    "category": "amor"
+  },
+  {
+    "verseText": "O meu Deus, segundo as suas riquezas, suprirá todas as vossas necessidades em glória, por Cristo Jesus.",
+    "verseReference": "Filipenses 4:19",
+    "bookName": "Filipenses",
+    "chapter": 4,
+    "verseNumber": "19",
+    "category": "provisao"
+  },
+  {
+    "verseText": "Portanto, não vos inquieteis, dizendo: Que comeremos, ou que beberemos, ou com que nos vestiremos? Mas buscai primeiro o reino de Deus, e a sua justiça, e todas estas coisas vos serão acrescentadas.",
+    "verseReference": "Mateus 6:31,33",
+    "bookName": "Mateus",
+    "chapter": 6,
+    "verseNumber": "31,33",
+    "category": "provisao"
+  },
+  {
+    "verseText": "Olhai para as aves do céu, que nem semeiam, nem segam, nem ajuntam em celeiros; e vosso Pai celestial as alimenta. Não tendes vós muito mais valor do que elas?",
+    "verseReference": "Mateus 6:26",
+    "bookName": "Mateus",
+    "chapter": 6,
+    "verseNumber": "26",
+    "category": "cuidado"
+  },
+  {
+    "verseText": "Lançando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós.",
+    "verseReference": "1 Pedro 5:7",
+    "bookName": "1 Pedro",
+    "chapter": 5,
+    "verseNumber": "7",
+    "category": "cuidado"
+  },
+  {
+    "verseText": "Se algum de vós tem falta de sabedoria, peça-a a Deus, que a todos dá liberalmente, e o não lança em rosto, e ser-lhe-á dada.",
+    "verseReference": "Tiago 1:5",
+    "bookName": "Tiago",
+    "chapter": 1,
+    "verseNumber": "5",
+    "category": "sabedoria"
+  },
+  {
+    "verseText": "Confia no SENHOR de todo o teu coração, e não te estribes no teu próprio entendimento. Reconhece-o em todos os teus caminhos, e ele endireitará as tuas veredas.",
+    "verseReference": "Provérbios 3:5-6",
+    "bookName": "Provérbios",
+    "chapter": 3,
+    "verseNumber": "5-6",
+    "category": "direcao"
+  },
+  {
+    "verseText": "Lâmpada para os meus pés é tua palavra, e luz para o meu caminho.",
+    "verseReference": "Salmos 119:105",
+    "bookName": "Salmos",
+    "chapter": 119,
+    "verseNumber": "105",
+    "category": "direcao"
+  },
+  {
+    "verseText": "Os passos do homem bom são confirmados pelo SENHOR, e deleita-se no seu caminho.",
+    "verseReference": "Salmos 37:23",
+    "bookName": "Salmos",
+    "chapter": 37,
+    "verseNumber": "23",
+    "category": "direcao"
+  },
+  {
+    "verseText": "Se confessarmos os nossos pecados, ele é fiel e justo para nos perdoar os pecados, e nos purificar de toda a injustiça.",
+    "verseReference": "1 João 1:9",
+    "bookName": "1 João",
+    "chapter": 1,
+    "verseNumber": "9",
+    "category": "perdao"
+  },
+  {
+    "verseText": "Quanto está longe o oriente do ocidente, assim afasta de nós as nossas transgressões.",
+    "verseReference": "Salmos 103:12",
+    "bookName": "Salmos",
+    "chapter": 103,
+    "verseNumber": "12",
+    "category": "perdao"
+  },
+  {
+    "verseText": "As misericórdias do SENHOR são a causa de não sermos consumidos, porque as suas misericórdias não têm fim.",
+    "verseReference": "Lamentações 3:22",
+    "bookName": "Lamentações",
+    "chapter": 3,
+    "verseNumber": "22",
+    "category": "misericordia"
+  },
+  {
+    "verseText": "Esforça-te, e tem bom ânimo; não temas, nem te espantes; porque o SENHOR teu Deus é contigo, por onde quer que andares.",
+    "verseReference": "Josué 1:9",
+    "bookName": "Josué",
+    "chapter": 1,
+    "verseNumber": "9",
+    "category": "coragem"
+  },
+  {
+    "verseText": "O SENHOR é a minha luz e a minha salvação; a quem temerei? O SENHOR é a força da minha vida; de quem me recearei?",
+    "verseReference": "Salmos 27:1",
+    "bookName": "Salmos",
+    "chapter": 27,
+    "verseNumber": "1",
+    "category": "forca"
+  },
+  {
+    "verseText": "O que dizes tu, ó Jacó, e tu falas, ó Israel: O meu caminho está encoberto ao SENHOR, e o meu direito passa despercebido ao meu Deus? Não sabes, não ouviste que o eterno Deus, o SENHOR, o Criador dos fins da terra, nem se cansa nem se fatiga?",
+    "verseReference": "Isaías 40:27-28",
+    "bookName": "Isaías",
+    "chapter": 40,
+    "verseNumber": "27-28",
+    "category": "forca"
+  },
+  {
+    "verseText": "Este é o dia que fez o SENHOR; regozijemo-nos, e alegremo-nos nele.",
+    "verseReference": "Salmos 118:24",
+    "bookName": "Salmos",
+    "chapter": 118,
+    "verseNumber": "24",
+    "category": "alegria"
+  },
+  {
+    "verseText": "Alegrai-vos sempre no Senhor; outra vez digo, alegrai-vos.",
+    "verseReference": "Filipenses 4:4",
+    "bookName": "Filipenses",
+    "chapter": 4,
+    "verseNumber": "4",
+    "category": "alegria"
+  },
+  {
+    "verseText": "Em tudo dai graças, porque esta é a vontade de Deus em Cristo Jesus para convosco.",
+    "verseReference": "1 Tessalonicenses 5:18",
+    "bookName": "1 Tessalonicenses",
+    "chapter": 5,
+    "verseNumber": "18",
+    "category": "gratidao"
+  },
+  {
+    "verseText": "Servi ao SENHOR com alegria; apresentai-vos a ele com regozijo.",
+    "verseReference": "Salmos 100:2",
+    "bookName": "Salmos",
+    "chapter": 100,
+    "verseNumber": "2",
+    "category": "alegria"
+  },
+  {
+    "verseText": "Orai sem cessar.",
+    "verseReference": "1 Tessalonicenses 5:17",
+    "bookName": "1 Tessalonicenses",
+    "chapter": 5,
+    "verseNumber": "17",
+    "category": "oracao"
+  },
+  {
+    "verseText": "E tudo o que pedirdes em oração, crendo, o recebereis.",
+    "verseReference": "Mateus 21:22",
+    "bookName": "Mateus",
+    "chapter": 21,
+    "verseNumber": "22",
+    "category": "oracao"
+  },
+  {
+    "verseText": "Chegai-vos a Deus, e ele se chegará a vós.",
+    "verseReference": "Tiago 4:8a",
+    "bookName": "Tiago",
+    "chapter": 4,
+    "verseNumber": "8",
+    "category": "comunhao"
+  },
+  {
+    "verseText": "Porque onde estiverem dois ou três reunidos em meu nome, aí estou eu no meio deles.",
+    "verseReference": "Mateus 18:20",
+    "bookName": "Mateus",
+    "chapter": 18,
+    "verseNumber": "20",
+    "category": "comunhao"
+  },
+  {
+    "verseText": "Porque todas quantas promessas há de Deus, são nele sim, e por ele o Amém, para glória de Deus por nós.",
+    "verseReference": "2 Coríntios 1:20",
+    "bookName": "2 Coríntios",
+    "chapter": 1,
+    "verseNumber": "20",
+    "category": "promessas"
+  },
+  {
+    "verseText": "Fiel é o que vos chama, o qual também o fará.",
+    "verseReference": "1 Tessalonicenses 5:24",
+    "bookName": "1 Tessalonicenses",
+    "chapter": 5,
+    "verseNumber": "24",
+    "category": "fidelidade"
+  },
+  {
+    "verseText": "Jesus Cristo é o mesmo, ontem, e hoje, e eternamente.",
+    "verseReference": "Hebreus 13:8",
+    "bookName": "Hebreus",
+    "chapter": 13,
+    "verseNumber": "8",
+    "category": "fidelidade"
+  },
+  {
+    "verseText": "A tua palavra, SENHOR, permanece para sempre nos céus.",
+    "verseReference": "Salmos 119:89",
+    "bookName": "Salmos",
+    "chapter": 119,
+    "verseNumber": "89",
+    "category": "palavra"
+  },
+  {
+    "verseText": "Mas os que esperam no SENHOR renovarão as forças, subirão com asas como águias; correrão, e não se cansarão; caminharão, e não se fatigarão.",
+    "verseReference": "Isaías 40:31",
+    "bookName": "Isaías",
+    "chapter": 40,
+    "verseNumber": "31",
+    "category": "esperanca"
+  },
+  {
+    "verseText": "Porque nada é impossível a Deus.",
+    "verseReference": "Lucas 1:37",
+    "bookName": "Lucas",
+    "chapter": 1,
+    "verseNumber": "37",
+    "category": "fe"
+  },
+  {
+    "verseText": "Grande é o SENHOR, e muito digno de louvor, na cidade do nosso Deus, no monte da sua santidade.",
+    "verseReference": "Salmos 48:1",
+    "bookName": "Salmos",
+    "chapter": 48,
+    "verseNumber": "1",
+    "category": "louvor"
+  },
+  {
+    "verseText": "O SENHOR te abençoe e te guarde; O SENHOR faça resplandecer o seu rosto sobre ti, e tenha misericórdia de ti.",
+    "verseReference": "Números 6:24-25",
+    "bookName": "Números",
+    "chapter": 6,
+    "verseNumber": "24-25",
+    "category": "bencao"
+  },
+  {
+    "verseText": "Porque a palavra de Deus é viva e eficaz, e mais penetrante do que espada alguma de dois gumes.",
+    "verseReference": "Hebreus 4:12",
+    "bookName": "Hebreus",
+    "chapter": 4,
+    "verseNumber": "12",
+    "category": "palavra"
+  },
+  {
+    "verseText": "Todas as coisas me são lícitas, mas nem todas as coisas convêm.",
+    "verseReference": "1 Coríntios 6:12a",
+    "bookName": "1 Coríntios",
+    "chapter": 6,
+    "verseNumber": "12",
+    "category": "sabedoria"
+  },
+  {
+    "verseText": "Porque somos feitura sua, criados em Cristo Jesus para as boas obras.",
+    "verseReference": "Efésios 2:10a",
+    "bookName": "Efésios",
+    "chapter": 2,
+    "verseNumber": "10",
+    "category": "proposito"
+  },
+  {
+    "verseText": "Pelo que estou certo de que, nem a morte, nem a vida, nem os anjos, nem os principados, nem as potestades, nem o presente, nem o porvir, nem a altura, nem a profundidade, nem alguma outra criatura nos poderá separar do amor de Deus.",
+    "verseReference": "Romanos 8:38-39",
+    "bookName": "Romanos",
+    "chapter": 8,
+    "verseNumber": "38-39",
+    "category": "amor"
+  },
+  {
+    "verseText": "Antes santificai ao Senhor Deus em vossos corações; e estai sempre preparados para responder com mansidão e temor a qualquer que vos pedir a razão da esperança que há em vós.",
+    "verseReference": "1 Pedro 3:15",
+    "bookName": "1 Pedro",
+    "chapter": 3,
+    "verseNumber": "15",
+    "category": "testemunho"
+  },
+  {
+    "verseText": "Bem-aventurados os que têm fome e sede de justiça, porque eles serão fartos.",
+    "verseReference": "Mateus 5:6",
+    "bookName": "Mateus",
+    "chapter": 5,
+    "verseNumber": "6",
+    "category": "justica"
+  },
+  {
+    "verseText": "Bem-aventurados os misericordiosos, porque eles alcançarão misericórdia.",
+    "verseReference": "Mateus 5:7",
+    "bookName": "Mateus",
+    "chapter": 5,
+    "verseNumber": "7",
+    "category": "misericordia"
+  },
+  {
+    "verseText": "Bem-aventurados os limpos de coração, porque eles verão a Deus.",
+    "verseReference": "Mateus 5:8",
+    "bookName": "Mateus",
+    "chapter": 5,
+    "verseNumber": "8",
+    "category": "pureza"
+  },
+  {
+    "verseText": "Bem-aventurados os pacificadores, porque eles serão chamados filhos de Deus.",
+    "verseReference": "Mateus 5:9",
+    "bookName": "Mateus",
+    "chapter": 5,
+    "verseNumber": "9",
+    "category": "paz"
+  },
+  {
+    "verseText": "Não se turbe o vosso coração; credes em Deus, crede também em mim.",
+    "verseReference": "João 14:1",
+    "bookName": "João",
+    "chapter": 14,
+    "verseNumber": "1",
+    "category": "fe"
+  },
+  {
+    "verseText": "Na casa de meu Pai há muitas moradas; se não fosse assim, eu vo-lo teria dito. Vou preparar-vos lugar.",
+    "verseReference": "João 14:2",
+    "bookName": "João",
+    "chapter": 14,
+    "verseNumber": "2",
+    "category": "esperanca"
+  },
+  {
+    "verseText": "Eu sou o caminho, e a verdade e a vida; ninguém vem ao Pai, senão por mim.",
+    "verseReference": "João 14:6",
+    "bookName": "João",
+    "chapter": 14,
+    "verseNumber": "6",
+    "category": "salvacao"
+  },
+  {
+    "verseText": "Se vós estiverdes em mim, e as minhas palavras estiverem em vós, pedireis tudo o que quiserdes, e vos será feito.",
+    "verseReference": "João 15:7",
+    "bookName": "João",
+    "chapter": 15,
+    "verseNumber": "7",
+    "category": "oracao"
+  },
+  {
+    "verseText": "Nisto é glorificado meu Pai, que deis muito fruto; e assim sereis meus discípulos.",
+    "verseReference": "João 15:8",
+    "bookName": "João",
+    "chapter": 15,
+    "verseNumber": "8",
+    "category": "fruto"
+  },
+  {
+    "verseText": "Como o Pai me amou, também eu vos amei; permanecei no meu amor.",
+    "verseReference": "João 15:9",
+    "bookName": "João",
+    "chapter": 15,
+    "verseNumber": "9",
+    "category": "amor"
+  },
+  {
+    "verseText": "Não fostes vós que me escolhestes a mim; mas eu vos escolhi a vós, e vos nomeei, para que vades e deis fruto.",
+    "verseReference": "João 15:16a",
+    "bookName": "João",
+    "chapter": 15,
+    "verseNumber": "16",
+    "category": "chamado"
+  },
+  {
+    "verseText": "Maior amor do que este ninguém tem, que é dar alguém a sua vida pelos seus amigos.",
+    "verseReference": "João 15:13",
+    "bookName": "João",
+    "chapter": 15,
+    "verseNumber": "13",
+    "category": "amor"
+  },
+  {
+    "verseText": "Estas coisas vos tenho dito, para que em mim tenhais paz; no mundo tereis aflições, mas tende bom ânimo, eu venci o mundo.",
+    "verseReference": "João 16:33",
+    "bookName": "João",
+    "chapter": 16,
+    "verseNumber": "33",
+    "category": "vitoria"
+  },
+  {
+    "verseText": "Mas o Consolador, o Espírito Santo, que o Pai enviará em meu nome, esse vos ensinará todas as coisas.",
+    "verseReference": "João 14:26a",
+    "bookName": "João",
+    "chapter": 14,
+    "verseNumber": "26",
+    "category": "espirito_santo"
+  },
+  {
+    "verseText": "Mas recebereis a virtude do Espírito Santo, que há de vir sobre vós; e ser-me-eis testemunhas.",
+    "verseReference": "Atos 1:8a",
+    "bookName": "Atos",
+    "chapter": 1,
+    "verseNumber": "8",
+    "category": "testemunho"
+  },
+  {
+    "verseText": "E eis que eu estou convosco todos os dias, até a consumação dos séculos.",
+    "verseReference": "Mateus 28:20b",
+    "bookName": "Mateus",
+    "chapter": 28,
+    "verseNumber": "20",
+    "category": "presenca"
+  },
+  {
+    "verseText": "Porque onde está o vosso tesouro, aí estará também o vosso coração.",
+    "verseReference": "Mateus 6:21",
+    "bookName": "Mateus",
+    "chapter": 6,
+    "verseNumber": "21",
+    "category": "prioridades"
+  },
+  {
+    "verseText": "Mas buscai primeiro o reino de Deus, e a sua justiça, e todas estas coisas vos serão acrescentadas.",
+    "verseReference": "Mateus 6:33",
+    "bookName": "Mateus",
+    "chapter": 6,
+    "verseNumber": "33",
+    "category": "prioridades"
+  },
+  {
+    "verseText": "Vigiai e orai, para que não entreis em tentação; na verdade, o espírito está pronto, mas a carne é fraca.",
+    "verseReference": "Mateus 26:41",
+    "bookName": "Mateus",
+    "chapter": 26,
+    "verseNumber": "41",
+    "category": "vigilancia"
+  },
+  {
+    "verseText": "Sede sóbrios; vigiai; porque o diabo, vosso adversário, anda em derredor, bramando como leão, buscando a quem possa tragar.",
+    "verseReference": "1 Pedro 5:8",
+    "bookName": "1 Pedro",
+    "chapter": 5,
+    "verseNumber": "8",
+    "category": "vigilancia"
+  },
+  {
+    "verseText": "Sujeitai-vos, pois, a Deus; resisti ao diabo, e ele fugirá de vós.",
+    "verseReference": "Tiago 4:7",
+    "bookName": "Tiago",
+    "chapter": 4,
+    "verseNumber": "7",
+    "category": "resistencia"
+  },
+  {
+    "verseText": "Porque nossa luta não é contra carne e sangue, mas contra os principados, contra as potestades.",
+    "verseReference": "Efésios 6:12a",
+    "bookName": "Efésios",
+    "chapter": 6,
+    "verseNumber": "12",
+    "category": "guerra_espiritual"
+  },
+  {
+    "verseText": "Fortalecei-vos no Senhor e na força do seu poder.",
+    "verseReference": "Efésios 6:10",
+    "bookName": "Efésios",
+    "chapter": 6,
+    "verseNumber": "10",
+    "category": "forca"
+  },
+  {
+    "verseText": "Tomai toda a armadura de Deus, para que possais resistir no dia mau e, havendo feito tudo, ficar firmes.",
+    "verseReference": "Efésios 6:13",
+    "bookName": "Efésios",
+    "chapter": 6,
+    "verseNumber": "13",
+    "category": "armadura"
+  },
+  {
+    "verseText": "Portanto, meus amados irmãos, sede firmes e constantes, sempre abundantes na obra do Senhor.",
+    "verseReference": "1 Coríntios 15:58a",
+    "bookName": "1 Coríntios",
+    "chapter": 15,
+    "verseNumber": "58",
+    "category": "perseveranca"
+  },
+  {
+    "verseText": "Combati o bom combate, acabei a carreira, guardei a fé.",
+    "verseReference": "2 Timóteo 4:7",
+    "bookName": "2 Timóteo",
+    "chapter": 4,
+    "verseNumber": "7",
+    "category": "perseveranca"
+  },
+  {
+    "verseText": "Seja a vossa palavra: Sim, sim; Não, não; porque o que passa disto é de procedência maligna.",
+    "verseReference": "Mateus 5:37",
+    "bookName": "Mateus",
+    "chapter": 5,
+    "verseNumber": "37",
+    "category": "integridade"
+  },
+  {
+    "verseText": "Finalmente, irmãos, tudo o que é verdadeiro, tudo o que é honesto, tudo o que é justo, tudo o que é puro, tudo o que é amável, tudo o que é de boa fama, se há alguma virtude, e se há algum louvor, nisso pensai.",
+    "verseReference": "Filipenses 4:8",
+    "bookName": "Filipenses",
+    "chapter": 4,
+    "verseNumber": "8",
+    "category": "pensamentos"
+  },
+  {
+    "verseText": "O justo florescerá como a palmeira; crescerá como o cedro no Líbano.",
+    "verseReference": "Salmos 92:12",
+    "bookName": "Salmos",
+    "chapter": 92,
+    "verseNumber": "12",
+    "category": "crescimento"
+  },
+  {
+    "verseText": "Porque aos seus anjos dará ordem a teu respeito, para te guardarem em todos os teus caminhos.",
+    "verseReference": "Salmos 91:11",
+    "bookName": "Salmos",
+    "chapter": 91,
+    "verseNumber": "11",
+    "category": "protecao"
+  },
+  {
+    "verseText": "Aquele que habita no esconderijo do Altíssimo, à sombra do Onipotente descansará.",
+    "verseReference": "Salmos 91:1",
+    "bookName": "Salmos",
+    "chapter": 91,
+    "verseNumber": "1",
+    "category": "protecao"
+  },
+  {
+    "verseText": "Mil cairão ao teu lado, e dez mil à tua direita, mas tu não serás atingido.",
+    "verseReference": "Salmos 91:7",
+    "bookName": "Salmos",
+    "chapter": 91,
+    "verseNumber": "7",
+    "category": "protecao"
+  },
+  {
+    "verseText": "Invoca-me no dia da angústia; eu te livrarei, e tu me glorificarás.",
+    "verseReference": "Salmos 50:15",
+    "bookName": "Salmos",
+    "chapter": 50,
+    "verseNumber": "15",
+    "category": "socorro"
+  },
+  {
+    "verseText": "O SENHOR está perto dos que têm o coração quebrantado, e salva os contritos de espírito.",
+    "verseReference": "Salmos 34:18",
+    "bookName": "Salmos",
+    "chapter": 34,
+    "verseNumber": "18",
+    "category": "consolo"
+  },
+  {
+    "verseText": "Provai, e vede que o SENHOR é bom; bem-aventurado o homem que nele confia.",
+    "verseReference": "Salmos 34:8",
+    "bookName": "Salmos",
+    "chapter": 34,
+    "verseNumber": "8",
+    "category": "bondade"
+  },
+  {
+    "verseText": "Os leõezinhos necessitam e sofrem fome, mas aqueles que buscam ao SENHOR não têm falta de coisa alguma que seja boa.",
+    "verseReference": "Salmos 34:10",
+    "bookName": "Salmos",
+    "chapter": 34,
+    "verseNumber": "10",
+    "category": "provisao"
+  },
+  {
+    "verseText": "Deleita-te também no SENHOR, e te concederá os desejos do teu coração.",
+    "verseReference": "Salmos 37:4",
+    "bookName": "Salmos",
+    "chapter": 37,
+    "verseNumber": "4",
+    "category": "desejo"
+  },
+  {
+    "verseText": "Descansa no SENHOR, e espera nele; não te indignes por causa do que prospera em seu caminho.",
+    "verseReference": "Salmos 37:7a",
+    "bookName": "Salmos",
+    "chapter": 37,
+    "verseNumber": "7",
+    "category": "descanso"
+  },
+  {
+    "verseText": "Porque ainda um pouquinho de tempo, e o ímpio não existirá; olharás para o seu lugar, e não aparecerá.",
+    "verseReference": "Salmos 37:10",
+    "bookName": "Salmos",
+    "chapter": 37,
+    "verseNumber": "10",
+    "category": "justica"
+  },
+  {
+    "verseText": "Mas os mansos herdarão a terra, e se deleitarão na abundância de paz.",
+    "verseReference": "Salmos 37:11",
+    "bookName": "Salmos",
+    "chapter": 37,
+    "verseNumber": "11",
+    "category": "mansidao"
+  },
+  {
+    "verseText": "O SENHOR conhece os dias dos retos, e a sua herança permanecerá para sempre.",
+    "verseReference": "Salmos 37:18",
+    "bookName": "Salmos",
+    "chapter": 37,
+    "verseNumber": "18",
+    "category": "heranca"
+  },
+  {
+    "verseText": "Fui moço, e agora sou velho; mas nunca vi desamparado o justo, nem a sua descendência a mendigar o pão.",
+    "verseReference": "Salmos 37:25",
+    "bookName": "Salmos",
+    "chapter": 37,
+    "verseNumber": "25",
+    "category": "providencia"
+  },
+  {
+    "verseText": "Aparta-te do mal e faze o bem; habita para sempre.",
+    "verseReference": "Salmos 37:27",
+    "bookName": "Salmos",
+    "chapter": 37,
+    "verseNumber": "27",
+    "category": "retidao"
+  },
+  {
+    "verseText": "A salvação dos justos vem do SENHOR; ele é a sua fortaleza no tempo da angústia.",
+    "verseReference": "Salmos 37:39",
+    "bookName": "Salmos",
+    "chapter": 37,
+    "verseNumber": "39",
+    "category": "salvacao"
+  },
+  {
+    "verseText": "Como suspira a corça pelas correntes das águas, assim suspira a minha alma por ti, ó Deus!",
+    "verseReference": "Salmos 42:1",
+    "bookName": "Salmos",
+    "chapter": 42,
+    "verseNumber": "1",
+    "category": "sede_deus"
+  },
+  {
+    "verseText": "A minha alma tem sede de Deus, do Deus vivo; quando entrarei e me apresentarei ante a face de Deus?",
+    "verseReference": "Salmos 42:2",
+    "bookName": "Salmos",
+    "chapter": 42,
+    "verseNumber": "2",
+    "category": "sede_deus"
+  },
+  {
+    "verseText": "Por que estás abatida, ó minha alma, e por que te perturbas em mim? Espera em Deus, pois ainda o louvarei na salvação da sua presença.",
+    "verseReference": "Salmos 42:5",
+    "bookName": "Salmos",
+    "chapter": 42,
+    "verseNumber": "5",
+    "category": "esperanca"
+  },
+  {
+    "verseText": "Assim como o Pai me enviou, também eu vos envio a vós.",
+    "verseReference": "João 20:21b",
+    "bookName": "João",
+    "chapter": 20,
+    "verseNumber": "21",
+    "category": "missao"
+  },
+  {
+    "verseText": "Ide por todo o mundo, pregai o evangelho a toda criatura.",
+    "verseReference": "Marcos 16:15",
+    "bookName": "Marcos",
+    "chapter": 16,
+    "verseNumber": "15",
+    "category": "evangelismo"
+  },
+  {
+    "verseText": "Portanto ide, fazei discípulos de todas as nações, batizando-os em nome do Pai, e do Filho, e do Espírito Santo.",
+    "verseReference": "Mateus 28:19",
+    "bookName": "Mateus",
+    "chapter": 28,
+    "verseNumber": "19",
+    "category": "discipulado"
+  },
+  {
+    "verseText": "A seara é realmente grande, mas poucos os ceifeiros.",
+    "verseReference": "Mateus 9:37b",
+    "bookName": "Mateus",
+    "chapter": 9,
+    "verseNumber": "37",
+    "category": "missao"
+  },
+  {
+    "verseText": "Rogai, pois, ao Senhor da seara, que mande ceifeiros para a sua seara.",
+    "verseReference": "Mateus 9:38",
+    "bookName": "Mateus",
+    "chapter": 9,
+    "verseNumber": "38",
+    "category": "oracao"
+  },
+  {
+    "verseText": "Mas como invocarão aquele em quem não creram? E como crerão naquele de quem não ouviram? E como ouvirão, se não há quem pregue?",
+    "verseReference": "Romanos 10:14",
+    "bookName": "Romanos",
+    "chapter": 10,
+    "verseNumber": "14",
+    "category": "pregacao"
+  },
+  {
+    "verseText": "E como pregarão, se não forem enviados? Como está escrito: Quão formosos os pés dos que anunciam a paz, dos que trazem alegres novas de boas coisas!",
+    "verseReference": "Romanos 10:15",
+    "bookName": "Romanos",
+    "chapter": 10,
+    "verseNumber": "15",
+    "category": "evangelismo"
+  },
+  {
+    "verseText": "Assim, a fé é pelo ouvir, e o ouvir pela palavra de Deus.",
+    "verseReference": "Romanos 10:17",
+    "bookName": "Romanos",
+    "chapter": 10,
+    "verseNumber": "17",
+    "category": "fe"
+  },
+  {
+    "verseText": "Porque não me envergonho do evangelho de Cristo, pois é o poder de Deus para salvação de todo aquele que crê.",
+    "verseReference": "Romanos 1:16a",
+    "bookName": "Romanos",
+    "chapter": 1,
+    "verseNumber": "16",
+    "category": "evangelho"
+  },
+  {
+    "verseText": "Porque a palavra da cruz é loucura para os que perecem; mas para nós, que somos salvos, é o poder de Deus.",
+    "verseReference": "1 Coríntios 1:18",
+    "bookName": "1 Coríntios",
+    "chapter": 1,
+    "verseNumber": "18",
+    "category": "cruz"
+  },
+  {
+    "verseText": "Mas nós pregamos a Cristo crucificado, que é escândalo para os judeus, e loucura para os gregos.",
+    "verseReference": "1 Coríntios 1:23",
+    "bookName": "1 Coríntios",
+    "chapter": 1,
+    "verseNumber": "23",
+    "category": "cristo"
+  },
+  {
+    "verseText": "Mas para os que são chamados, tanto judeus como gregos, lhes pregamos a Cristo, poder de Deus, e sabedoria de Deus.",
+    "verseReference": "1 Coríntios 1:24",
+    "bookName": "1 Coríntios",
+    "chapter": 1,
+    "verseNumber": "24",
+    "category": "sabedoria"
+  },
+  {
+    "verseText": "Porque as coisas loucas deste mundo escolheu Deus para confundir as sábias; e as coisas fracas deste mundo escolheu Deus para confundir as fortes.",
+    "verseReference": "1 Coríntios 1:27",
+    "bookName": "1 Coríntios",
+    "chapter": 1,
+    "verseNumber": "27",
+    "category": "escolha"
+  },
+  {
+    "verseText": "Para que a vossa fé não se apoiasse em sabedoria dos homens, mas no poder de Deus.",
+    "verseReference": "1 Coríntios 2:5",
+    "bookName": "1 Coríntios",
+    "chapter": 2,
+    "verseNumber": "5",
+    "category": "fe"
+  },
+  {
+    "verseText": "Mas, como está escrito: As coisas que o olho não viu, e o ouvido não ouviu, e não subiram ao coração do homem, são as que Deus preparou para os que o amam.",
+    "verseReference": "1 Coríntios 2:9",
+    "bookName": "1 Coríntios",
+    "chapter": 2,
+    "verseNumber": "9",
+    "category": "preparacao"
+  },
+  {
+    "verseText": "Porque quem dentre os homens sabe as coisas do homem, senão o espírito do homem, que nele está? Assim também ninguém sabe as coisas de Deus, senão o Espírito de Deus.",
+    "verseReference": "1 Coríntios 2:11",
+    "bookName": "1 Coríntios",
+    "chapter": 2,
+    "verseNumber": "11",
+    "category": "revelacao"
+  },
+  {
+    "verseText": "Ora, nós não recebemos o espírito do mundo, mas o Espírito que provém de Deus, para que pudéssemos conhecer o que nos é dado gratuitamente por Deus.",
+    "verseReference": "1 Coríntios 2:12",
+    "bookName": "1 Coríntios",
+    "chapter": 2,
+    "verseNumber": "12",
+    "category": "espirito_santo"
+  },
+  {
+    "verseText": "Ó profundidade das riquezas, tanto da sabedoria, como da ciência de Deus! Quão insondáveis são os seus juízos, e quão inescrutáveis os seus caminhos!",
+    "verseReference": "Romanos 11:33",
+    "bookName": "Romanos",
+    "chapter": 11,
+    "verseNumber": "33",
+    "category": "majestade"
+  },
+  {
+    "verseText": "Porque dele e por ele, e para ele, são todas as coisas; glória, pois, a ele eternamente. Amém.",
+    "verseReference": "Romanos 11:36",
+    "bookName": "Romanos",
+    "chapter": 11,
+    "verseNumber": "36",
+    "category": "gloria"
+  },
+  {
+    "verseText": "Rogo-vos, pois, irmãos, pela compaixão de Deus, que apresenteis os vossos corpos em sacrifício vivo, santo e agradável a Deus, que é o vosso culto racional.",
+    "verseReference": "Romanos 12:1",
+    "bookName": "Romanos",
+    "chapter": 12,
+    "verseNumber": "1",
+    "category": "consagracao"
+  },
+  {
+    "verseText": "E não sede conformados com este mundo, mas sede transformados pela renovação do vosso entendimento.",
+    "verseReference": "Romanos 12:2a",
+    "bookName": "Romanos",
+    "chapter": 12,
+    "verseNumber": "2",
+    "category": "transformacao"
+  }
+]
