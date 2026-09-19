@@ -9,6 +9,17 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "i.ytimg.com" },
     ],
   },
+  async redirects() {
+    // www -> domínio principal (uma única URL canônica para o Google)
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.imensageiradedeus.com.br" }],
+        destination: "https://imensageiradedeus.com.br/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

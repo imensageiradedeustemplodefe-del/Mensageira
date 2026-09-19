@@ -4,7 +4,7 @@ import { snake } from "@/lib/case";
 import { GalleryPage } from "@/components/pages/GalleryPage";
 import type { GalleryAlbum } from "@/types/database";
 
-export const metadata: Metadata = { title: "Galeria", description: "Momentos especiais da nossa comunidade em fotos." };
+export const metadata: Metadata = { title: "Galeria", description: "Fotos e vídeos dos cultos, Santa Ceia e eventos da Igreja Mensageira de Deus Templo de Fé em Caçador - SC." };
 
 // Álbuns renderizados no servidor para aparecerem imediatamente; revalidados a cada minuto.
 export const revalidate = 60;

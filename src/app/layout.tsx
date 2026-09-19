@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Roboto } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
+import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DESCRIPTION, KEYWORDS, churchJsonLd, websiteJsonLd } from "@/lib/seo";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -10,20 +11,28 @@ const roboto = Roboto({
   display: "swap",
 });
 
-const SITE_NAME = "Mensageira de Deus Templo de Fé";
-const DESCRIPTION =
-  "Venha fazer parte da nossa família de fé. Aqui você encontrará acolhimento, crescimento espiritual e uma comunidade que se importa com você.";
-
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: SITE_NAME,
+    default: DEFAULT_TITLE,
     template: `%s | ${SITE_NAME}`,
   },
   description: DESCRIPTION,
-  authors: [{ name: SITE_NAME }],
-  keywords: ["igreja evangélica", "culto ao vivo", "mensageira de deus", "templo de fé", "palavra de deus", "oração", "eventos cristãos"],
+  applicationName: SITE_NAME,
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  keywords: KEYWORDS,
+  category: "religion",
   manifest: "/manifest.json",
+  // "./" gera o canonical de cada página automaticamente (evita conteúdo duplicado www/sem www)
+  alternates: { canonical: "./" },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+  },
+  verification: process.env.GOOGLE_SITE_VERIFICATION ? { google: process.env.GOOGLE_SITE_VERIFICATION } : undefined,
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -33,14 +42,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: SITE_NAME,
-    title: SITE_NAME,
+    title: DEFAULT_TITLE,
     description: DESCRIPTION,
     url: "/",
     images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_NAME,
+    title: DEFAULT_TITLE,
     description: DESCRIPTION,
     images: ["/og-image.jpg"],
   },
@@ -58,23 +67,6 @@ export const viewport: Viewport = {
   ],
 };
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Church",
-  name: "Igreja Mensageira de Deus Templo de Fé",
-  description: DESCRIPTION,
-  logo: "https://imensageiradedeus.com.br/icons/icon-512.png",
-  url: "https://imensageiradedeus.com.br",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "R. Elias Biasi, 49 - Berger",
-    addressLocality: "Caçador",
-    addressRegion: "SC",
-    postalCode: "89500-000",
-    addressCountry: "BR",
-  },
-};
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning className={`${roboto.variable} h-full antialiased`}>
@@ -86,7 +78,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Pular para o conteúdo principal
         </a>
         <Providers>{children}</Providers>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(churchJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
       </body>
     </html>
   );
