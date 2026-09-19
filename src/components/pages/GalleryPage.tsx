@@ -12,7 +12,10 @@ import { api } from "@/lib/fetcher";
 import type { GalleryAlbum } from "@/types/database";
 
 const DATE_RE = /(\d{2})[.\-](\d{2})[.\-](\d{4})/;
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 20;
+
+// Miniaturas mais nítidas: o Apps Script devolve sz=w400; pedimos 800px para telas retina
+const hiResThumb = (url: string) => url.replace(/([?&]sz=)w\d+/, "$1w800");
 
 // Extrai data do nome do álbum (formato: DD.MM.AAAA ou DD-MM-AAAA)
 const extractDateFromAlbumName = (albumName: string): string => {
@@ -146,6 +149,39 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
     setPage(p);
   };
 
+  const pagination = selected && totalPages > 1 ? (
+          <nav className="flex flex-wrap items-center justify-center gap-1.5" aria-label="Paginação de fotos">
+            <Button variant="outline" size="sm" onClick={() => goToPage(page - 1)} disabled={page <= 1 || photosLoading}>
+              <ChevronLeft className="w-4 h-4 sm:mr-1" />
+              <span className="hidden sm:inline">Anterior</span>
+            </Button>
+            {pageRange(page, totalPages).map((p, i) =>
+              p === "…" ? (
+                <span key={`e${i}`} className="px-2 text-muted-foreground">
+                  …
+                </span>
+              ) : (
+                <Button
+                  key={p}
+                  variant={p === page ? "default" : "outline"}
+                  size="sm"
+                  className="min-w-[44px]"
+                  onClick={() => goToPage(p)}
+                  disabled={photosLoading}
+                  aria-current={p === page ? "page" : undefined}
+                >
+                  {p}
+                </Button>
+              )
+            )}
+            <Button variant="outline" size="sm" onClick={() => goToPage(page + 1)} disabled={page >= totalPages || photosLoading}>
+              <span className="hidden sm:inline">Próxima</span>
+              <ChevronRight className="w-4 h-4 sm:ml-1" />
+            </Button>
+            {photosLoading && <Loader2 className="w-4 h-4 ml-2 animate-spin text-primary" />}
+          </nav>
+  ) : null;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="relative py-16 md:py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10">
@@ -197,6 +233,8 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
             )}
           </div>
         )}
+
+        {selected && totalPages > 1 && <div className="mb-6">{pagination}</div>}
 
         {/* ---------- Lista de álbuns ---------- */}
         {!selected && albumsLoading && albums.length === 0 && (
@@ -287,10 +325,10 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
                 className="overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer"
                 onClick={() => handlePhotoClick(index)}
               >
-                <div className="relative h-48 md:h-64 overflow-hidden bg-muted">
+                <div className="relative aspect-[3/4] overflow-hidden bg-muted">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={photo.thumbUrl}
+                    src={hiResThumb(photo.thumbUrl)}
                     alt={photo.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     loading="lazy"
@@ -317,39 +355,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
           </div>
         )}
 
-        {/* ---------- Paginação ---------- */}
-        {selected && totalPages > 1 && (
-          <nav className="flex flex-wrap items-center justify-center gap-1.5" aria-label="Paginação de fotos">
-            <Button variant="outline" size="sm" onClick={() => goToPage(page - 1)} disabled={page <= 1 || photosLoading}>
-              <ChevronLeft className="w-4 h-4 sm:mr-1" />
-              <span className="hidden sm:inline">Anterior</span>
-            </Button>
-            {pageRange(page, totalPages).map((p, i) =>
-              p === "…" ? (
-                <span key={`e${i}`} className="px-2 text-muted-foreground">
-                  …
-                </span>
-              ) : (
-                <Button
-                  key={p}
-                  variant={p === page ? "default" : "outline"}
-                  size="sm"
-                  className="min-w-[44px]"
-                  onClick={() => goToPage(p)}
-                  disabled={photosLoading}
-                  aria-current={p === page ? "page" : undefined}
-                >
-                  {p}
-                </Button>
-              )
-            )}
-            <Button variant="outline" size="sm" onClick={() => goToPage(page + 1)} disabled={page >= totalPages || photosLoading}>
-              <span className="hidden sm:inline">Próxima</span>
-              <ChevronRight className="w-4 h-4 sm:ml-1" />
-            </Button>
-            {photosLoading && <Loader2 className="w-4 h-4 ml-2 animate-spin text-primary" />}
-          </nav>
-        )}
+        {selected && totalPages > 1 && <div className="mt-4">{pagination}</div>}
 
         {!selected && albums.length > 0 && (
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">

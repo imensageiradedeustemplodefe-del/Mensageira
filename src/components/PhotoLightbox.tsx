@@ -185,7 +185,7 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-7xl w-full h-[90vh] p-0 gap-0 bg-black/98 backdrop-blur-sm [&>button]:hidden">
+      <DialogContent className="max-w-[96vw] sm:max-w-7xl w-full h-[92vh] p-0 gap-0 overflow-hidden bg-black/98 backdrop-blur-sm [&>button]:hidden">
         <VisuallyHidden.Root>
           <DialogTitle>Visualizador de Foto</DialogTitle>
           <DialogDescription>
@@ -207,13 +207,13 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
           </div>
         </div>
 
-        <div className="relative w-full h-full flex items-center justify-center p-16">
+        <div className="absolute inset-0 flex items-center justify-center px-2 pt-16 pb-28 sm:px-16 sm:pt-20 sm:pb-32">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             key={currentPhoto.id}
             src={fullSizeImageUrl}
             alt={currentPhoto.name}
-            className="max-w-full max-h-full object-contain animate-fade-in"
+            className="block w-auto h-auto max-w-full max-h-full object-contain animate-fade-in select-none"
             loading="eager"
             onError={(e) => {
               // Tenta a próxima fonte quando a atual falha
