@@ -42,13 +42,17 @@ export const POST = handler(async () => {
       isPublished: true,
       description: `Álbum sincronizado do Google Drive${dateMatch ? ` - ${dateMatch[0]}` : ""}`,
       driveFolderId: album.id,
+      photoCount: typeof album.photoCount === "number" ? album.photoCount : null,
     };
 
     const existing = await prisma.galleryAlbum.findFirst({ where: { name: album.name } });
 
     if (existing) {
       const shouldUpdate =
-        existing.coverPhotoUrl !== (album.coverUrl || null) || !existing.driveFolderId || existing.driveFolderId !== album.id;
+        existing.coverPhotoUrl !== (album.coverUrl || null) ||
+        !existing.driveFolderId ||
+        existing.driveFolderId !== album.id ||
+        existing.photoCount !== (albumData.photoCount ?? null);
       if (shouldUpdate) {
         await prisma.galleryAlbum.update({ where: { id: existing.id }, data: albumData });
         updated++;

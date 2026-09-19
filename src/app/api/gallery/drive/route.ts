@@ -15,7 +15,7 @@ export const GET = handler(async (req) => {
     if (v) params.set(key, v);
   }
 
-  const res = await fetch(`${scriptUrl}?${params.toString()}`, { next: { revalidate: 300 } });
+  const res = await fetch(`${scriptUrl}?${params.toString()}`, { next: { revalidate: 3600 } });
   if (!res.ok) return error("Erro ao buscar dados do Google Drive", 502);
   const data = await res.json();
   return json({ configured: true, ...data });

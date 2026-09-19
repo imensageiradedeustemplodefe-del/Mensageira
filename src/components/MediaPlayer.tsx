@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Radio, RefreshCw, AlertTriangle, Volume2 } from "lucide-react";
+import { Play, Pause, Radio, RefreshCw, AlertTriangle, Volume2, ChevronDown, ChevronUp, ListMusic } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAudio, getMediaType, type AudioMediaItem } from "@/contexts/AudioContext";
 import { api } from "@/lib/fetcher";
@@ -16,6 +16,7 @@ export function MediaPlayer() {
   const [isRetrying, setIsRetrying] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [pendingPlay, setPendingPlay] = useState(false);
+  const [showStations, setShowStations] = useState(false);
 
   const { currentMedia, isPlaying, error, loading: audioLoading, play, pause, loadMedia, clearError } = useAudio();
 
@@ -87,6 +88,7 @@ export function MediaPlayer() {
     setRetryCount(0);
     setSelected(radio);
     if (wasPlaying) setPendingPlay(true);
+    setShowStations(false);
   };
 
   const manualRetry = () => {
@@ -211,12 +213,27 @@ export function MediaPlayer() {
         </div>
 
         {radios.length > 1 && (
-          <div className="mt-6">
-            <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center">
-              <Volume2 className="w-4 h-4 mr-2 text-primary" />
-              Outras estações
-            </h5>
-            <div className="grid sm:grid-cols-2 gap-2">
+          <div className="mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowStations((v) => !v)}
+              aria-expanded={showStations}
+              className="w-full justify-between border-primary/30 text-foreground hover:bg-primary/10"
+            >
+              <span className="flex items-center">
+                <ListMusic className="w-4 h-4 mr-2 text-primary" />
+                {showStations ? "Ocultar estações" : `Trocar estação (${radios.length} disponíveis)`}
+              </span>
+              {showStations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+            <div
+              className={`grid sm:grid-cols-2 gap-2 overflow-hidden transition-all duration-300 ${
+                showStations ? "mt-3 max-h-[1200px] opacity-100" : "max-h-0 opacity-0"
+              }`}
+              aria-hidden={!showStations}
+            >
               {radios.map((radio) => {
                 const active = radio.id === selected.id;
                 return (

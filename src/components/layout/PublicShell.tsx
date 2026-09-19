@@ -7,6 +7,7 @@ import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { GlobalAudioPlayer } from "@/components/GlobalAudioPlayer";
 import { UpdateNotification } from "@/components/UpdateNotification";
 import { SplashScreen } from "@/components/SplashScreen";
+import { PushPrompt } from "@/components/PushPrompt";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Public site chrome: header, bottom nav (mobile), footer (desktop), floating player, splash.
@@ -25,6 +26,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
       {isMobile && <MobileBottomNav />}
       <GlobalAudioPlayer />
       <UpdateNotification />
+      {!showSplash && <PushPrompt />}
     </div>
   );
 }

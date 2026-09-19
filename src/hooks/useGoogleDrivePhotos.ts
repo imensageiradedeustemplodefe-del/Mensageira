@@ -17,49 +17,45 @@ interface DriveGalleryData {
   items: DrivePhoto[];
 }
 
-// Lists photos of a Drive folder through the server-side proxy (/api/gallery/drive).
+// Lists the photos of a Drive folder, one page at a time, through the server proxy (/api/gallery/drive).
+// The Apps Script pageToken is a numeric offset, so page N starts at (N-1) * pageSize.
 export const useGoogleDrivePhotos = (
   albumId?: string | null,
   pageSize: number = 24,
-  order: "newest" | "oldest" | "name" = "newest"
+  order: "newest" | "oldest" | "name" = "newest",
+  page: number = 1
 ) => {
   const [photos, setPhotos] = useState<DrivePhoto[]>([]);
-  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPhotos = useCallback(
-    async (pageToken?: string) => {
-      if (!albumId) return;
-      try {
-        setLoading(true);
-        setError(null);
-        const params = new URLSearchParams({ album: albumId, pageSize: String(pageSize), order });
-        if (pageToken) params.set("pageToken", pageToken);
-        const res = await fetch(`/api/gallery/drive?${params}`);
-        if (!res.ok) throw new Error("Erro ao buscar fotos do Google Drive");
-        const data: DriveGalleryData = await res.json();
-        setPhotos((prev) => (pageToken ? [...prev, ...(data.items ?? [])] : data.items ?? []));
-        setNextPageToken(data.nextPageToken ?? null);
-      } catch (err) {
-        console.error("Erro ao buscar fotos:", err);
-        setError(err instanceof Error ? err.message : "Erro desconhecido");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [albumId, pageSize, order]
-  );
+  const fetchPhotos = useCallback(async () => {
+    if (!albumId) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const params = new URLSearchParams({ album: albumId, pageSize: String(pageSize), order });
+      const offset = (page - 1) * pageSize;
+      if (offset > 0) params.set("pageToken", String(offset));
+      const res = await fetch(`/api/gallery/drive?${params}`);
+      if (!res.ok) throw new Error("Erro ao buscar fotos do Google Drive");
+      const data: DriveGalleryData = await res.json();
+      setPhotos(data.items ?? []);
+      setHasMore(!!data.nextPageToken);
+    } catch (err) {
+      console.error("Erro ao buscar fotos:", err);
+      setError(err instanceof Error ? err.message : "Erro desconhecido");
+    } finally {
+      setLoading(false);
+    }
+  }, [albumId, pageSize, order, page]);
 
   useEffect(() => {
     setPhotos([]);
-    setNextPageToken(null);
+    setHasMore(false);
     if (albumId) fetchPhotos();
   }, [albumId, fetchPhotos]);
 
-  const loadMore = () => {
-    if (nextPageToken && !loading) fetchPhotos(nextPageToken);
-  };
-
-  return { photos, loading, error, hasMore: !!nextPageToken, loadMore, refetch: () => fetchPhotos() };
+  return { photos, loading, error, hasMore, refetch: fetchPhotos };
 };

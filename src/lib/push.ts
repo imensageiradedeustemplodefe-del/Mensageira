@@ -31,7 +31,7 @@ export async function sendPushToAll(payload: PushPayload) {
       try {
         await webpush.sendNotification(
           { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-          JSON.stringify({ icon: "/icons/icon-192.png", ...payload })
+          JSON.stringify({ icon: "/icons/notification-192.png", ...payload })
         );
         sent++;
       } catch (err: unknown) {

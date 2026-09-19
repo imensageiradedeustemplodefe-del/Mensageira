@@ -32,8 +32,12 @@ export async function syncEventRegistrations(eventId: string) {
     }),
   });
 
-  if (!res.ok) throw new Error(`Apps Script error: ${await res.text()}`);
-  const result = await res.json();
+  if (!res.ok) throw new Error(`Apps Script respondeu ${res.status}. Verifique se a implantação está com acesso "Qualquer pessoa".`);
+  const text = await res.text();
+  if (text.trimStart().startsWith("<")) {
+    throw new Error("O Apps Script de inscrições exigiu login do Google. Reimplante o script com acesso: Qualquer pessoa.");
+  }
+  const result = JSON.parse(text);
   if (!result.success) throw new Error(result.error || "Apps Script returned error");
 
   await prisma.eventRegistration.updateMany({

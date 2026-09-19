@@ -135,26 +135,18 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose, handlePrevious, handleNext]);
 
-  const handleDownload = async () => {
-    try {
-      toast.success("Preparando download...");
-      const response = await fetch(`https://lh3.googleusercontent.com/d/${currentPhoto.id}=s0`);
-      if (!response.ok) throw new Error("Falha ao baixar imagem");
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = currentPhoto.name || "foto.jpg";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      toast.success("Download concluído!");
-    } catch (error) {
-      console.error("Download error:", error);
-      toast.error("Não foi possível baixar a foto. Abrindo em nova aba...");
-      window.open(`https://drive.google.com/file/d/${currentPhoto.id}/view`, "_blank");
-    }
+  const handleDownload = () => {
+    // Link de download do Drive (arquivo original). O navegador baixa direto; se bloquear, abre em nova aba.
+    const url = `https://drive.google.com/uc?id=${currentPhoto.id}&export=download`;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = currentPhoto.name || "foto.jpg";
+    link.rel = "noopener";
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Download iniciado!");
   };
 
   const handleShareWhatsApp = () => {
@@ -174,7 +166,13 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
 
   if (!currentPhoto) return null;
 
-  const fullSizeImageUrl = `https://lh3.googleusercontent.com/d/${currentPhoto.id}=s0`;
+  // Fontes em ordem de preferência (todas em resolução total; a primeira usa o mesmo host das miniaturas)
+  const imageSources = [
+    `https://drive.google.com/thumbnail?id=${currentPhoto.id}&sz=w2560`,
+    `https://lh3.googleusercontent.com/d/${currentPhoto.id}=s0`,
+    currentPhoto.viewUrl || `https://drive.google.com/uc?id=${currentPhoto.id}&export=view`,
+  ];
+  const fullSizeImageUrl = imageSources[0];
 
   const reactionButtons: { type: ReactionType; title: string; icon: React.ReactNode }[] = [
     { type: "love", title: "Amei", icon: <Heart className={`w-4 h-4 ${userReaction === "love" ? "fill-red-500 text-red-500" : ""}`} /> },
@@ -212,15 +210,18 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
         <div className="relative w-full h-full flex items-center justify-center p-16">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
+            key={currentPhoto.id}
             src={fullSizeImageUrl}
             alt={currentPhoto.name}
             className="max-w-full max-h-full object-contain animate-fade-in"
             loading="eager"
             onError={(e) => {
+              // Tenta a próxima fonte quando a atual falha
               const target = e.target as HTMLImageElement;
-              if (!target.dataset.fallback) {
-                target.dataset.fallback = "true";
-                target.src = currentPhoto.viewUrl || `https://drive.google.com/thumbnail?id=${currentPhoto.id}&sz=w1920`;
+              const idx = Number(target.dataset.fallback ?? 0) + 1;
+              if (idx < imageSources.length) {
+                target.dataset.fallback = String(idx);
+                target.src = imageSources[idx];
               }
             }}
           />

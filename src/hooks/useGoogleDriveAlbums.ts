@@ -48,10 +48,15 @@ export const useGoogleDriveAlbums = (enabled: string | null) => {
   return { albums, loading, error, refetch: fetchAlbums };
 };
 
-// Same signature as the original hook: (scriptUrl, albumId, pageSize, order)
+// Same signature as the original hook: (scriptUrl, albumId, pageSize, order). loadMore advances one page.
 export const useGoogleDrivePhotos = (
   enabled: string | null,
   albumId?: string,
   pageSize: number = 24,
   order: "newest" | "oldest" | "name" = "newest"
-) => usePhotos(enabled ? albumId ?? null : null, pageSize, order);
+) => {
+  const [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [albumId]);
+  const result = usePhotos(enabled ? albumId ?? null : null, pageSize, order, page);
+  return { ...result, page, setPage, loadMore: () => result.hasMore && setPage((p) => p + 1) };
+};

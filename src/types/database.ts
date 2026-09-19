@@ -149,6 +149,7 @@ export interface GalleryAlbum {
   cover_photo_url: string | null;
   event_date: string | null;
   drive_folder_id: string | null;
+  photo_count: number | null;
   is_published: boolean;
   created_at: string;
   updated_at: string;
