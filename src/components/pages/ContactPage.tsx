@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { api } from "@/lib/fetcher";
 
 const DEFAULT_EMAIL = "imensageiradedeustemplodefe@gmail.com";
 const DEFAULT_ADDRESS = "R. Elias Biasi, 49 - Berger, Caçador - SC, 89500-000";
@@ -21,26 +22,28 @@ export function ContactPage() {
   const email = settings.contact_email_secretary || settings.church_email || DEFAULT_EMAIL;
   const address = settings.contact_address_full || settings.church_address || DEFAULT_ADDRESS;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [sending, setSending] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const subject = encodeURIComponent(`Mensagem do site: ${formData.subject}`);
-    const body = encodeURIComponent(
-      `Nome: ${formData.name}\n` +
-        `E-mail: ${formData.email}\n` +
-        `Telefone: ${formData.phone || "Não informado"}\n` +
-        `Assunto: ${formData.subject}\n\n` +
-        `Mensagem:\n${formData.message}`
-    );
-
-    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-
-    toast({
-      title: "Cliente de E-mail Aberto!",
-      description: "Seu cliente de e-mail foi aberto com a mensagem preenchida. Complete o envio por lá.",
-    });
-
-    setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    setSending(true);
+    try {
+      await api("/api/contact", { method: "POST", json: formData });
+      toast({
+        title: "Mensagem enviada!",
+        description: "Recebemos sua mensagem. Nossa equipe entrará em contato em breve.",
+      });
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error);
+      toast({
+        title: "Não foi possível enviar",
+        description: `Tente novamente ou escreva para ${email}.`,
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -137,9 +140,9 @@ export function ContactPage() {
                       <Textarea id="message" name="message" value={formData.message} onChange={handleInputChange} required rows={5} placeholder="Digite sua mensagem aqui..." />
                     </div>
 
-                    <Button type="submit" size="lg" className="w-full">
+                    <Button type="submit" size="lg" className="w-full" disabled={sending}>
                       <Send className="w-4 h-4 mr-2" />
-                      Enviar Mensagem
+                      {sending ? "Enviando..." : "Enviar Mensagem"}
                     </Button>
                   </form>
                 </CardContent>

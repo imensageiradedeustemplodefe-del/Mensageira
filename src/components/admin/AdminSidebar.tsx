@@ -19,7 +19,8 @@ import {
   Users,
 
   Zap,
-  Home
+  Home,
+  Inbox
 } from "lucide-react";
 import {
   Sidebar,
@@ -82,6 +83,7 @@ const menuItems = [
     defaultOpen: false,
     items: [
       { title: "Pedidos de Oração", value: "prayers", icon: Heart, description: "Orações recebidas" },
+      { title: "Mensagens", value: "contact", icon: Inbox, description: "Formulário de contato" },
       { title: "Testemunhos", value: "testimonies", icon: MessageCircle, description: "Histórias de fé" },
       { title: "Notificações", value: "notifications", icon: Bell, description: "Notificações personalizadas" },
     ]

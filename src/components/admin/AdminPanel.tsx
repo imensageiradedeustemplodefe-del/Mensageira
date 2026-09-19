@@ -19,6 +19,7 @@ import { TestimoniesManager } from "@/components/admin/TestimoniesManager";
 import { GoogleDriveManager } from "@/components/admin/GoogleDriveManager";
 import { MediaManager } from "@/components/admin/MediaManager";
 import PrayerRequestsManager from "@/components/admin/PrayerRequestsManager";
+import { ContactMessagesManager } from "@/components/admin/ContactMessagesManager";
 import EventsManager from "@/components/admin/EventsManager";
 import EventTemplatesManager from "@/components/admin/EventTemplatesManager";
 import LiveStreamsManager from "@/components/admin/LiveStreamsManager";
@@ -33,6 +34,7 @@ const TITLES: Record<string, string> = {
   events: "Gerenciar Eventos",
   templates: "Modelos de Eventos",
   prayers: "Pedidos de Oração",
+  contact: "Mensagens de Contato",
   live: "Transmissões ao Vivo",
   notifications: "Notificações Personalizadas",
   settings: "Configurações do Site",
@@ -46,6 +48,7 @@ const DESCRIPTIONS: Record<string, string> = {
   events: "Crie e publique eventos da igreja",
   templates: "Crie modelos reutilizáveis para eventos",
   prayers: "Gerencie os pedidos de oração recebidos",
+  contact: "Mensagens enviadas pelo formulário da página Contato",
   live: "Configure transmissões ao vivo",
   notifications: "Envie notificações personalizadas aos usuários",
   settings: "Textos, contatos, horários e integrações",
@@ -108,6 +111,7 @@ export function AdminPanel() {
                 {activeTab === "events" && <EventsManager />}
                 {activeTab === "templates" && <EventTemplatesManager />}
                 {activeTab === "prayers" && <PrayerRequestsManager />}
+                {activeTab === "contact" && <ContactMessagesManager />}
                 {activeTab === "live" && <LiveStreamsManager />}
                 {activeTab === "notifications" && <CustomNotificationsManager />}
                 {activeTab === "settings" && <SiteSettingsManager />}

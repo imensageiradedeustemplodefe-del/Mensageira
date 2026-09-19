@@ -41,6 +41,17 @@ export const prayers = {
   list: { orderBy: { createdAt: "desc" } },
 };
 
+// ---------- Contact messages ----------
+export const contactMessages = {
+  delegate: prisma.contactMessage,
+  createSchema: z.object({}),
+  updateSchema: z.object({
+    is_read: z.boolean().optional(),
+    read_at: optionalDate,
+  }),
+  list: { orderBy: { createdAt: "desc" } },
+};
+
 // ---------- Events ----------
 const eventBase = z.object({
   title: z.string().trim().min(2).max(200),
