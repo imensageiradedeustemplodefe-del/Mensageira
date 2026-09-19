@@ -85,7 +85,9 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
     driveFolderId: album.drive_folder_id || null,
   }));
 
-  const { photos, loading: photosLoading, hasMore } = useGoogleDrivePhotos(selected?.driveFolderId, PAGE_SIZE, "name", page);
+  // A capa (CAPA_001) é o primeiro arquivo por nome; pulamos esse item para que cada página tenha PAGE_SIZE fotos de verdade
+  const selectedCoverId = selected?.coverUrl ? getCoverPhotoId(selected.coverUrl) : null;
+  const { photos, loading: photosLoading, hasMore } = useGoogleDrivePhotos(selected?.driveFolderId, PAGE_SIZE, "name", page, selectedCoverId ? 1 : 0);
 
   const filteredAlbums = useMemo(
     () =>
@@ -129,7 +131,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
     setPage(1);
   };
 
-  const coverPhotoId = selected?.coverUrl ? getCoverPhotoId(selected.coverUrl) : null;
+  const coverPhotoId = selectedCoverId;
   const filteredPhotos = coverPhotoId ? photos.filter((photo) => coverPhotoId !== photo.id) : photos;
 
   // Total de páginas: usa a contagem do Drive quando conhecida (descontando a capa)

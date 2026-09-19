@@ -18,12 +18,14 @@ interface DriveGalleryData {
 }
 
 // Lists the photos of a Drive folder, one page at a time, through the server proxy (/api/gallery/drive).
-// The Apps Script pageToken is a numeric offset, so page N starts at (N-1) * pageSize.
+// The Apps Script pageToken is a numeric offset, so page N starts at skip + (N-1) * pageSize.
+// `skip` lets the caller leave out leading items (e.g. the album cover, which is the first file by name).
 export const useGoogleDrivePhotos = (
   albumId?: string | null,
   pageSize: number = 24,
   order: "newest" | "oldest" | "name" = "newest",
-  page: number = 1
+  page: number = 1,
+  skip: number = 0
 ) => {
   const [photos, setPhotos] = useState<DrivePhoto[]>([]);
   const [hasMore, setHasMore] = useState(false);
@@ -36,7 +38,7 @@ export const useGoogleDrivePhotos = (
       setLoading(true);
       setError(null);
       const params = new URLSearchParams({ album: albumId, pageSize: String(pageSize), order });
-      const offset = (page - 1) * pageSize;
+      const offset = skip + (page - 1) * pageSize;
       if (offset > 0) params.set("pageToken", String(offset));
       const res = await fetch(`/api/gallery/drive?${params}`);
       if (!res.ok) throw new Error("Erro ao buscar fotos do Google Drive");
@@ -49,7 +51,7 @@ export const useGoogleDrivePhotos = (
     } finally {
       setLoading(false);
     }
-  }, [albumId, pageSize, order, page]);
+  }, [albumId, pageSize, order, page, skip]);
 
   useEffect(() => {
     setPhotos([]);
