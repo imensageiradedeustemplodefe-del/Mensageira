@@ -81,6 +81,8 @@ export function itemRoutes<C, U>(opts: CrudOptions<C, U>) {
   const DELETE = handler(async (_req, ctx: Ctx) => {
     await requireAdmin();
     const id = await param(ctx, "id");
+    const existing = await opts.delegate.findUnique({ where: { id } });
+    if (!existing) return error("Registro não encontrado", 404);
     await opts.delegate.delete({ where: { id } });
     return json({ success: true });
   });
