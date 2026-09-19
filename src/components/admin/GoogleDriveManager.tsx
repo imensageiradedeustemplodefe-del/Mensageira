@@ -177,9 +177,9 @@ export function GoogleDriveManager() {
                   <li>Acesse <a href="https://script.google.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
                     Google Apps Script <ExternalLink className="w-3 h-3" />
                   </a></li>
-                  <li>Crie um novo projeto e cole o código do script fornecido pelo ChatGPT</li>
+                  <li>Crie um novo projeto e cole o código do arquivo <code className="bg-background px-1 py-0.5 rounded">google-apps-script/GalleryDrive.gs</code> (lista fotos e vídeos)</li>
                   <li>No código, altere o <code className="bg-background px-1 py-0.5 rounded">FOLDER_ID</code> para o ID da sua pasta principal do Drive</li>
-                  <li>Ative os "Serviços Avançados" → Drive API (v2 ou v3)</li>
+                  <li>A pasta principal deve estar compartilhada como "Qualquer pessoa com o link"</li>
                   <li>Implante como "Web app" com acesso "Qualquer pessoa"</li>
                   <li>Copie a URL gerada e cole abaixo</li>
                 </ol>

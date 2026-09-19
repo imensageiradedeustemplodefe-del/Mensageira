@@ -14,7 +14,13 @@ interface Photo {
   thumbUrl: string;
   viewUrl: string;
   createdTime: string;
+  mimeType?: string;
 }
+
+const isVideo = (p: Photo) =>
+  (p.mimeType ?? "").startsWith("video/") || /\.(mp4|mov|m4v|avi|mkv|webm|3gp|wmv)$/i.test(p.name);
+
+const stripExt = (name: string) => name.replace(/\.(jpg|jpeg|png|gif|webp|heic|mp4|mov|m4v|avi|mkv|webm|3gp|wmv)$/i, "");
 
 interface PhotoLightboxProps {
   photos: Photo[];
@@ -146,11 +152,11 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("Download iniciado!");
+    toast.success(video ? "Download do vídeo iniciado!" : "Download iniciado!");
   };
 
   const handleShareWhatsApp = () => {
-    const text = `Confira esta foto: ${currentPhoto.name}`;
+    const text = `${video ? "Confira este vídeo" : "Confira esta foto"}: ${stripExt(currentPhoto.name)}`;
     const url = encodeURIComponent(window.location.href);
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}%20${url}`, "_blank");
   };
@@ -173,6 +179,7 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
     currentPhoto.viewUrl || `https://drive.google.com/uc?id=${currentPhoto.id}&export=view`,
   ];
   const fullSizeImageUrl = imageSources[0];
+  const video = isVideo(currentPhoto);
 
   const reactionButtons: { type: ReactionType; title: string; icon: React.ReactNode }[] = [
     { type: "love", title: "Amei", icon: <Heart className={`w-4 h-4 ${userReaction === "love" ? "fill-red-500 text-red-500" : ""}`} /> },
@@ -197,7 +204,7 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
           <div className="flex items-center justify-between">
             <div className="text-white">
               <h3 className="font-semibold text-lg truncate max-w-md">
-                {currentPhoto.name.replace(/\.(jpg|jpeg|png|gif|webp)$/i, "")}
+                {stripExt(currentPhoto.name)}
               </h3>
               {albumDate && <p className="text-sm text-white/70">{albumDate}</p>}
             </div>
@@ -208,7 +215,18 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
         </div>
 
         <div className="absolute inset-0 flex items-center justify-center px-2 pt-16 pb-28 sm:px-16 sm:pt-20 sm:pb-32">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {video ? (
+            // Player do Google Drive (funciona para qualquer formato que o Drive consiga reproduzir)
+            <iframe
+              key={currentPhoto.id}
+              src={`https://drive.google.com/file/d/${currentPhoto.id}/preview`}
+              title={currentPhoto.name}
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full max-w-5xl rounded-lg bg-black animate-fade-in"
+            />
+          ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             key={currentPhoto.id}
             src={fullSizeImageUrl}
@@ -225,6 +243,7 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
               }
             }}
           />
+          )}
         </div>
 
         {photos.length > 1 && (
@@ -281,7 +300,7 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
                 <Button variant="ghost" size="icon" onClick={handleCopyLink} className="text-white hover:bg-white/20" title="Copiar link">
                   <Share2 className="w-5 h-5" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleDownload} className="text-white hover:bg-white/20" title="Baixar foto">
+                <Button variant="ghost" size="icon" onClick={handleDownload} className="text-white hover:bg-white/20" title={video ? "Baixar vídeo" : "Baixar foto"}>
                   <Download className="w-5 h-5" />
                 </Button>
               </div>

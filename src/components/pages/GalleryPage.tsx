@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Camera, Calendar, Image as ImageIcon, FolderOpen, ArrowLeft, Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Camera, Calendar, Image as ImageIcon, FolderOpen, ArrowLeft, Loader2, Search, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,11 @@ const PAGE_SIZE = 20;
 
 // Miniaturas mais nítidas: o Apps Script devolve sz=w400; pedimos 800px para telas retina
 const hiResThumb = (url: string) => url.replace(/([?&]sz=)w\d+/, "$1w800");
+
+const isVideo = (mimeType?: string, name?: string) =>
+  (mimeType ?? "").startsWith("video/") || /\.(mp4|mov|m4v|avi|mkv|webm|3gp|wmv)$/i.test(name ?? "");
+
+const stripExt = (name: string) => name.replace(/\.(jpg|jpeg|png|gif|webp|heic|mp4|mov|m4v|avi|mkv|webm|3gp|wmv)$/i, "");
 
 // Extrai data do nome do álbum (formato: DD.MM.AAAA ou DD-MM-AAAA)
 const extractDateFromAlbumName = (albumName: string): string => {
@@ -335,9 +340,21 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     loading="lazy"
                   />
+                  {isVideo(photo.mimeType, photo.name) && (
+                    <>
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/35 transition-colors">
+                        <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center shadow-lg">
+                          <Play className="w-7 h-7 text-primary ml-1" fill="currentColor" />
+                        </div>
+                      </div>
+                      <span className="absolute top-2 left-2 rounded-full bg-black/70 text-white text-[11px] font-medium px-2 py-0.5">
+                        Vídeo
+                      </span>
+                    </>
+                  )}
                 </div>
                 <CardContent className="p-3">
-                  <h3 className="font-medium text-sm truncate">{photo.name.replace(/\.(jpg|jpeg|png|gif|webp)$/i, "")}</h3>
+                  <h3 className="font-medium text-sm truncate">{stripExt(photo.name)}</h3>
                   {selected.date && (
                     <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                       <Calendar className="w-3 h-3" />
