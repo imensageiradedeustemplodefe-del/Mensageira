@@ -68,7 +68,7 @@ export function usePushSubscription() {
         (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(vapidKey) }));
       await api("/api/push/subscribe", { method: "POST", json: { user_id: getPushUserId(), subscription: sub.toJSON() } });
       setIsEnabled(true);
-      toast.success("Notificações ativadas! Você receberá avisos mesmo com o app fechado.");
+      toast.success("Notificações ativadas! Enviamos uma mensagem de teste para você.");
       return true;
     } catch (err) {
       console.error(err);

@@ -17,6 +17,31 @@ function configured() {
   return true;
 }
 
+interface Sub {
+  id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}
+
+/** Sends a push notification to a single subscription. Returns false (and deactivates it) if the endpoint is dead. */
+export async function sendPushTo(sub: Sub, payload: PushPayload) {
+  if (!configured()) return false;
+  try {
+    await webpush.sendNotification(
+      { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+      JSON.stringify({ icon: "/icons/notification-192.png", ...payload })
+    );
+    return true;
+  } catch (err: unknown) {
+    const status = (err as { statusCode?: number }).statusCode;
+    if (status === 404 || status === 410) {
+      await prisma.pushSubscription.updateMany({ where: { id: sub.id }, data: { isActive: false } });
+    }
+    return false;
+  }
+}
+
 /** Sends a push notification to every active subscription; prunes dead ones. */
 export async function sendPushToAll(payload: PushPayload) {
   if (!configured()) return { sent: 0, failed: 0, skipped: true };
