@@ -119,7 +119,7 @@ self.addEventListener('message', (event) => {
 
 // Notificações push
 self.addEventListener('push', (event) => {
-  let data = { title: 'Mensageira de Deus', body: '', url: '/', icon: '/images/logo-icon.png' };
+  let data = { title: 'Mensageira de Deus', body: '', url: '/', icon: '/icons/icon-192.png' };
   try {
     if (event.data) data = { ...data, ...event.data.json() };
   } catch {
@@ -129,8 +129,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: data.icon || '/images/logo-icon.png',
-      badge: '/images/logo-icon.png',
+      icon: data.icon || '/icons/icon-192.png',
+      badge: '/icons/icon-96.png',
       tag: data.tag,
       data: { url: data.url || '/' },
     })

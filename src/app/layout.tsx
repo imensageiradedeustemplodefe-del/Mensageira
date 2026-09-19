@@ -24,10 +24,6 @@ export const metadata: Metadata = {
   authors: [{ name: SITE_NAME }],
   keywords: ["igreja evangélica", "culto ao vivo", "mensageira de deus", "templo de fé", "palavra de deus", "oração", "eventos cristãos"],
   manifest: "/manifest.json",
-  icons: {
-    icon: "/images/logo-icon.png",
-    apple: "/images/logo-icon.png",
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -39,13 +35,14 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: SITE_NAME,
     description: DESCRIPTION,
-    images: ["/images/logo-icon.png"],
+    url: "/",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: DESCRIPTION,
-    images: ["/images/logo-icon.png"],
+    images: ["/og-image.jpg"],
   },
 };
 
@@ -66,7 +63,8 @@ const jsonLd = {
   "@type": "Church",
   name: "Igreja Mensageira de Deus Templo de Fé",
   description: DESCRIPTION,
-  logo: "/images/logo-icon.png",
+  logo: "https://imensageiradedeus.com.br/icons/icon-512.png",
+  url: "https://imensageiradedeus.com.br",
   address: {
     "@type": "PostalAddress",
     streetAddress: "R. Elias Biasi, 49 - Berger",
