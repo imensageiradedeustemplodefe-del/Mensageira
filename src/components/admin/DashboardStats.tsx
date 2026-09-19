@@ -361,7 +361,7 @@ const DashboardStats = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))", borderRadius: 8, color: "hsl(var(--popover-foreground))" }} labelStyle={{ color: "hsl(var(--popover-foreground))" }} itemStyle={{ color: "hsl(var(--popover-foreground))" }} />
                   <Legend />
                   <Line type="monotone" dataKey="testimonies" stroke="#8884d8" name="Testemunhos" strokeWidth={2} />
                   <Line type="monotone" dataKey="prayers" stroke="#82ca9d" name="Orações" strokeWidth={2} />
@@ -406,7 +406,7 @@ const DashboardStats = () => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`${value} itens`, 'Quantidade']} />
+                  <Tooltip contentStyle={{ backgroundColor: "hsl(var(--popover))", borderColor: "hsl(var(--border))", borderRadius: 8, color: "hsl(var(--popover-foreground))" }} labelStyle={{ color: "hsl(var(--popover-foreground))" }} itemStyle={{ color: "hsl(var(--popover-foreground))" }} formatter={(value) => [`${value} itens`, 'Quantidade']} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (

@@ -45,3 +45,6 @@ src/generated/
 # local
 .claude/
 !.env.example
+
+.vercel
+.env*
