@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, MapPin, Clock, Users, UserPlus } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, UserPlus, CalendarDays } from "lucide-react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,7 @@ const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export function EventsPage() {
   const [query, setQuery] = useState("");
+  const [month, setMonth] = useState<string>("all"); // "all" | "yyyy-MM"
   const { data: events = [], isLoading: loading } = useQuery({
     queryKey: ["events", "public"],
     queryFn: () => api<Event[]>("/api/events"),
@@ -43,15 +44,31 @@ export function EventsPage() {
 
   const isEventPast = (eventDate: string) => isBefore(new Date(eventDate), startOfDay(new Date()));
 
+  // Meses disponíveis (com eventos), em ordem cronológica
+  const months = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const e of events) {
+      const d = new Date(e.event_date);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      if (!map.has(key)) map.set(key, format(d, "MMM yyyy", { locale: ptBR }));
+    }
+    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, label]) => ({ key, label: label.charAt(0).toUpperCase() + label.slice(1) }));
+  }, [events]);
+
+  const byMonth = month === "all" ? events : events.filter((e) => {
+    const d = new Date(e.event_date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}` === month;
+  });
+
   const filteredEvents = query.trim()
-    ? events.filter(
+    ? byMonth.filter(
         (event) =>
           event.title.toLowerCase().includes(query.toLowerCase()) ||
           event.description?.toLowerCase().includes(query.toLowerCase()) ||
           event.category.toLowerCase().includes(query.toLowerCase()) ||
           event.location?.toLowerCase().includes(query.toLowerCase())
       )
-    : events;
+    : byMonth;
 
   const upcomingEvents = filteredEvents.filter((event) => !isEventPast(event.event_date));
   const pastEvents = filteredEvents.filter((event) => isEventPast(event.event_date));
@@ -72,6 +89,35 @@ export function EventsPage() {
 
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {!loading && months.length > 1 && (
+            <div className="mb-10">
+              <div className="flex items-center justify-center gap-2 mb-3 text-sm font-medium text-muted-foreground">
+                <CalendarDays className="w-4 h-4 text-primary" />
+                Filtrar por mês
+              </div>
+              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center" role="tablist" aria-label="Filtrar eventos por mês">
+                {[{ key: "all", label: "Todos" }, ...months].map((m) => {
+                  const active = month === m.key;
+                  return (
+                    <button
+                      key={m.key}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setMonth(m.key)}
+                      className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                        active
+                          ? "bg-primary text-primary-foreground border-primary shadow-md"
+                          : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/40 hover:bg-accent/50"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2" />
@@ -168,7 +214,7 @@ export function EventsPage() {
                   </div>
 
                   <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                    {pastEvents.slice(0, 6).map((event) => (
+                    {(month === "all" ? pastEvents.slice(0, 6) : pastEvents).map((event) => (
                       <Card key={event.id} className="hover:shadow-lg transition-all duration-300 opacity-75">
                         {event.image_url && (
                           <div className="aspect-video overflow-hidden rounded-t-lg">
