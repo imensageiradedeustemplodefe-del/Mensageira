@@ -6,7 +6,7 @@ export const GET = handler(async () => {
   const [items, categories] = await Promise.all([
     prisma.mediaItem.findMany({
       where: { isPublished: true },
-      orderBy: [{ isRadio: "desc" }, { createdAt: "desc" }],
+      orderBy: [{ isRadio: "desc" }, { createdAt: "asc" }],
       include: { category: { select: { id: true, name: true, slug: true, icon: true } } },
     }),
     prisma.mediaCategory.findMany({ orderBy: { name: "asc" } }),
