@@ -58,7 +58,19 @@ export function itemRoutes<C, U>(opts: CrudOptions<C, U>) {
   const PATCH = handler(async (req, ctx: Ctx) => {
     await requireAdmin();
     const id = await param(ctx, "id");
-    const data = await parseBody(req, opts.updateSchema);
+    let raw: Record<string, unknown>;
+    try {
+      raw = await req.json();
+    } catch {
+      return error("Corpo da requisição inválido", 400);
+    }
+    const parsed = opts.updateSchema.safeParse(raw);
+    if (!parsed.success) {
+      const first = parsed.error.issues[0];
+      return error(first ? `${first.path.join(".")}: ${first.message}` : "Dados inválidos", 400);
+    }
+    // Só atualiza os campos realmente enviados (evita que defaults do schema sobrescrevam o resto do registro)
+    const data = Object.fromEntries(Object.entries(parsed.data as Record<string, unknown>).filter(([k]) => k in raw));
     const previous = await opts.delegate.findUnique({ where: { id } });
     if (!previous) return error("Registro não encontrado", 404);
     const record = await opts.delegate.update({ where: { id }, data: camel(data) });
