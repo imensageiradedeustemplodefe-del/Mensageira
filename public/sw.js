@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mensageira-app-v2.1';
+const CACHE_NAME = 'mensageira-app-v2.2';
 const OFFLINE_URL = '/offline.html';
 
 // URLs essenciais para cache
@@ -118,22 +118,38 @@ self.addEventListener('message', (event) => {
 });
 
 // Notificações push
+// Regra do Chrome: todo push PRECISA exibir uma notificação; se falhar, o navegador mostra
+// uma genérica em branco ("site atualizado em segundo plano"). Por isso sempre mostramos algo.
+const DEFAULT_ICON = new URL('/icons/notification-192.png', self.location.origin).href;
+const DEFAULT_BADGE = new URL('/icons/badge-96.png', self.location.origin).href;
+
 self.addEventListener('push', (event) => {
-  let data = { title: 'Mensageira de Deus', body: '', url: '/', icon: '/icons/notification-192.png' };
+  let data = {};
   try {
-    if (event.data) data = { ...data, ...event.data.json() };
+    if (event.data) data = event.data.json() || {};
   } catch {
-    if (event.data) data.body = event.data.text();
+    try {
+      data = { body: event.data ? event.data.text() : '' };
+    } catch {
+      data = {};
+    }
   }
 
+  const title = (data.title && String(data.title).trim()) || 'Mensageira de Deus';
+  const body = (data.body && String(data.body).trim()) || 'Toque para abrir o app.';
+  const options = {
+    body,
+    icon: data.icon ? new URL(data.icon, self.location.origin).href : DEFAULT_ICON,
+    badge: DEFAULT_BADGE,
+    tag: data.tag || undefined,
+    renotify: !!data.tag,
+    data: { url: data.url || '/' },
+  };
+
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: data.icon || '/icons/notification-192.png',
-      badge: '/icons/badge-96.png',
-      tag: data.tag,
-      data: { url: data.url || '/' },
-    })
+    self.registration
+      .showNotification(title, options)
+      .catch(() => self.registration.showNotification(title, { body, data: { url: data.url || '/' } }))
   );
 });
 
