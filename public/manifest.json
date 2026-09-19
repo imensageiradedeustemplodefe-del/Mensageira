@@ -1,6 +1,7 @@
 {
   "name": "Mensageira de Deus",
   "short_name": "Mensageira de Deus",
+  "id": "/",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1E90FF",
