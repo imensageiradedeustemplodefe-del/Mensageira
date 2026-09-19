@@ -52,24 +52,67 @@ function compareNames(a, b) {
   return a.name.localeCompare(b.name, 'pt-BR', { numeric: true, sensitivity: 'base' });
 }
 
-/** Lê todas as mídias (fotos + vídeos) de uma pasta, já no formato do site. */
+function toItem(id, name, createdIso, mime) {
+  return {
+    id: id,
+    name: name,
+    createdTime: createdIso,
+    mimeType: mime,
+    thumbUrl: thumbUrl(id, 400),
+    viewUrl: 'https://drive.google.com/uc?id=' + id + '&export=view',
+  };
+}
+
+/**
+ * Lê todas as mídias (fotos + vídeos) de uma pasta, já no formato do site.
+ * Usa o serviço avançado "Drive API" quando estiver ativado (muito mais rápido: 1 chamada por
+ * pasta em vez de 1 por arquivo). Para ativar: no editor, "Serviços" (+) → Drive API → Adicionar.
+ * Sem ele, cai no DriveApp (funciona, mas leva ~30 s para listar milhares de arquivos).
+ */
 function getMediaFiles(folder) {
+  var folderId = folder.getId();
+  if (typeof Drive !== 'undefined' && Drive.Files && Drive.Files.list) {
+    try {
+      return getMediaFilesApi(folderId);
+    } catch (err) {
+      // qualquer problema no serviço avançado: usa o caminho lento
+    }
+  }
   var files = folder.getFiles();
   var out = [];
   while (files.hasNext()) {
     var f = files.next();
     var mime = f.getMimeType();
     if (!isMedia(mime)) continue;
-    var id = f.getId();
-    out.push({
-      id: id,
-      name: f.getName(),
-      createdTime: f.getDateCreated().toISOString(),
-      mimeType: mime,
-      thumbUrl: thumbUrl(id, 400),
-      viewUrl: 'https://drive.google.com/uc?id=' + id + '&export=view',
-    });
+    out.push(toItem(f.getId(), f.getName(), f.getDateCreated().toISOString(), mime));
   }
+  return out;
+}
+
+function getMediaFilesApi(folderId) {
+  var q = "'" + folderId + "' in parents and trashed = false and (mimeType contains 'image/' or mimeType contains 'video/')";
+  try {
+    return listWithDriveApi(q, 'v3');
+  } catch (errV3) {
+    return listWithDriveApi(q, 'v2'); // serviço avançado configurado na versão 2
+  }
+}
+
+function listWithDriveApi(q, version) {
+  var out = [];
+  var token = null;
+  do {
+    var params = version === 'v3'
+      ? { q: q, pageSize: 1000, pageToken: token, fields: 'nextPageToken, files(id, name, mimeType, createdTime)', supportsAllDrives: true, includeItemsFromAllDrives: true }
+      : { q: q, maxResults: 1000, pageToken: token, fields: 'nextPageToken, items(id, title, mimeType, createdDate)' };
+    var res = Drive.Files.list(params);
+    var list = res.files || res.items || [];
+    for (var i = 0; i < list.length; i++) {
+      var f = list[i];
+      out.push(toItem(f.id, f.name || f.title, f.createdTime || f.createdDate, f.mimeType));
+    }
+    token = res.nextPageToken || null;
+  } while (token);
   return out;
 }
 

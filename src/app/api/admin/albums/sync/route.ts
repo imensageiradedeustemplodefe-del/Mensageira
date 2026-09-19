@@ -3,6 +3,9 @@ import { handler, json, requireAdmin, HttpError } from "@/lib/api";
 import { sendPushToAll } from "@/lib/push";
 import { fetchAppsScript } from "@/lib/apps-script";
 
+// O Apps Script pode levar dezenas de segundos para listar pastas grandes
+export const maxDuration = 60;
+
 interface DriveAlbum {
   id: string;
   name: string;
@@ -19,9 +22,24 @@ export const POST = handler(async () => {
   const scriptUrl = setting?.settingValue?.trim();
   if (!scriptUrl) throw new HttpError(400, "URL do Google Drive Script não configurada");
 
-  const res = await fetchAppsScript(`${scriptUrl}?action=albums`);
+  let res: Response;
+  try {
+    res = await fetchAppsScript(`${scriptUrl}?action=albums`, { signal: AbortSignal.timeout(55_000) });
+  } catch (err) {
+    const timeout = err instanceof Error && err.name === "TimeoutError";
+    throw new HttpError(504, timeout
+      ? "O Google Drive demorou mais de 55 s para responder. Tente de novo em instantes (a segunda tentativa costuma ser rápida)."
+      : `Não foi possível falar com o Apps Script: ${err instanceof Error ? err.message : String(err)}`);
+  }
   if (!res.ok) throw new HttpError(502, `Erro ao buscar álbuns: ${res.status} ${res.statusText}`);
-  const data = await res.json();
+  const text = await res.text();
+  let data: { albums?: DriveAlbum[]; error?: string };
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new HttpError(502, text.includes("<html") ? "O Apps Script exigiu login do Google. Reimplante com acesso: Qualquer pessoa." : "Resposta inválida do Apps Script");
+  }
+  if (data.error) throw new HttpError(502, `Erro no Apps Script: ${data.error}`);
   const albums: DriveAlbum[] = data.albums || [];
 
   if (albums.length === 0) {

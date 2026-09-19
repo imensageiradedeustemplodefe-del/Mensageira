@@ -2,6 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { handler, json, error } from "@/lib/api";
 import { fetchAppsScript } from "@/lib/apps-script";
 
+// O Apps Script pode levar dezenas de segundos para listar pastas grandes
+export const maxDuration = 60;
+
 // Proxies the Google Apps Script gallery endpoint so the script URL stays server-side.
 // Query: action=albums | album=<folderId>&pageSize=&order=&pageToken=
 export const GET = handler(async (req) => {
