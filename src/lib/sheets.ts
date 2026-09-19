@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { snake } from "@/lib/case";
+import { fetchAppsScript } from "@/lib/apps-script";
 
 // Sends the unsynced registrations of an event to the Google Apps Script that
 // manages the spreadsheets (see google-apps-script/EventRegistrations.gs).
@@ -22,7 +23,7 @@ export async function syncEventRegistrations(eventId: string) {
     throw new Error("Google Apps Script URL não configurado. Configure em Configurações do Site.");
   }
 
-  const res = await fetch(scriptUrl, {
+  const res = await fetchAppsScript(scriptUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

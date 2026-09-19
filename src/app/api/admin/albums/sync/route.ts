@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { handler, json, requireAdmin, HttpError } from "@/lib/api";
 import { sendPushToAll } from "@/lib/push";
+import { fetchAppsScript } from "@/lib/apps-script";
 
 interface DriveAlbum {
   id: string;
@@ -18,7 +19,7 @@ export const POST = handler(async () => {
   const scriptUrl = setting?.settingValue?.trim();
   if (!scriptUrl) throw new HttpError(400, "URL do Google Drive Script não configurada");
 
-  const res = await fetch(`${scriptUrl}?action=albums`, { cache: "no-store" });
+  const res = await fetchAppsScript(`${scriptUrl}?action=albums`);
   if (!res.ok) throw new HttpError(502, `Erro ao buscar álbuns: ${res.status} ${res.statusText}`);
   const data = await res.json();
   const albums: DriveAlbum[] = data.albums || [];
