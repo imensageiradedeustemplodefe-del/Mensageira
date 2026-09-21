@@ -39,7 +39,18 @@ export function usePushSubscription() {
     navigator.serviceWorker.ready
       .then(async (reg) => {
         const sub = await reg.pushManager.getSubscription();
-        setIsEnabled(Notification.permission === "granted" && !!sub);
+        const enabled = Notification.permission === "granted" && !!sub;
+        setIsEnabled(enabled);
+        // Re-sincroniza a assinatura com o servidor (o navegador pode ter trocado o endpoint, ou o
+        // servidor pode tê-la marcado como inativa após uma falha) — no máximo 1x por dia
+        if (enabled && sub) {
+          const last = Number(localStorage.getItem("push_synced_at") ?? 0);
+          if (Date.now() - last > 24 * 3600 * 1000) {
+            api("/api/push/subscribe", { method: "POST", json: { user_id: getPushUserId(), silent: true, subscription: sub.toJSON() } })
+              .then(() => localStorage.setItem("push_synced_at", String(Date.now())))
+              .catch(() => {});
+          }
+        }
       })
       .finally(() => setReady(true));
   }, []);

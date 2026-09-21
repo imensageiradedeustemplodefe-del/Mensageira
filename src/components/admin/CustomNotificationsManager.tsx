@@ -18,6 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Switch } from '@/components/ui/switch';
+import { PushDiagnostics } from '@/components/admin/PushDiagnostics';
 import {
   Select,
   SelectContent,
@@ -141,6 +142,7 @@ export const CustomNotificationsManager = () => {
 
   return (
     <div className="space-y-6">
+      <PushDiagnostics />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

@@ -23,7 +23,7 @@ export const testimonies = {
   list: { orderBy: { createdAt: "desc" } },
   afterUpdate: async (record: { isApproved: boolean; name: string }, previous: { isApproved: boolean }) => {
     if (record.isApproved && !previous.isApproved) {
-      await sendPushToAll({ title: "✨ Novo Testemunho", body: `Novo testemunho de ${record.name}`, url: "/testemunhos" });
+      await sendPushToAll({ title: "✨ Novo Testemunho", body: `Novo testemunho de ${record.name}`, url: "/testemunhos" }, "testemunho");
     }
   },
 };
@@ -111,7 +111,7 @@ export const live = {
   list: { orderBy: { createdAt: "desc" } },
   afterUpdate: async (record: { isLive: boolean; title: string }, previous: { isLive: boolean }) => {
     if (record.isLive && !previous.isLive) {
-      await sendPushToAll({ title: "🔴 AO VIVO AGORA!", body: `${record.title} - Assista agora!`, url: "/live" });
+      await sendPushToAll({ title: "🔴 AO VIVO AGORA!", body: `${record.title} - Assista agora!`, url: "/live" }, "live");
     }
   },
 };
@@ -150,7 +150,7 @@ export const customNotifications = {
   list: { orderBy: { createdAt: "desc" } },
   afterCreate: async (record: { title: string; message: string; icon: string | null; url: string | null; isActive: boolean }) => {
     if (record.isActive) {
-      await sendPushToAll({ title: `${record.icon ?? "📢"} ${record.title}`, body: record.message, url: record.url ?? "/" });
+      await sendPushToAll({ title: `${record.icon ?? "📢"} ${record.title}`, body: record.message, url: record.url ?? "/" }, "personalizada");
     }
   },
 };

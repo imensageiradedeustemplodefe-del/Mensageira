@@ -88,7 +88,7 @@ export const POST = handler(async () => {
       title: "📸 Novas Fotos",
       body: newAlbumNames.length === 1 ? `Novo álbum: ${newAlbumNames[0]}` : `${newAlbumNames.length} novos álbuns na galeria!`,
       url: "/galeria",
-    });
+    }, "galeria");
   }
 
   return json({

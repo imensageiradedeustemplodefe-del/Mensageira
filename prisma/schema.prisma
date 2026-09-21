@@ -326,6 +326,18 @@ model EncryptedContact {
 
 // ---------- Testimonies ----------
 
+model PushLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  source    String
+  title     String
+  body      String
+  sent      Int      @default(0)
+  failed    Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("push_logs")
+}
+
 model ContactMessage {
   id        String    @id @default(uuid()) @db.Uuid
   name      String

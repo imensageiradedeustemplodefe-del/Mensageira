@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mensageira-app-v2.2';
+const CACHE_NAME = 'mensageira-app-v2.3';
 const OFFLINE_URL = '/offline.html';
 
 // URLs essenciais para cache
@@ -150,6 +150,25 @@ self.addEventListener('push', (event) => {
     self.registration
       .showNotification(title, options)
       .catch(() => self.registration.showNotification(title, { body, data: { url: data.url || '/' } }))
+  );
+});
+
+// O navegador pode trocar a assinatura (expiração/rotação). Re-inscreve e avisa o servidor,
+// senão os envios passam a ir para um endpoint morto e a pessoa para de receber.
+self.addEventListener('pushsubscriptionchange', (event) => {
+  const oldSub = event.oldSubscription;
+  const key = (oldSub && oldSub.options && oldSub.options.applicationServerKey) || undefined;
+  event.waitUntil(
+    self.registration.pushManager
+      .subscribe({ userVisibleOnly: true, applicationServerKey: key })
+      .then((sub) =>
+        fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ user_id: '00000000-0000-4000-8000-000000000000', silent: true, subscription: sub.toJSON() }),
+        })
+      )
+      .catch(() => {})
   );
 });
 

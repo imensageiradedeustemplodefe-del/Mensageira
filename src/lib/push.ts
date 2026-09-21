@@ -42,8 +42,8 @@ export async function sendPushTo(sub: Sub, payload: PushPayload) {
   }
 }
 
-/** Sends a push notification to every active subscription; prunes dead ones. */
-export async function sendPushToAll(payload: PushPayload) {
+/** Sends a push notification to every active subscription; prunes dead ones and records a log entry. */
+export async function sendPushToAll(payload: PushPayload, source = "manual") {
   if (!configured()) return { sent: 0, failed: 0, skipped: true };
 
   const subs = await prisma.pushSubscription.findMany({ where: { isActive: true } });
@@ -69,6 +69,11 @@ export async function sendPushToAll(payload: PushPayload) {
 
   if (dead.length) {
     await prisma.pushSubscription.updateMany({ where: { id: { in: dead } }, data: { isActive: false } });
+  }
+  try {
+    await prisma.pushLog.create({ data: { source, title: payload.title, body: payload.body.slice(0, 500), sent, failed } });
+  } catch (err) {
+    console.error("push log:", err);
   }
   return { sent, failed, skipped: false };
 }

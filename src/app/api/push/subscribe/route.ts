@@ -6,6 +6,7 @@ import { sendPushTo } from "@/lib/push";
 
 const schema = z.object({
   user_id: z.string().uuid(),
+  silent: z.boolean().optional(), // re-sincronização automática: não manda boas-vindas
   subscription: z.object({
     endpoint: z.string().url(),
     keys: z.object({ p256dh: z.string(), auth: z.string() }),
@@ -13,7 +14,7 @@ const schema = z.object({
 });
 
 export const POST = handler(async (req) => {
-  const { user_id, subscription } = await parseBody(req, schema);
+  const { user_id, subscription, silent } = await parseBody(req, schema);
   const existing = await prisma.pushSubscription.findUnique({ where: { endpoint: subscription.endpoint } });
   const sub = await prisma.pushSubscription.upsert({
     where: { endpoint: subscription.endpoint },
@@ -23,7 +24,7 @@ export const POST = handler(async (req) => {
 
   // Mensagem de boas-vindas ao ativar (ou reativar) — serve de teste imediato para a pessoa
   const activated = !existing || !existing.isActive;
-  if (activated) {
+  if (activated && !silent) {
     after(() =>
       sendPushTo(sub, {
         title: "Notificações ativadas! 🕊️",
