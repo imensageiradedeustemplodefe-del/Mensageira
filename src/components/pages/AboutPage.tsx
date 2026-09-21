@@ -34,6 +34,31 @@ export function AboutPage() {
       description: "Dá suporte aos pastores responsáveis, atuando especialmente na área de ensinamento bíblico.",
       image: "/images/pastor-joao.png",
     },
+    // Pastores auxiliares (fotos: substituir "/images/logo-icon.png" pelos arquivos quando chegarem)
+    {
+      name: "Pr. Daniel Ribas",
+      role: "Pastor Auxiliar",
+      description: "Auxilia os pastores responsáveis no cuidado pastoral e na condução dos cultos e da congregação.",
+      image: "/images/logo-icon.png",
+    },
+    {
+      name: "Pr. Ademar Malmann",
+      role: "Pastor Auxiliar",
+      description: "Auxilia os pastores responsáveis, com atuação especial no ministério de oração Guerreiros de Fé.",
+      image: "/images/logo-icon.png",
+    },
+    {
+      name: "Pr. Odirlei Segatto",
+      role: "Pastor Auxiliar",
+      description: "Auxilia os pastores responsáveis no cuidado pastoral e no acompanhamento das famílias da igreja.",
+      image: "/images/logo-icon.png",
+    },
+    {
+      name: "Pr. João Leno",
+      role: "Pastor Auxiliar",
+      description: "Auxilia os pastores responsáveis no cuidado pastoral e nas atividades da congregação.",
+      image: "/images/logo-icon.png",
+    },
   ];
 
   const ministries = [
