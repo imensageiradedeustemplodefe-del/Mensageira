@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Roboto } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
-import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DESCRIPTION, KEYWORDS, churchJsonLd, websiteJsonLd } from "@/lib/seo";
+import { SITE_URL, SITE_NAME, DEFAULT_TITLE, DESCRIPTION, SHARE_TITLE, SHARE_DESCRIPTION, KEYWORDS, churchJsonLd, websiteJsonLd } from "@/lib/seo";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -41,16 +41,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    siteName: SITE_NAME,
-    title: DEFAULT_TITLE,
-    description: DESCRIPTION,
+    siteName: SHARE_TITLE,
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
     url: "/",
     images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary_large_image",
-    title: DEFAULT_TITLE,
-    description: DESCRIPTION,
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
     images: ["/og-image.jpg"],
   },
 };

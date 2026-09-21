@@ -8,6 +8,11 @@ export const STATE = "SC";
 /** Título padrão: nome + cidade, que é o que mais pesa em buscas locais ("igreja em Caçador"). */
 export const DEFAULT_TITLE = `${SITE_NAME} | Igreja Evangélica em ${CITY} - ${STATE}`;
 
+/** Nome e texto usados nos previews de compartilhamento (WhatsApp, Facebook) — sem a parte de SEO local. */
+export const SHARE_TITLE = "Igreja Mensageira De Deus Templo De Fé";
+export const SHARE_DESCRIPTION =
+  "Cultos de sexta e domingo, Santa Ceia, culto ao vivo, pedidos de oração, eventos e galeria de fotos. Venha fazer parte da nossa família de fé.";
+
 export const DESCRIPTION =
   `Igreja Evangélica Mensageira de Deus Templo de Fé em ${CITY} - ${STATE}. Cultos de sexta e domingo, ` +
   "Santa Ceia, culto ao vivo, pedidos de oração, eventos e galeria de fotos. Venha fazer parte da nossa família de fé.";
