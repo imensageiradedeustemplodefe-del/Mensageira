@@ -22,35 +22,49 @@ await writeFile("src/app/favicon.ico", ico);
 await writeFile("public/favicon.ico", ico);
 
 // ---- Open Graph (1200x630) ----
+// Composição centralizada: fica boa no banner largo (Facebook, WhatsApp com link no início)
+// e também quando o WhatsApp recorta o quadrado central (link no meio do texto).
 const W = 1200;
 const H = 630;
 const background = Buffer.from(`
 <svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1E90FF"/>
-      <stop offset="100%" stop-color="#0F5FBF"/>
+      <stop offset="0%" stop-color="#2A9BFF"/>
+      <stop offset="100%" stop-color="#0D57B5"/>
     </linearGradient>
-    <radialGradient id="glow" cx="30%" cy="50%" r="45%">
-      <stop offset="0%" stop-color="#FFD700" stop-opacity="0.35"/>
+    <radialGradient id="glow" cx="50%" cy="40%" r="40%">
+      <stop offset="0%" stop-color="#FFD700" stop-opacity="0.32"/>
       <stop offset="100%" stop-color="#FFD700" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="${W}" height="${H}" fill="url(#g)"/>
   <rect width="${W}" height="${H}" fill="url(#glow)"/>
-  <g font-family="Roboto, Arial, Helvetica, sans-serif" fill="#ffffff">
-    <text x="600" y="255" font-size="64" font-weight="700">Mensageira de Deus</text>
-    <text x="600" y="330" font-size="48" font-weight="500" fill="#FFD700">Templo de Fé</text>
-    <text x="600" y="400" font-size="26" fill="#EAF4FF">Uma igreja comprometida com a Palavra de Deus</text>
-    <text x="600" y="446" font-size="26" fill="#EAF4FF">Cultos, eventos, orações e transmissões ao vivo</text>
-    <text x="600" y="530" font-size="24" fill="#FFD700" font-weight="500">imensageiradedeus.com.br</text>
+  <!-- raios suaves atrás do logo -->
+  <g stroke="#ffffff" stroke-opacity="0.08" stroke-width="40">
+    <line x1="600" y1="215" x2="600" y2="-200"/>
+    <line x1="600" y1="215" x2="1000" y2="-100"/>
+    <line x1="600" y1="215" x2="200" y2="-100"/>
+    <line x1="600" y1="215" x2="1150" y2="150"/>
+    <line x1="600" y1="215" x2="50" y2="150"/>
+  </g>
+  <g font-family="Roboto, Arial, Helvetica, sans-serif" fill="#ffffff" text-anchor="middle">
+    <text x="600" y="470" font-size="62" font-weight="700">Mensageira de Deus</text>
+    <text x="600" y="530" font-size="40" font-weight="500" fill="#FFD700">Templo de Fé</text>
+    <text x="600" y="590" font-size="24" fill="#EAF4FF">Igreja Evangélica em Caçador - SC  •  imensageiradedeus.com.br</text>
   </g>
 </svg>`);
 
-const logo = await sharp(LOGO).resize(420, 420).png().toBuffer();
+const LOGO_SIZE = 350;
+const logo = await sharp(LOGO).resize(LOGO_SIZE, LOGO_SIZE).png().toBuffer();
+// aro branco atrás do logo
+const ring = Buffer.from(`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg"><circle cx="600" cy="215" r="${LOGO_SIZE / 2 + 10}" fill="#ffffff" fill-opacity="0.95"/></svg>`);
 await sharp(background)
-  .composite([{ input: logo, left: 110, top: 105 }])
-  .jpeg({ quality: 90 })
+  .composite([
+    { input: ring, left: 0, top: 0 },
+    { input: logo, left: Math.round(600 - LOGO_SIZE / 2), top: Math.round(215 - LOGO_SIZE / 2) },
+  ])
+  .jpeg({ quality: 88, progressive: false })
   .toFile("public/og-image.jpg");
 
 console.log("✔ favicon.ico, icon.png, apple-icon.png, public/icons/*, public/og-image.jpg");

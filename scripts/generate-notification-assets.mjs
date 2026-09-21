@@ -19,18 +19,18 @@ const doveShapes = (fill) => `
   </g>
   <circle cx="76" cy="44" r="1.7" fill="${fill === "#ffffff" ? BLUE : "#ffffff"}"/>`;
 
-const doveSvg = (fill, size, bg) =>
+const doveSvg = (fill, size, bg, scale = 0.74) =>
   Buffer.from(`
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100">
   ${bg ? `<circle cx="50" cy="50" r="50" fill="${bg}"/>` : ""}
-  <g transform="translate(50 50) scale(0.74) translate(-50 -50)">${doveShapes(fill)}</g>
+  <g transform="translate(50 50) scale(${scale}) translate(-50 -50)">${doveShapes(fill)}</g>
 </svg>`);
 
 // Ícone da notificação (colorido): pomba branca sobre azul
 await sharp(doveSvg("#ffffff", 192, BLUE)).png().toFile("public/icons/notification-192.png");
 await sharp(doveSvg("#ffffff", 512, BLUE)).png().toFile("public/icons/notification-512.png");
-// Badge (Android): monocromático, branco sobre transparente
-await sharp(doveSvg("#ffffff", 96, null)).png().toFile("public/icons/badge-96.png");
+// Badge (Android, barra de status): monocromático, branco sobre transparente, ocupando o quadro inteiro
+await sharp(doveSvg("#ffffff", 96, null, 1.12)).png().toFile("public/icons/badge-96.png");
 
 // Ícone maskable do PWA: logo com margem de segurança (zona segura = 80% central) sobre o azul da marca
 const LOGO = "public/images/logo-icon.png";
