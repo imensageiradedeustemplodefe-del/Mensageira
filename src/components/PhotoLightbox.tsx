@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { X, Download, Share2, ChevronLeft, ChevronRight, Facebook, MessageCircle, Heart, HandHeart, Flame, Sparkles, Bird } from "lucide-react";
 import { toast } from "sonner";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
@@ -58,6 +58,7 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
   const [reactions, setReactions] = useState<Reactions>(EMPTY);
   const [userReaction, setUserReaction] = useState<ReactionType | null>(null);
   const currentPhoto = photos[currentIndex];
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -214,7 +215,24 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
           </div>
         </div>
 
-        <div className="absolute inset-0 flex items-center justify-center px-2 pt-16 pb-28 sm:px-16 sm:pt-20 sm:pb-32">
+        <div
+          className="absolute inset-0 flex items-center justify-center px-2 pt-16 pb-28 sm:px-16 sm:pt-20 sm:pb-32 touch-pan-y"
+          onTouchStart={(e) => {
+            touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          }}
+          onTouchEnd={(e) => {
+            const start = touchStart.current;
+            touchStart.current = null;
+            if (!start || photos.length < 2) return;
+            const dx = e.changedTouches[0].clientX - start.x;
+            const dy = e.changedTouches[0].clientY - start.y;
+            // arrasto horizontal claro (e não um scroll vertical)
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              if (dx < 0) handleNext();
+              else handlePrevious();
+            }
+          }}
+        >
           {video ? (
             // Player do Google Drive (funciona para qualquer formato que o Drive consiga reproduzir)
             <iframe
@@ -246,13 +264,16 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
           )}
         </div>
 
+        {/* Setas dentro de um <div>: o DialogContent esconde botões filhos diretos (para ocultar o X padrão) */}
         {photos.length > 1 && (
-          <>
+          <div>
             <Button
               variant="ghost"
               size="icon"
               onClick={handlePrevious}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12 rounded-full"
+              aria-label="Foto anterior"
+              title="Anterior (←)"
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/55 text-white border border-white/30 shadow-lg backdrop-blur-sm hover:bg-black/75 hover:text-white active:scale-95 transition"
             >
               <ChevronLeft className="w-8 h-8" />
             </Button>
@@ -260,11 +281,13 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
               variant="ghost"
               size="icon"
               onClick={handleNext}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12 rounded-full"
+              aria-label="Próxima foto"
+              title="Próxima (→)"
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-40 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/55 text-white border border-white/30 shadow-lg backdrop-blur-sm hover:bg-black/75 hover:text-white active:scale-95 transition"
             >
               <ChevronRight className="w-8 h-8" />
             </Button>
-          </>
+          </div>
         )}
 
         <div className="absolute bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-black/90 to-transparent p-4">
