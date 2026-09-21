@@ -42,29 +42,30 @@ const background = Buffer.from(`
   <rect width="${W}" height="${H}" fill="url(#glow)"/>
   <!-- raios suaves atrás do logo -->
   <g stroke="#ffffff" stroke-opacity="0.08" stroke-width="40">
-    <line x1="600" y1="215" x2="600" y2="-200"/>
-    <line x1="600" y1="215" x2="1000" y2="-100"/>
-    <line x1="600" y1="215" x2="200" y2="-100"/>
-    <line x1="600" y1="215" x2="1150" y2="150"/>
-    <line x1="600" y1="215" x2="50" y2="150"/>
+    <line x1="600" y1="225" x2="600" y2="-200"/>
+    <line x1="600" y1="225" x2="1000" y2="-100"/>
+    <line x1="600" y1="225" x2="200" y2="-100"/>
+    <line x1="600" y1="225" x2="1150" y2="150"/>
+    <line x1="600" y1="225" x2="50" y2="150"/>
   </g>
   <g font-family="Roboto, Arial, Helvetica, sans-serif" fill="#ffffff" text-anchor="middle">
-    <text x="600" y="470" font-size="62" font-weight="700">Mensageira de Deus</text>
-    <text x="600" y="530" font-size="40" font-weight="500" fill="#FFD700">Templo de Fé</text>
-    <text x="600" y="590" font-size="24" fill="#EAF4FF">Igreja Evangélica em Caçador - SC  •  imensageiradedeus.com.br</text>
+    <text x="600" y="500" font-size="62" font-weight="700" letter-spacing="-1">Mensageira de Deus</text>
+    <text x="600" y="560" font-size="46" font-weight="700" fill="#FFD700">Templo de Fé</text>
+    <text x="600" y="608" font-size="22" fill="#D6E9FF">imensageiradedeus.com.br</text>
   </g>
 </svg>`);
 
-const LOGO_SIZE = 350;
+const LOGO_SIZE = 400;
 const logo = await sharp(LOGO).resize(LOGO_SIZE, LOGO_SIZE).png().toBuffer();
 // aro branco atrás do logo
-const ring = Buffer.from(`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg"><circle cx="600" cy="215" r="${LOGO_SIZE / 2 + 10}" fill="#ffffff" fill-opacity="0.95"/></svg>`);
+const ring = Buffer.from(`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg"><circle cx="600" cy="225" r="${LOGO_SIZE / 2 + 12}" fill="#ffffff"/></svg>`);
 await sharp(background)
   .composite([
     { input: ring, left: 0, top: 0 },
-    { input: logo, left: Math.round(600 - LOGO_SIZE / 2), top: Math.round(215 - LOGO_SIZE / 2) },
+    { input: logo, left: Math.round(600 - LOGO_SIZE / 2), top: Math.round(225 - LOGO_SIZE / 2) },
   ])
-  .jpeg({ quality: 88, progressive: false })
+  .sharpen({ sigma: 1.2, m1: 0.8, m2: 1.4 })
+  .jpeg({ quality: 92, progressive: false, chromaSubsampling: "4:4:4" })
   .toFile("public/og-image.jpg");
 
 console.log("✔ favicon.ico, icon.png, apple-icon.png, public/icons/*, public/og-image.jpg");
