@@ -51,8 +51,33 @@ export async function runDailyNotifications(source = "cron") {
     );
   }
   results.events = eventResults;
+
+  // Aniversário da igreja (fundada em 21/09/2013): todo ano, no dia 21/09
+  if (today.slice(5) === ANNIVERSARY_MM_DD) {
+    const founded = await foundedYear();
+    const years = Number(today.slice(0, 4)) - founded;
+    results.anniversary = await sendPushToAll(
+      {
+        title: `🎂 ${years} anos da Mensageira de Deus!`,
+        body: `Hoje, 21 de setembro, nossa igreja completa ${years} anos proclamando a Palavra de Deus com fé e amor. Glória a Deus por cada vida alcançada! Venha celebrar conosco.`,
+        url: "/sobre",
+        tag: `anniversary_${today.slice(0, 4)}`,
+      },
+      source
+    );
+  }
+
   results.date = today;
   return results;
+}
+
+const ANNIVERSARY_MM_DD = "09-21";
+const DEFAULT_FOUNDED_YEAR = 2013;
+
+async function foundedYear() {
+  const setting = await prisma.siteSetting.findUnique({ where: { settingKey: "church_founded_year" } });
+  const year = Number(setting?.settingValue);
+  return Number.isInteger(year) && year > 1900 ? year : DEFAULT_FOUNDED_YEAR;
 }
 
 function brDate(d: Date) {
