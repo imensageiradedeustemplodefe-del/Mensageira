@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Camera, Calendar, Image as ImageIcon, FolderOpen, ArrowLeft, Loader2, Search, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { Camera, Calendar, Image as ImageIcon, FolderOpen, ArrowLeft, Loader2, Search, ChevronLeft, ChevronRight, Play, SlidersHorizontal, CalendarDays } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,22 @@ const extractCategoryFromAlbumName = (albumName: string): string => {
   return parts[0]?.trim() || albumName;
 };
 
+/** Tipo do evento a partir do nome do álbum: "Culto Sábado 06-06-2026 7° Louvorzão" -> "Louvorzão". */
+const albumType = (albumName: string): string => {
+  const after = albumName.split(DATE_RE).pop()?.trim() ?? "";
+  const cleaned = after.replace(/^\d+\s*[°ºª]?\s*/, "").trim(); // tira "7° "
+  if (!cleaned) return "Outros";
+  // padroniza maiúsculas ("Aniversário da Igreja" e "Aniversário Da Igreja" viram o mesmo tipo)
+  const small = new Set(["da", "de", "do", "das", "dos", "e"]);
+  return cleaned
+    .toLowerCase()
+    .split(/\s+/)
+    .map((w, i) => (i > 0 && small.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(" ");
+};
+
+const albumYear = (albumName: string): string | null => albumName.match(DATE_RE)?.[3] ?? null;
+
 const getCoverPhotoId = (coverUrl: string) =>
   coverUrl.match(/[?&]id=([^&]+)/)?.[1] ?? coverUrl.match(/\/d\/([^=/]+)/)?.[1] ?? null;
 
@@ -72,6 +89,8 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
   const [selected, setSelected] = useState<SelectedAlbum | null>(null);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [yearFilter, setYearFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -98,6 +117,8 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
     () =>
       albums
         .filter((album) => album.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        .filter((album) => yearFilter === "all" || albumYear(album.name) === yearFilter)
+        .filter((album) => typeFilter === "all" || albumType(album.name) === typeFilter)
         .sort((a, b) => {
           const dateA = a.name.match(DATE_RE);
           const dateB = b.name.match(DATE_RE);
@@ -111,8 +132,32 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
           return a.name.localeCompare(b.name);
         }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [albumRows, searchQuery]
+    [albumRows, searchQuery, yearFilter, typeFilter]
   );
+
+  // Opções dos filtros (com contagem), a partir dos álbuns existentes
+  const yearOptions = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const a of albums) {
+      const y = albumYear(a.name);
+      if (y) m.set(y, (m.get(y) ?? 0) + 1);
+    }
+    return [...m.entries()].sort(([a], [b]) => b.localeCompare(a));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [albumRows]);
+
+  const typeOptions = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const a of albums) {
+      if (yearFilter !== "all" && albumYear(a.name) !== yearFilter) continue;
+      const t = albumType(a.name);
+      m.set(t, (m.get(t) ?? 0) + 1);
+    }
+    return [...m.entries()].sort(([a], [b]) => a.localeCompare(b, "pt-BR"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [albumRows, yearFilter]);
+
+  const filtersActive = yearFilter !== "all" || typeFilter !== "all" || searchQuery.trim() !== "";
 
   // Ao trocar de página, volta ao topo da grade de fotos
   useEffect(() => {
@@ -258,10 +303,84 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
           </div>
         )}
 
+        {/* ---------- Filtros dos álbuns (ano + tipo de evento) ---------- */}
+        {!selected && albums.length > 0 && (yearOptions.length > 1 || typeOptions.length > 1) && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+            {yearOptions.length > 1 && (
+              <Select
+                value={yearFilter}
+                onValueChange={(v) => {
+                  setYearFilter(v);
+                  setTypeFilter("all");
+                }}
+              >
+                <SelectTrigger className="h-9 w-auto gap-1.5 rounded-full text-sm" aria-label="Filtrar por ano">
+                  <CalendarDays className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os anos</SelectItem>
+                  {yearOptions.map(([y, n]) => (
+                    <SelectItem key={y} value={y}>
+                      {y} ({n})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {typeOptions.length > 1 && (
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="h-9 w-auto max-w-[220px] gap-1.5 rounded-full text-sm" aria-label="Filtrar por tipo de evento">
+                  <SlidersHorizontal className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os eventos</SelectItem>
+                  {typeOptions.map(([t, n]) => (
+                    <SelectItem key={t} value={t}>
+                      {t} ({n})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {filtersActive && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 rounded-full text-muted-foreground"
+                onClick={() => {
+                  setYearFilter("all");
+                  setTypeFilter("all");
+                  setSearchQuery("");
+                }}
+              >
+                Limpar
+              </Button>
+            )}
+          </div>
+        )}
+
         {!selected && !albumsLoading && filteredAlbums.length === 0 && (
           <div className="text-center py-12">
             <FolderOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">Nenhum álbum encontrado</p>
+            {filtersActive && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={() => {
+                  setYearFilter("all");
+                  setTypeFilter("all");
+                  setSearchQuery("");
+                }}
+              >
+                Limpar filtros
+              </Button>
+            )}
           </div>
         )}
 
@@ -270,6 +389,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
             <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
               <FolderOpen className="w-8 h-8 text-primary" />
               Álbuns
+              {filtersActive && <span className="text-base font-normal text-muted-foreground">({filteredAlbums.length})</span>}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAlbums.map((album) => (

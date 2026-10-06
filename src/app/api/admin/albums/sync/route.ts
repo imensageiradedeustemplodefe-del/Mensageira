@@ -64,10 +64,15 @@ export const POST = handler(async () => {
       photoCount: typeof album.photoCount === "number" ? album.photoCount : null,
     };
 
-    const existing = await prisma.galleryAlbum.findFirst({ where: { name: album.name } });
+    // Casa pelo id da pasta do Drive (renomear a pasta não cria álbum duplicado); nome é só o fallback
+    const existing =
+      (await prisma.galleryAlbum.findFirst({ where: { driveFolderId: album.id } })) ??
+      (await prisma.galleryAlbum.findFirst({ where: { name: { equals: album.name, mode: "insensitive" }, driveFolderId: null } }));
 
     if (existing) {
       const shouldUpdate =
+        existing.name !== album.name ||
+        !existing.isPublished ||
         existing.coverPhotoUrl !== (album.coverUrl || null) ||
         !existing.driveFolderId ||
         existing.driveFolderId !== album.id ||
@@ -82,6 +87,13 @@ export const POST = handler(async () => {
       newAlbumNames.push(album.name);
     }
   }
+
+  // Álbuns cuja pasta não existe mais no Drive (apagada, ou duplicata antiga): saem da galeria
+  const driveIds = albums.map((a) => a.id);
+  const hidden = await prisma.galleryAlbum.updateMany({
+    where: { isPublished: true, OR: [{ driveFolderId: { notIn: driveIds } }, { driveFolderId: null }] },
+    data: { isPublished: false },
+  });
 
   if (newAlbumNames.length > 0) {
     await sendPushToAll({
@@ -98,5 +110,6 @@ export const POST = handler(async () => {
     synced: created + updated,
     created,
     updated,
+    hidden: hidden.count,
   });
 });
