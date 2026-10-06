@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { X, Download, ChevronLeft, ChevronRight, Heart, HandHeart, Flame, Sparkles, Bird } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Heart, HandHeart, Flame, Sparkles, Bird, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { api } from "@/lib/fetcher";
 import { ShareButton } from "@/components/ShareButton";
+import { DownloadButton } from "@/components/gallery/DownloadButton";
 import { sharePhoto } from "@/lib/share";
 
 interface Photo {
@@ -64,6 +65,7 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
   const [userReaction, setUserReaction] = useState<ReactionType | null>(null);
   const currentPhoto = photos[currentIndex];
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const [loadedIds, setLoadedIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -147,20 +149,6 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose, handlePrevious, handleNext]);
 
-  const handleDownload = () => {
-    // Link de download do Drive (arquivo original). O navegador baixa direto; se bloquear, abre em nova aba.
-    const url = `https://drive.google.com/uc?id=${currentPhoto.id}&export=download`;
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = currentPhoto.name || "foto.jpg";
-    link.rel = "noopener";
-    link.target = "_blank";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success(video ? "Download do vídeo iniciado!" : "Download iniciado!");
-  };
-
   if (!currentPhoto) return null;
 
   // Fontes em ordem de preferência (todas em resolução total; a primeira usa o mesmo host das miniaturas)
@@ -235,12 +223,22 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
             />
           ) : (
           /* eslint-disable-next-line @next/next/no-img-element */
+          <>
+          {!loadedIds.has(currentPhoto.id) && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white/80 pointer-events-none">
+              <Loader2 className="w-9 h-9 animate-spin text-white" />
+              <span className="text-sm">Carregando a foto em alta qualidade…</span>
+            </div>
+          )}
           <img
             key={currentPhoto.id}
             src={fullSizeImageUrl}
             alt={currentPhoto.name}
-            className="block w-auto h-auto max-w-full max-h-full object-contain animate-fade-in select-none"
+            className={`block w-auto h-auto max-w-full max-h-full object-contain select-none transition-opacity duration-500 ${
+              loadedIds.has(currentPhoto.id) ? "opacity-100" : "opacity-0"
+            }`}
             loading="eager"
+            onLoad={() => setLoadedIds((prev) => new Set(prev).add(currentPhoto.id))}
             onError={(e) => {
               // Tenta a próxima fonte quando a atual falha
               const target = e.target as HTMLImageElement;
@@ -248,9 +246,12 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
               if (idx < imageSources.length) {
                 target.dataset.fallback = String(idx);
                 target.src = imageSources[idx];
+              } else {
+                setLoadedIds((prev) => new Set(prev).add(currentPhoto.id));
               }
             }}
           />
+          </>
           )}
         </div>
 
@@ -313,9 +314,15 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
                     className="text-white hover:bg-white/20 hover:text-white"
                   />
                 ) : null}
-                <Button variant="ghost" size="icon" onClick={handleDownload} className="text-white hover:bg-white/20" title={video ? "Baixar vídeo" : "Baixar foto"}>
-                  <Download className="w-5 h-5" />
-                </Button>
+                <DownloadButton
+                  key={currentPhoto.id}
+                  fileId={currentPhoto.id}
+                  filename={currentPhoto.name || (video ? "video.mp4" : "foto.jpg")}
+                  isVideo={video}
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/20 hover:text-white"
+                />
               </div>
             </div>
           </div>

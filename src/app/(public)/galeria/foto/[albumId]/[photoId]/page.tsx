@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Download, Images } from "lucide-react";
+import { ArrowLeft, Images } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShareButton } from "@/components/ShareButton";
+import { DownloadButton } from "@/components/gallery/DownloadButton";
 import { getSharedAlbum, isDriveId, albumLabel } from "@/lib/share-pages";
 import { sharePhoto } from "@/lib/share";
 
@@ -56,12 +57,7 @@ export default async function Page({ params }: Props) {
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mt-5">
             <ShareButton data={share} />
-            <a href={`https://drive.google.com/uc?id=${photoId}&export=download`} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" className="w-full">
-                <Download className="w-4 h-4 mr-2" />
-                Baixar foto
-              </Button>
-            </a>
+            <DownloadButton fileId={photoId} filename={`Mensageira - ${title}${date ? ` ${date.replace(/\//g, "-")}` : ""}.jpg`} className="w-full sm:w-auto" />
             <Link href={`/galeria?album=${album.id}`}>
               <Button className="w-full">
                 <Images className="w-4 h-4 mr-2" />

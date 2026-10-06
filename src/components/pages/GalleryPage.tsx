@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGoogleDrivePhotos } from "@/hooks/useGoogleDrivePhotos";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
+import { GalleryLoading, PhotoThumb } from "@/components/gallery/GalleryLoading";
 import { api } from "@/lib/fetcher";
 import type { GalleryAlbum } from "@/types/database";
 
@@ -412,13 +413,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
                   <div className="relative h-48 overflow-hidden bg-gradient-to-br from-primary/20 to-accent/20">
                     {album.coverUrl ? (
                       <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={album.coverUrl}
-                          alt={album.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                          loading="lazy"
-                        />
+                        <PhotoThumb src={album.coverUrl} alt={album.name} className="w-full h-full object-cover group-hover:scale-110" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       </>
                     ) : (
@@ -447,13 +442,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
         )}
 
         {/* ---------- Fotos do álbum ---------- */}
-        {selected && photosLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-48 md:h-64 rounded-lg bg-muted animate-pulse" />
-            ))}
-          </div>
-        )}
+        {selected && photosLoading && <GalleryLoading title={albumType(selected.name)} />}
 
         {selected && !photosLoading && filteredPhotos.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
@@ -464,12 +453,10 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
                 onClick={() => handlePhotoClick(index)}
               >
                 <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <PhotoThumb
                     src={hiResThumb(photo.thumbUrl)}
                     alt={photo.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-110"
                   />
                   {isVideo(photo.mimeType, photo.name) && (
                     <>
