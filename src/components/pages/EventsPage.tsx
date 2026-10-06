@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, MapPin, Clock, Users, UserPlus } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, UserPlus, ChevronLeft, ChevronRight, ChevronDown, Check, SlidersHorizontal } from "lucide-react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/SearchBar";
 import { ShareButton } from "@/components/ShareButton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { api } from "@/lib/fetcher";
 import type { Event } from "@/types/database";
 
@@ -62,24 +70,6 @@ function useHeaderHeight() {
   return h;
 }
 
-function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      role="tab"
-      aria-selected={active}
-      onClick={onClick}
-      data-active={active || undefined}
-      className={`shrink-0 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
-        active
-          ? "bg-primary text-primary-foreground border-primary shadow-md"
-          : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/40 hover:bg-accent/50"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
 
 export function EventsPage() {
   const [query, setQuery] = useState("");
@@ -87,7 +77,6 @@ export function EventsPage() {
   const [month, setMonth] = useState<string>(() => monthKey(new Date())); // "all" | "yyyy-MM"
   const [category, setCategory] = useState<string>("all");
   const headerHeight = useHeaderHeight();
-  const monthsRef = useRef<HTMLDivElement>(null);
   const { data: events = [], isLoading: loading } = useQuery({
     queryKey: ["events", "public"],
     queryFn: () => api<Event[]>("/api/events"),
@@ -110,10 +99,13 @@ export function EventsPage() {
       item.count++;
       map.set(key, item);
     }
-    const thisYear = new Date().getFullYear();
     return [...map.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, v]) => ({ key, label: Number(key.slice(0, 4)) === thisYear ? v.label : `${v.label}/${key.slice(2, 4)}`, count: v.count }));
+      .map(([key, v]) => ({
+        key,
+        label: capitalize(format(new Date(`${key}-15T12:00:00`), "MMMM yyyy", { locale: ptBR })),
+        count: v.count,
+      }));
   }, [events, category]);
 
   const categories = useMemo(
@@ -126,10 +118,8 @@ export function EventsPage() {
     if (!loading && month !== "all" && !months.some((m) => m.key === month)) setMonth(months[0]?.key ?? "all");
   }, [loading, months, month]);
 
-  // Mantém o mês selecionado visível na faixa rolável
-  useEffect(() => {
-    monthsRef.current?.querySelector("[data-active]")?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
-  }, [month, months.length]);
+
+  const monthIndex = months.findIndex((m) => m.key === month);
 
   const byMonth = events.filter((e) => {
     if (category !== "all" && e.category !== category) return false;
@@ -151,7 +141,7 @@ export function EventsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-16 sm:py-20">
+      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">Eventos e Programação</h1>
           <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-8">
@@ -163,44 +153,92 @@ export function EventsPage() {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="pt-6 pb-16 sm:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {!loading && (months.length > 0 || categories.length > 1) && (
+          {!loading && months.length > 0 && (
             <div
-              className="sticky z-30 -mx-4 sm:mx-0 mb-8 px-4 py-3 bg-background/95 backdrop-blur-md border-b border-border/60 sm:rounded-xl sm:border"
+              className="sticky z-30 -mx-4 sm:mx-0 mb-6 px-3 sm:px-4 py-2 bg-background/95 backdrop-blur-md border-b border-border/60 sm:rounded-xl sm:border"
               style={{ top: headerHeight }}
             >
-              <div
-                ref={monthsRef}
-                className="flex gap-2 overflow-x-auto hide-scrollbar"
-                role="tablist"
-                aria-label="Filtrar eventos por mês"
-              >
-                <FilterChip active={month === "all"} onClick={() => setMonth("all")}>
-                  Todos
-                </FilterChip>
-                {months.map((m) => (
-                  <FilterChip key={m.key} active={month === m.key} onClick={() => setMonth(m.key)}>
-                    {m.label}
-                    <span className={`ml-1.5 text-xs ${month === m.key ? "opacity-90" : "opacity-60"}`}>{m.count}</span>
-                  </FilterChip>
-                ))}
-              </div>
+              <div className="flex items-center gap-2">
+                {/* Mês: ‹ Outubro 2026 › (tocar no nome abre a lista de meses) */}
+                <div className="flex items-center flex-1 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => monthIndex > 0 && setMonth(months[monthIndex - 1].key)}
+                    disabled={month === "all" || monthIndex <= 0}
+                    aria-label="Mês anterior"
+                    className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent transition"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
 
-              {categories.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto hide-scrollbar mt-2" role="tablist" aria-label="Filtrar eventos por tipo">
-                  <FilterChip active={category === "all"} onClick={() => setCategory("all")}>
-                    Todos os tipos
-                  </FilterChip>
-                  {categories.map((c) => (
-                    <FilterChip key={c} active={category === c} onClick={() => setCategory(c)}>
-                      {categoryLabel(c)}
-                    </FilterChip>
-                  ))}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex-1 min-w-0 flex flex-col items-center rounded-lg px-1 py-0.5 hover:bg-muted transition"
+                        aria-label="Escolher mês"
+                      >
+                        <span className="flex items-center gap-1 font-semibold text-foreground text-[15px] leading-tight truncate max-w-full">
+                          {month === "all" ? "Todos os meses" : (months[monthIndex]?.label ?? "")}
+                          <ChevronDown className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                        </span>
+                        <span className="text-xs text-muted-foreground leading-tight">
+                          {upcomingEvents.length} {upcomingEvents.length === 1 ? "evento" : "eventos"}
+                        </span>
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center" className="w-56">
+                      {months.map((m) => (
+                        <DropdownMenuItem key={m.key} onSelect={() => setMonth(m.key)} className="justify-between">
+                          <span className="flex items-center gap-2">
+                            <Check className={`w-4 h-4 ${month === m.key ? "opacity-100 text-primary" : "opacity-0"}`} />
+                            {m.label}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{m.count}</span>
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onSelect={() => setMonth("all")}>
+                        <Check className={`w-4 h-4 ${month === "all" ? "opacity-100 text-primary" : "opacity-0"}`} />
+                        Todos os meses
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <button
+                    type="button"
+                    onClick={() => monthIndex < months.length - 1 && setMonth(months[monthIndex + 1].key)}
+                    disabled={month === "all" || monthIndex >= months.length - 1}
+                    aria-label="Próximo mês"
+                    className="h-9 w-9 shrink-0 rounded-full flex items-center justify-center hover:bg-muted disabled:opacity-30 disabled:hover:bg-transparent transition"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
                 </div>
-              )}
+
+                {/* Tipo de evento */}
+                {categories.length > 1 && (
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="h-9 w-auto max-w-[150px] sm:max-w-none gap-1.5 shrink-0 rounded-full text-sm" aria-label="Tipo de evento">
+                      <SlidersHorizontal className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent align="end">
+                      <SelectItem value="all">Todos</SelectItem>
+                      {categories.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {categoryLabel(c)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </div>
           )}
+
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2" />
@@ -209,13 +247,8 @@ export function EventsPage() {
           ) : (
             <>
               <div className="mb-16">
-                <div className="text-center mb-8 sm:mb-12">
-                  <h2 className="text-3xl font-bold text-foreground mb-2 sm:mb-4">Próximos Eventos</h2>
-                  <p className="text-lg text-muted-foreground">
-                    {month === "all"
-                      ? "Participe dos nossos eventos e atividades especiais."
-                      : `${capitalize(format(new Date(`${month}-15T12:00:00`), "MMMM 'de' yyyy", { locale: ptBR }))} • ${upcomingEvents.length} ${upcomingEvents.length === 1 ? "evento" : "eventos"}${category !== "all" ? ` • ${categoryLabel(category)}` : ""}`}
-                  </p>
+                <div className="text-center mb-6 sm:mb-10">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Próximos Eventos</h2>
                 </div>
 
                 {upcomingEvents.length === 0 ? (
