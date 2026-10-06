@@ -22,8 +22,16 @@ let timer: ReturnType<typeof setInterval> | null = null;
 let state: RadioPipState = { title: "Rádio", playing: false };
 let tick = 0;
 
+/** Celulares e tablets: a janelinha não funciona de forma confiável (no Android não abre fora do app). */
+const isMobileDevice = () =>
+  typeof navigator !== "undefined" &&
+  (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+    // iPad com iPadOS se identifica como Mac, mas tem tela de toque
+    (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1));
+
+/** Janela flutuante da rádio: só no computador. */
 export function isRadioPipSupported() {
-  if (typeof document === "undefined") return false;
+  if (typeof document === "undefined" || isMobileDevice()) return false;
   return (
     "pictureInPictureEnabled" in document &&
     document.pictureInPictureEnabled &&
