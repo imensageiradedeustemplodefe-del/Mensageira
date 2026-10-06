@@ -11,6 +11,16 @@ export async function runDailyNotifications(source = "cron") {
   const today = brDate(now); // yyyy-MM-dd em Brasília
   const results: Record<string, unknown> = {};
 
+  // Envios automáticos (agendador externo às 07:00 + Vercel de reserva) não podem duplicar:
+  // se já houve um envio automático hoje, o segundo não faz nada. O botão manual do painel sempre envia.
+  if (source === "cron") {
+    const dayStart = new Date(`${today}T03:00:00.000Z`); // 00:00 em Brasília
+    const already = await prisma.pushLog.findFirst({
+      where: { source: "cron", title: "📖 Palavra do Dia", createdAt: { gte: dayStart } },
+    });
+    if (already) return { skipped: true, reason: "já enviado hoje", date: today };
+  }
+
   // Palavra do dia (rotaciona pela lista de versículos ativos)
   const verses = await prisma.dailyVerse.findMany({ where: { isActive: true }, orderBy: { createdAt: "asc" } });
   if (verses.length > 0) {
