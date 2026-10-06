@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareButton } from "@/components/ShareButton";
+import { shareSchedule } from "@/lib/share";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 interface UpcomingEventsProps {
@@ -95,7 +96,7 @@ export const UpcomingEvents = ({ loading = false }: UpcomingEventsProps) => {
                         <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
                         <span className="text-sm">{event.date}</span>
                       </div>
-                      <ShareButton title={event.title} text={event.description} size="sm" variant="ghost" />
+                      <ShareButton data={shareSchedule(event)} size="icon" variant="ghost" label={`Compartilhar ${event.title}`} className="h-8 w-8" />
                     </div>
                     <div className="flex items-center text-muted-foreground">
                       <Clock className="w-4 h-4 mr-2 flex-shrink-0" />

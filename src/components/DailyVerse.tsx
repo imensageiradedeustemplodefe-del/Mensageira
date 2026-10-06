@@ -1,38 +1,15 @@
 "use client";
 
-import { Share2, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
+import { ShareButton } from "@/components/ShareButton";
+import { shareVerse } from "@/lib/share";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { useDailyVerses } from "@/hooks/useDailyVerses";
 
 const DailyVerse = () => {
   const { verse, isLoading, error, refreshVerse, getDailyVerse } = useDailyVerses();
-  const { toast } = useToast();
 
-  const shareVerse = async () => {
-    if (!verse) return;
-    const shareText = `"${verse.verse_text}" - ${verse.verse_reference}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Palavra do Dia - Mensageira de Deus Templo de Fé",
-          text: shareText,
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.log("Erro ao compartilhar:", err);
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(shareText);
-        toast({ title: "Versículo copiado!", description: "O versículo foi copiado para a área de transferência." });
-      } catch {
-        toast({ title: "Erro ao copiar", description: "Não foi possível copiar o versículo.", variant: "destructive" });
-      }
-    }
-  };
 
   if (error) {
     return (
@@ -68,9 +45,15 @@ const DailyVerse = () => {
             <Button variant="ghost" size="sm" onClick={refreshVerse} disabled={isLoading} className="hover:bg-white/20" title="Novo versículo">
               <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
             </Button>
-            <Button variant="ghost" size="sm" onClick={shareVerse} disabled={!verse} className="hover:bg-white/20" title="Compartilhar versículo">
-              <Share2 className="w-4 h-4" />
-            </Button>
+            {verse && (
+              <ShareButton
+                data={shareVerse(verse)}
+                variant="ghost"
+                size="icon"
+                label="Compartilhar versículo"
+                className="h-9 w-9 hover:bg-white/20"
+              />
+            )}
           </div>
         </div>
 

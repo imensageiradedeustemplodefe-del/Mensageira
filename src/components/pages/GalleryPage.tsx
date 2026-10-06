@@ -176,6 +176,17 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
     setPage(1);
   };
 
+  // Link direto para um álbum (/galeria?album=<id>), usado pela página de foto compartilhada
+  const [openedFromLink, setOpenedFromLink] = useState(false);
+  useEffect(() => {
+    if (openedFromLink || selected || albums.length === 0) return;
+    const id = new URLSearchParams(window.location.search).get("album");
+    const album = id ? albums.find((a) => a.id === id) : null;
+    setOpenedFromLink(true);
+    if (album) handleAlbumClick(album);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [albums.length]);
+
   const handleBackToAlbums = () => {
     setSelected(null);
     setPage(1);
@@ -539,6 +550,8 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
           isOpen={lightboxOpen}
           onClose={() => setLightboxOpen(false)}
           albumDate={selected.date}
+          albumId={selected.id}
+          albumName={albumType(selected.name)}
         />
       )}
     </div>

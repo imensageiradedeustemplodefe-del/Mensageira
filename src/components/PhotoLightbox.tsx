@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { X, Download, Share2, ChevronLeft, ChevronRight, Facebook, MessageCircle, Heart, HandHeart, Flame, Sparkles, Bird } from "lucide-react";
+import { X, Download, ChevronLeft, ChevronRight, Heart, HandHeart, Flame, Sparkles, Bird } from "lucide-react";
 import { toast } from "sonner";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { api } from "@/lib/fetcher";
+import { ShareButton } from "@/components/ShareButton";
+import { sharePhoto } from "@/lib/share";
 
 interface Photo {
   id: string;
@@ -28,6 +30,9 @@ interface PhotoLightboxProps {
   isOpen: boolean;
   onClose: () => void;
   albumDate?: string;
+  /** id do álbum no site (para o link da foto) */
+  albumId?: string;
+  albumName?: string;
 }
 
 type ReactionType = "love" | "prayer" | "amen" | "hallelujah" | "glory" | "fire";
@@ -53,7 +58,7 @@ const getReactionsMap = (): Record<string, ReactionType> => {
   }
 };
 
-export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate }: PhotoLightboxProps) {
+export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate, albumId, albumName }: PhotoLightboxProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [reactions, setReactions] = useState<Reactions>(EMPTY);
   const [userReaction, setUserReaction] = useState<ReactionType | null>(null);
@@ -154,21 +159,6 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
     link.click();
     document.body.removeChild(link);
     toast.success(video ? "Download do vídeo iniciado!" : "Download iniciado!");
-  };
-
-  const handleShareWhatsApp = () => {
-    const text = `${video ? "Confira este vídeo" : "Confira esta foto"}: ${stripExt(currentPhoto.name)}`;
-    const url = encodeURIComponent(window.location.href);
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}%20${url}`, "_blank");
-  };
-
-  const handleShareFacebook = () => {
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, "_blank");
-  };
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success("Link copiado!");
   };
 
   if (!currentPhoto) return null;
@@ -314,15 +304,15 @@ export function PhotoLightbox({ photos, initialIndex, isOpen, onClose, albumDate
               </div>
 
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={handleShareWhatsApp} className="text-white hover:bg-white/20" title="Compartilhar no WhatsApp">
-                  <MessageCircle className="w-5 h-5" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={handleShareFacebook} className="text-white hover:bg-white/20" title="Compartilhar no Facebook">
-                  <Facebook className="w-5 h-5" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={handleCopyLink} className="text-white hover:bg-white/20" title="Copiar link">
-                  <Share2 className="w-5 h-5" />
-                </Button>
+                {albumId ? (
+                  <ShareButton
+                    data={sharePhoto({ albumId, photoId: currentPhoto.id, albumName, albumDate })}
+                    variant="ghost"
+                    size="sm"
+                    label="Compartilhar"
+                    className="text-white hover:bg-white/20 hover:text-white"
+                  />
+                ) : null}
                 <Button variant="ghost" size="icon" onClick={handleDownload} className="text-white hover:bg-white/20" title={video ? "Baixar vídeo" : "Baixar foto"}>
                   <Download className="w-5 h-5" />
                 </Button>

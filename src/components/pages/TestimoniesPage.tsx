@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { SearchBar } from "@/components/SearchBar";
 import { ShareButton } from "@/components/ShareButton";
+import { shareTestimony } from "@/lib/share";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { api } from "@/lib/fetcher";
 import type { Testimony } from "@/types/database";
@@ -106,8 +107,7 @@ export function TestimoniesPage() {
                       </div>
                       <div className="pt-4 border-t">
                         <ShareButton
-                          title="Testemunho - Mensageira de Deus Templo de Fé"
-                          text={`${testimony.content} - Por ${testimony.name}`}
+                          data={shareTestimony(testimony)}
                           variant="outline"
                           size="sm"
                           className="w-full"

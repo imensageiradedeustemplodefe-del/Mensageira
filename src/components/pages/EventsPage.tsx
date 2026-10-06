@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/SearchBar";
 import { ShareButton } from "@/components/ShareButton";
+import { shareEvent } from "@/lib/share";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu,
@@ -277,7 +278,11 @@ export function EventsPage() {
                               {formatEventDate(event.event_date, "dd/MM")}
                             </div>
                           </div>
-                          <CardTitle className="text-xl">{event.title}</CardTitle>
+                          <CardTitle className="text-xl">
+                            <Link href={`/eventos/${event.id}`} className="hover:text-primary transition-colors">
+                              {event.title}
+                            </Link>
+                          </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                           {event.description && (
@@ -319,6 +324,10 @@ export function EventsPage() {
                               )}
                             </div>
                           )}
+
+                          <div className="pt-3 border-t">
+                            <ShareButton data={shareEvent(event)} variant="outline" size="sm" className="w-full" />
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
@@ -374,8 +383,7 @@ export function EventsPage() {
 
                           <div className="pt-4 border-t">
                             <ShareButton
-                              title={event.title}
-                              text={`Participe do evento: ${event.title}\n${event.description || ""}`}
+                              data={shareEvent(event)}
                               variant="outline"
                               size="sm"
                               className="w-full"
