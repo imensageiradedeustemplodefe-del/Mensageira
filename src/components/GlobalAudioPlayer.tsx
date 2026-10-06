@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, Volume2, VolumeX, Radio, X, Minimize2, Maximize2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "@/hooks/use-toast";
+import { usePathname } from "next/navigation";
 
 interface GlobalAudioPlayerProps {
   onClose?: () => void;
@@ -29,7 +30,9 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({ onClose })
     closePlayer,
   } = useAudio();
 
-  const [isMinimized, setIsMinimized] = useState(false);
+  // Começa compacto: fora da página inicial basta play/pause + nome da estação
+  const [isMinimized, setIsMinimized] = useState(true);
+  const inlineVisible = useInlinePlayerVisible();
   const [position, setPosition] = useState({ x: 20, y: 20 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0, posX: 0, posY: 0 });
@@ -82,7 +85,8 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({ onClose })
     [isDragging]
   );
 
-  if (!currentMedia || !hasStartedPlayback) return null;
+  // Na página inicial, com o player da rádio visível na tela, o flutuante é redundante
+  if (!currentMedia || !hasStartedPlayback || inlineVisible) return null;
 
   const handlePlayPause = async () => {
     try {
@@ -233,3 +237,33 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({ onClose })
     </Card>
   );
 };
+
+/** true enquanto o player da rádio da página inicial ([data-inline-player]) estiver visível na tela. */
+function useInlinePlayerVisible() {
+  const pathname = usePathname();
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    let observer: IntersectionObserver | null = null;
+    let cancelled = false;
+    // a página monta depois da navegação: tenta achar o elemento por alguns instantes
+    const attach = (tries: number) => {
+      if (cancelled) return;
+      const el = document.querySelector("[data-inline-player]");
+      if (!el) {
+        if (tries > 0) setTimeout(() => attach(tries - 1), 200);
+        else setVisible(false);
+        return;
+      }
+      observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.15 });
+      observer.observe(el);
+    };
+    attach(10);
+    return () => {
+      cancelled = true;
+      observer?.disconnect();
+    };
+  }, [pathname]);
+
+  return visible;
+}

@@ -65,7 +65,10 @@ export function HomePage() {
           <h2 id="media-player-heading" className="sr-only">
             Player de Mídia
           </h2>
-          <MediaPlayer />
+          {/* data-inline-player: o player flutuante se esconde enquanto este estiver na tela */}
+          <div data-inline-player>
+            <MediaPlayer />
+          </div>
         </div>
       </section>
 
