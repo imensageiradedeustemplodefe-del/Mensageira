@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Calendar, Play, Heart } from "lucide-react";
+import { Home, Users, Calendar, Camera, Heart } from "lucide-react";
 
 const MobileBottomNav = () => {
   const pathname = usePathname();
@@ -10,14 +10,14 @@ const MobileBottomNav = () => {
   const navItems = [
     { name: "Início", href: "/", icon: Home },
     { name: "Eventos", href: "/eventos", icon: Calendar },
-    { name: "Live", href: "/live", icon: Play },
+    { name: "Galeria", href: "/galeria", icon: Camera },
     { name: "Oração", href: "/oracoes", icon: Heart },
     { name: "Mais", href: "/menu", icon: Users },
   ];
 
   const isActive = (href: string) => {
     if (href === "/menu") {
-      return ["/menu", "/sobre", "/contato", "/galeria", "/testemunhos"].includes(pathname);
+      return ["/menu", "/sobre", "/contato", "/live", "/testemunhos"].includes(pathname);
     }
     return pathname === href;
   };

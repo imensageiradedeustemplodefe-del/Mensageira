@@ -22,13 +22,13 @@ const Navigation = () => {
     { name: "Início", href: "/", icon: Home },
     { name: "Sobre", href: "/sobre", icon: Users },
     { name: "Eventos", href: "/eventos", icon: Calendar },
+    { name: "Galeria", href: "/galeria", icon: Camera },
     { name: "Live", href: "/live", icon: Play },
     { name: "Contato", href: "/contato", icon: Phone },
   ];
 
   const ministryPages = [
     { name: "Pedidos de Oração", href: "/oracoes", icon: Heart },
-    { name: "Galeria", href: "/galeria", icon: Camera },
     { name: "Testemunhos", href: "/testemunhos", icon: MessageCircle },
   ];
 

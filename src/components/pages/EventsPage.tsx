@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, MapPin, Clock, Users, UserPlus, CalendarDays } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, UserPlus } from "lucide-react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,9 +32,62 @@ export const getCategoryColor = (category: string) => {
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+const CATEGORY_LABEL: Record<string, string> = {
+  culto: "Cultos",
+  ceia: "Santa Ceia",
+  jovens: "Jovens",
+  lavacar: "Lavacar",
+  conferencia: "Conferências",
+  workshop: "Workshops",
+  retiro: "Retiros",
+  evangelismo: "Evangelismo",
+  geral: "Geral",
+};
+const categoryLabel = (c: string) => CATEGORY_LABEL[c] ?? capitalize(c);
+
+const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+/** Altura do cabeçalho fixo, para a barra de filtros "grudar" logo abaixo dele. */
+function useHeaderHeight() {
+  const [h, setH] = useState(64);
+  useEffect(() => {
+    const nav = document.querySelector<HTMLElement>("nav.sticky");
+    if (!nav) return;
+    const update = () => setH(nav.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(nav);
+    return () => ro.disconnect();
+  }, []);
+  return h;
+}
+
+function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      data-active={active || undefined}
+      className={`shrink-0 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all duration-200 ${
+        active
+          ? "bg-primary text-primary-foreground border-primary shadow-md"
+          : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/40 hover:bg-accent/50"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function EventsPage() {
   const [query, setQuery] = useState("");
-  const [month, setMonth] = useState<string>("all"); // "all" | "yyyy-MM"
+  // Começa no mês atual (antes listava todos os meses de uma vez: dezenas de cartões)
+  const [month, setMonth] = useState<string>(() => monthKey(new Date())); // "all" | "yyyy-MM"
+  const [category, setCategory] = useState<string>("all");
+  const headerHeight = useHeaderHeight();
+  const monthsRef = useRef<HTMLDivElement>(null);
   const { data: events = [], isLoading: loading } = useQuery({
     queryKey: ["events", "public"],
     queryFn: () => api<Event[]>("/api/events"),
@@ -44,20 +97,43 @@ export function EventsPage() {
 
   const isEventPast = (eventDate: string) => isBefore(new Date(eventDate), startOfDay(new Date()));
 
-  // Meses disponíveis (com eventos), em ordem cronológica
+  // Meses do atual em diante, com a quantidade de eventos (respeitando o filtro de tipo)
   const months = useMemo(() => {
-    const map = new Map<string, string>();
+    const current = monthKey(new Date());
+    const map = new Map<string, { label: string; count: number }>();
     for (const e of events) {
       const d = new Date(e.event_date);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      if (!map.has(key)) map.set(key, format(d, "MMM yyyy", { locale: ptBR }));
+      const key = monthKey(d);
+      if (key < current || isEventPast(e.event_date)) continue;
+      if (category !== "all" && e.category !== category) continue;
+      const item = map.get(key) ?? { label: capitalize(format(d, "MMM", { locale: ptBR })), count: 0 };
+      item.count++;
+      map.set(key, item);
     }
-    return [...map.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, label]) => ({ key, label: label.charAt(0).toUpperCase() + label.slice(1) }));
-  }, [events]);
+    const thisYear = new Date().getFullYear();
+    return [...map.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, v]) => ({ key, label: Number(key.slice(0, 4)) === thisYear ? v.label : `${v.label}/${key.slice(2, 4)}`, count: v.count }));
+  }, [events, category]);
 
-  const byMonth = month === "all" ? events : events.filter((e) => {
-    const d = new Date(e.event_date);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}` === month;
+  const categories = useMemo(
+    () => [...new Set(events.filter((e) => !isEventPast(e.event_date)).map((e) => e.category))].sort((a, b) => categoryLabel(a).localeCompare(categoryLabel(b))),
+    [events]
+  );
+
+  // Se o mês escolhido ficou sem eventos (ex.: trocou o tipo), volta para "Todos"
+  useEffect(() => {
+    if (!loading && month !== "all" && !months.some((m) => m.key === month)) setMonth(months[0]?.key ?? "all");
+  }, [loading, months, month]);
+
+  // Mantém o mês selecionado visível na faixa rolável
+  useEffect(() => {
+    monthsRef.current?.querySelector("[data-active]")?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+  }, [month, months.length]);
+
+  const byMonth = events.filter((e) => {
+    if (category !== "all" && e.category !== category) return false;
+    return month === "all" || monthKey(new Date(e.event_date)) === month;
   });
 
   const filteredEvents = query.trim()
@@ -89,33 +165,40 @@ export function EventsPage() {
 
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {!loading && months.length > 1 && (
-            <div className="mb-10">
-              <div className="flex items-center justify-center gap-2 mb-3 text-sm font-medium text-muted-foreground">
-                <CalendarDays className="w-4 h-4 text-primary" />
-                Filtrar por mês
+          {!loading && (months.length > 0 || categories.length > 1) && (
+            <div
+              className="sticky z-30 -mx-4 sm:mx-0 mb-8 px-4 py-3 bg-background/95 backdrop-blur-md border-b border-border/60 sm:rounded-xl sm:border"
+              style={{ top: headerHeight }}
+            >
+              <div
+                ref={monthsRef}
+                className="flex gap-2 overflow-x-auto hide-scrollbar"
+                role="tablist"
+                aria-label="Filtrar eventos por mês"
+              >
+                <FilterChip active={month === "all"} onClick={() => setMonth("all")}>
+                  Todos
+                </FilterChip>
+                {months.map((m) => (
+                  <FilterChip key={m.key} active={month === m.key} onClick={() => setMonth(m.key)}>
+                    {m.label}
+                    <span className={`ml-1.5 text-xs ${month === m.key ? "opacity-90" : "opacity-60"}`}>{m.count}</span>
+                  </FilterChip>
+                ))}
               </div>
-              <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center" role="tablist" aria-label="Filtrar eventos por mês">
-                {[{ key: "all", label: "Todos" }, ...months].map((m) => {
-                  const active = month === m.key;
-                  return (
-                    <button
-                      key={m.key}
-                      type="button"
-                      role="tab"
-                      aria-selected={active}
-                      onClick={() => setMonth(m.key)}
-                      className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                        active
-                          ? "bg-primary text-primary-foreground border-primary shadow-md"
-                          : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/40 hover:bg-accent/50"
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  );
-                })}
-              </div>
+
+              {categories.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto hide-scrollbar mt-2" role="tablist" aria-label="Filtrar eventos por tipo">
+                  <FilterChip active={category === "all"} onClick={() => setCategory("all")}>
+                    Todos os tipos
+                  </FilterChip>
+                  {categories.map((c) => (
+                    <FilterChip key={c} active={category === c} onClick={() => setCategory(c)}>
+                      {categoryLabel(c)}
+                    </FilterChip>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           {loading ? (
@@ -126,9 +209,13 @@ export function EventsPage() {
           ) : (
             <>
               <div className="mb-16">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl font-bold text-foreground mb-4">Próximos Eventos</h2>
-                  <p className="text-lg text-muted-foreground">Participe dos nossos eventos e atividades especiais.</p>
+                <div className="text-center mb-8 sm:mb-12">
+                  <h2 className="text-3xl font-bold text-foreground mb-2 sm:mb-4">Próximos Eventos</h2>
+                  <p className="text-lg text-muted-foreground">
+                    {month === "all"
+                      ? "Participe dos nossos eventos e atividades especiais."
+                      : `${capitalize(format(new Date(`${month}-15T12:00:00`), "MMMM 'de' yyyy", { locale: ptBR }))} • ${upcomingEvents.length} ${upcomingEvents.length === 1 ? "evento" : "eventos"}${category !== "all" ? ` • ${categoryLabel(category)}` : ""}`}
+                  </p>
                 </div>
 
                 {upcomingEvents.length === 0 ? (
