@@ -39,9 +39,10 @@ const timeBR = (d: Date) => d.toLocaleTimeString("pt-BR", { hour: "2-digit", min
 // Builds the in-app notification feed (same rules as the original NotificationContext, now server-side).
 export const GET = handler(async () => {
   const now = new Date();
-  const today = now.toISOString().split("T")[0];
-  const startOfDay = new Date(`${today}T00:00:00.000Z`);
-  const endOfDay = new Date(`${today}T23:59:59.999Z`);
+  // "Hoje" no fuso de Brasília (00:00 BRT = 03:00Z), igual ao envio diário de push
+  const today = now.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+  const startOfDay = new Date(`${today}T03:00:00.000Z`);
+  const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000 - 1);
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   const [todayEvents, streams, verses, albums, testimonies, prayers, customNotifs] = await Promise.all([
@@ -134,8 +135,10 @@ export const GET = handler(async () => {
   }
 
   if (verses.length > 0) {
-    const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000);
-    const seed = dayOfYear + now.getFullYear() * 365;
+    // Mesma escolha do versículo que o push diário (lib/daily-notifications.ts)
+    const [y, m, d] = today.split("-").map(Number);
+    const dayOfYear = Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 0)) / 86400000);
+    const seed = dayOfYear + y * 365;
     const todayVerse = verses[seed % verses.length];
     const c = config.daily_verse;
     all.push({

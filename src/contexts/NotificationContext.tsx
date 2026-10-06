@@ -27,16 +27,7 @@ const getReadNotifications = (): Set<string> => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return new Set();
     const data = JSON.parse(stored);
-    const readIds = new Set<string>(data.ids || []);
-    const lastCleanup = data.lastCleanup || 0;
-
-    // Limpar notificações lidas antigas (mais de 7 dias)
-    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    if (lastCleanup < sevenDaysAgo) {
-      const today = new Date().toISOString().split("T")[0];
-      return new Set(Array.from(readIds).filter((id) => id.includes(today)));
-    }
-    return readIds;
+    return new Set<string>(data.ids || []);
   } catch {
     return new Set();
   }
@@ -60,11 +51,13 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       const readIds = getReadNotifications();
       const data = await api<ServerNotification[]>("/api/notifications");
 
-      const list: InAppNotification[] = data.map((n) => ({
-        ...n,
-        // A palavra do dia sempre aparece como não lida
-        isRead: n.type === "daily_verse" ? false : readIds.has(n.id),
-      }));
+      // A palavra do dia tem a data no id (daily_verse_yyyy-MM-dd): lida hoje, volta como nova amanhã
+      const list: InAppNotification[] = data.map((n) => ({ ...n, isRead: readIds.has(n.id) }));
+
+      // Limpeza: guarda só os ids que o servidor ainda devolve (os antigos saem sozinhos)
+      const current = new Set(data.map((n) => n.id));
+      const pruned = new Set([...readIds].filter((id) => current.has(id)));
+      if (pruned.size !== readIds.size) saveReadNotifications(pruned);
 
       // Avisar (toast) sobre novidades que chegaram desde a última verificação
       if (knownIdsRef.current) {
@@ -92,8 +85,9 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const markAllAsRead = useCallback(() => {
-    const allIds = new Set(notifications.map((n) => n.id));
-    saveReadNotifications(allIds);
+    const readIds = getReadNotifications();
+    notifications.forEach((n) => readIds.add(n.id));
+    saveReadNotifications(readIds);
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   }, [notifications]);
 
