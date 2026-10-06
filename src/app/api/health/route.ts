@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma, dbMode } from "@/lib/prisma";
 import { handler, json } from "@/lib/api";
 
 // Health check: reports which integrations are configured (never exposes values).
@@ -17,6 +17,7 @@ export const GET = handler(async () => {
   return json({
     ok: database && has("AUTH_SECRET"),
     database,
+    dbMode,
     dbError,
     env: {
       DATABASE_URL: has("DATABASE_URL"),

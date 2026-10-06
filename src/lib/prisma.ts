@@ -5,11 +5,21 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
+/**
+ * Como o app se conecta ao banco:
+ * - "pooled": produção na Vercel, via PRISMA_DATABASE_URL (prisma+postgres://). O pool de conexões
+ *   fica do lado do Prisma Postgres, então muitas instâncias serverless ao mesmo tempo não estouram o
+ *   limite de conexões do banco (era o "Too many database connections" que derrubava login e páginas).
+ * - "direct": desenvolvimento local / fallback, conexão TCP direta com um pool pequeno.
+ */
+export const dbMode: "pooled" | "direct" = process.env.PRISMA_DATABASE_URL?.startsWith("prisma+postgres://")
+  ? "pooled"
+  : "direct";
+
 function createClient() {
-  // O banco (Prisma Postgres) aceita poucas conexões simultâneas. Cada instância serverless abria
-  // um pool de até 10 e, com várias instâncias ao mesmo tempo, estourava o limite ("Too many
-  // database connections"), derrubando login, notificações e páginas. Agora: poucas conexões por
-  // instância, liberadas logo quando ficam ociosas, e fechadas quando a Vercel suspende a função.
+  if (dbMode === "pooled") {
+    return new PrismaClient({ accelerateUrl: process.env.PRISMA_DATABASE_URL! });
+  }
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     max: 3,
