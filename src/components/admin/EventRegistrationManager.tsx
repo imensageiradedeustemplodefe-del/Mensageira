@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, GripVertical, Eye, ChevronUp, ChevronDown, Copy, Settings2, X, Edit, FileSpreadsheet, ExternalLink } from "lucide-react";
+import { Plus, Trash2, GripVertical, Eye, ChevronUp, ChevronDown, Copy, Settings2, X, Edit, FileSpreadsheet, ExternalLink, Download } from "lucide-react";
 import { api } from "@/lib/fetcher";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -943,7 +943,7 @@ export const EventRegistrationManager = ({ eventId, eventTitle }: EventRegistrat
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                  <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-muted rounded-lg">
                     <div className="flex gap-8">
                       <div>
                         <p className="text-sm font-medium">Total de Inscrições</p>
@@ -956,14 +956,24 @@ export const EventRegistrationManager = ({ eventId, eventTitle }: EventRegistrat
                         </p>
                       </div>
                     </div>
-                    <Button
-                      onClick={handleSyncToSheets}
-                      disabled={syncing || registrations.filter(r => !r.synced_to_sheets).length === 0}
-                      className="gap-2"
-                    >
-                      <FileSpreadsheet className="w-4 h-4" />
-                      {syncing ? "Sincronizando..." : "Sincronizar com Google Sheets"}
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      {/* Planilha direto do site (não depende do Google) */}
+                      <a href={`/api/admin/events/${eventId}/registrations/export`} download>
+                        <Button className="gap-2">
+                          <Download className="w-4 h-4" />
+                          Baixar planilha (Excel)
+                        </Button>
+                      </a>
+                      <Button
+                        variant="outline"
+                        onClick={handleSyncToSheets}
+                        disabled={syncing || registrations.filter(r => !r.synced_to_sheets).length === 0}
+                        className="gap-2"
+                      >
+                        <FileSpreadsheet className="w-4 h-4" />
+                        {syncing ? "Sincronizando..." : "Sincronizar com Google Sheets"}
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-3 max-h-[600px] overflow-y-auto">
