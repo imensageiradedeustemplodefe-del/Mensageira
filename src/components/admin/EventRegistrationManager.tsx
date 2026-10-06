@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, GripVertical, Eye, ChevronUp, ChevronDown, Copy, Settings2, X, Edit, FileSpreadsheet, ExternalLink, Download } from "lucide-react";
+import { Plus, Trash2, GripVertical, Eye, ChevronUp, ChevronDown, Copy, Settings2, X, Edit } from "lucide-react";
 import { api } from "@/lib/fetcher";
 import { useToast } from "@/hooks/use-toast";
+import { RegistrationsList } from "./RegistrationsList";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -38,6 +39,9 @@ interface Registration {
 interface EventRegistrationManagerProps {
   eventId: string;
   eventTitle: string;
+  maxParticipants?: number | null;
+  /** aba aberta inicialmente: formulário (campos) ou lista de inscritos */
+  defaultTab?: "fields" | "registrations";
 }
 
 const FIELD_TYPES = [
@@ -51,15 +55,12 @@ const FIELD_TYPES = [
   { value: "checkbox", label: "Caixa de Seleção", icon: "☑", description: "Sim/Não" },
 ];
 
-export const EventRegistrationManager = ({ eventId, eventTitle }: EventRegistrationManagerProps) => {
+export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants, defaultTab = "fields" }: EventRegistrationManagerProps) => {
   const [fields, setFields] = useState<RegistrationField[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [viewingRegistration, setViewingRegistration] = useState<Registration | null>(null);
   const [editingField, setEditingField] = useState<RegistrationField | null>(null);
   const [loading, setLoading] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const { toast } = useToast();
 
   const [newField, setNewField] = useState({
@@ -370,79 +371,9 @@ export const EventRegistrationManager = ({ eventId, eventTitle }: EventRegistrat
     setQuickFields(newFields);
   };
 
-  const handleDeleteRegistration = async (registrationId: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta inscrição?")) return;
-
-    try {
-      await api(`/api/admin/events/${eventId}/registrations/${registrationId}`, { method: "DELETE" });
-    } catch (error) {
-      toast({
-        title: "Erro ao excluir inscrição",
-        description: error instanceof Error ? error.message : "Erro desconhecido",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Inscrição excluída",
-      description: "A inscrição foi excluída com sucesso",
-    });
-
-    fetchRegistrations();
-  };
-
-  const handleViewDetails = (registration: Registration) => {
-    setViewingRegistration(registration);
-    setViewDialogOpen(true);
-  };
-
-  const handleSyncToSheets = async () => {
-    setSyncing(true);
-    
-    try {
-      const data = await api<{ syncedCount: number; spreadsheetId?: string }>(`/api/admin/events/${eventId}/sync`, { method: 'POST' });
-
-      toast({
-        title: "Sincronização concluída!",
-        description: `${data.syncedCount} inscrições foram sincronizadas com sucesso.`,
-      });
-
-      // Recarregar as inscrições para atualizar o status
-      await fetchRegistrations();
-
-      // Se houver spreadsheetId, mostrar link
-      if (data.spreadsheetId) {
-        setTimeout(() => {
-          toast({
-            title: "Planilha criada!",
-            description: "Clique para abrir a planilha no Google Sheets",
-            action: (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${data.spreadsheetId}`, '_blank')}
-              >
-                Abrir Planilha
-              </Button>
-            ),
-          });
-        }, 500);
-      }
-    } catch (error) {
-      toast({
-        title: "Erro ao sincronizar",
-        description: (error instanceof Error && error.message) || "Verifique se as credenciais do Google Drive estão configuradas.",
-        variant: "destructive",
-      });
-    } finally {
-      setSyncing(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="fields" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="fields">
             <Settings2 className="w-4 h-4 mr-2" />
@@ -925,196 +856,10 @@ export const EventRegistrationManager = ({ eventId, eventTitle }: EventRegistrat
         </TabsContent>
 
         <TabsContent value="registrations" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Inscrições Recebidas</span>
-                <Badge variant="secondary" className="text-lg px-4 py-1">
-                  {registrations.length}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {registrations.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Eye className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium mb-2">Nenhuma inscrição recebida</p>
-                  <p className="text-sm">As inscrições aparecerão aqui quando forem enviadas</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-muted rounded-lg">
-                    <div className="flex gap-8">
-                      <div>
-                        <p className="text-sm font-medium">Total de Inscrições</p>
-                        <p className="text-2xl font-bold">{registrations.length}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Sincronizadas</p>
-                        <p className="text-2xl font-bold">
-                          {registrations.filter((r) => r.synced_to_sheets).length}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {/* Planilha direto do site (não depende do Google) */}
-                      <a href={`/api/admin/events/${eventId}/registrations/export`} download>
-                        <Button className="gap-2">
-                          <Download className="w-4 h-4" />
-                          Baixar planilha (Excel)
-                        </Button>
-                      </a>
-                      <Button
-                        variant="outline"
-                        onClick={handleSyncToSheets}
-                        disabled={syncing || registrations.filter(r => !r.synced_to_sheets).length === 0}
-                        className="gap-2"
-                      >
-                        <FileSpreadsheet className="w-4 h-4" />
-                        {syncing ? "Sincronizando..." : "Sincronizar com Google Sheets"}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                    {registrations.map((registration) => (
-                      <Card key={registration.id}>
-                        <CardContent className="p-4">
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-start">
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(registration.created_at).toLocaleString("pt-BR")}
-                              </p>
-                              <div className="flex items-center gap-2">
-                                {registration.synced_to_sheets && registration.spreadsheet_id && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${registration.spreadsheet_id}`, '_blank')}
-                                    title="Abrir planilha no Google Sheets"
-                                  >
-                                    <FileSpreadsheet className="w-4 h-4 text-green-600" />
-                                  </Button>
-                                )}
-                                {registration.synced_to_sheets && (
-                                  <Badge variant="outline" className="text-xs bg-green-50">
-                                    ✓ Sincronizado
-                                  </Badge>
-                                )}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleViewDetails(registration)}
-                                  title="Ver detalhes"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteRegistration(registration.id)}
-                                  title="Excluir inscrição"
-                                >
-                                  <Trash2 className="w-4 h-4 text-destructive" />
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {Object.entries(registration.registration_data)
-                                .slice(0, 4)
-                                .map(([key, value]) => (
-                                  <div key={key} className="border-l-2 border-primary pl-3">
-                                    <p className="text-xs font-medium text-muted-foreground uppercase">
-                                      {key.replace(/_/g, " ")}
-                                    </p>
-                                    <p className="text-sm font-medium">{String(value)}</p>
-                                  </div>
-                                ))}
-                            </div>
-                            {Object.keys(registration.registration_data).length > 4 && (
-                              <p className="text-xs text-muted-foreground text-center">
-                                +{Object.keys(registration.registration_data).length - 4} campos adicionais
-                              </p>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <RegistrationsList eventId={eventId} eventTitle={eventTitle} maxParticipants={maxParticipants} onChange={fetchRegistrations} />
         </TabsContent>
       </Tabs>
 
-      {/* Modal de Visualização de Detalhes */}
-      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Detalhes da Inscrição</DialogTitle>
-          </DialogHeader>
-          {viewingRegistration && (
-            <div className="space-y-4">
-              <div className="p-4 bg-muted rounded-lg">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Data da Inscrição</p>
-                    <p className="text-sm font-semibold">
-                      {new Date(viewingRegistration.created_at).toLocaleString("pt-BR")}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">Status</p>
-                    {viewingRegistration.synced_to_sheets ? (
-                      <Badge variant="outline" className="bg-green-50">
-                        ✓ Sincronizado
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">Pendente</Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-3">Informações do Inscrito</h3>
-                <div className="space-y-3">
-                  {Object.entries(viewingRegistration.registration_data).map(([key, value]) => (
-                    <div key={key} className="p-3 border-l-4 border-primary bg-muted/30 rounded-r">
-                      <p className="text-xs font-medium text-muted-foreground uppercase mb-1">
-                        {key.replace(/_/g, " ")}
-                      </p>
-                      <p className="text-sm font-medium break-words">{String(value)}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4 border-t">
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    setViewDialogOpen(false);
-                    handleDeleteRegistration(viewingRegistration.id);
-                  }}
-                  className="flex-1"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Excluir Inscrição
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setViewDialogOpen(false)}
-                  className="flex-1"
-                >
-                  Fechar
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

@@ -75,7 +75,7 @@ export default function Page() {
             <h2 className="text-2xl font-bold mb-3">3. Com quem compartilhamos</h2>
             <p className="text-muted-foreground">
               Os dados ficam armazenados em serviços de nuvem contratados pela igreja (hospedagem e banco de dados na Vercel;
-              planilhas e fotos no Google Drive/Google Sheets da igreja). Esses provedores tratam os dados apenas para prestar
+              fotos no Google Drive da igreja). Esses provedores tratam os dados apenas para prestar
               o serviço. As notificações são entregues pelos serviços de push do seu navegador (Google, Apple ou Mozilla).
             </p>
           </div>

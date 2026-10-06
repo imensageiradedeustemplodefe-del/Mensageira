@@ -21,6 +21,7 @@ import { MediaManager } from "@/components/admin/MediaManager";
 import PrayerRequestsManager from "@/components/admin/PrayerRequestsManager";
 import { ContactMessagesManager } from "@/components/admin/ContactMessagesManager";
 import EventsManager from "@/components/admin/EventsManager";
+import { RegistrationsOverview } from "@/components/admin/RegistrationsOverview";
 import EventTemplatesManager from "@/components/admin/EventTemplatesManager";
 import LiveStreamsManager from "@/components/admin/LiveStreamsManager";
 import { CustomNotificationsManager } from "@/components/admin/CustomNotificationsManager";
@@ -32,6 +33,7 @@ const TITLES: Record<string, string> = {
   drive: "Integração Google Drive",
   media: "Biblioteca de Mídia",
   events: "Gerenciar Eventos",
+  registrations: "Inscrições",
   templates: "Modelos de Eventos",
   prayers: "Pedidos de Oração",
   contact: "Mensagens de Contato",
@@ -46,6 +48,7 @@ const DESCRIPTIONS: Record<string, string> = {
   drive: "Sincronize fotos automaticamente do Google Drive",
   media: "Gerencie vídeos, áudios e músicas",
   events: "Crie e publique eventos da igreja",
+  registrations: "Inscritos dos eventos, com listas para baixar em Excel ou PDF",
   templates: "Crie modelos reutilizáveis para eventos",
   prayers: "Gerencie os pedidos de oração recebidos",
   contact: "Mensagens enviadas pelo formulário da página Contato",
@@ -109,6 +112,7 @@ export function AdminPanel() {
                 {activeTab === "drive" && <GoogleDriveManager />}
                 {activeTab === "media" && <MediaManager />}
                 {activeTab === "events" && <EventsManager />}
+                {activeTab === "registrations" && <RegistrationsOverview />}
                 {activeTab === "templates" && <EventTemplatesManager />}
                 {activeTab === "prayers" && <PrayerRequestsManager />}
                 {activeTab === "contact" && <ContactMessagesManager />}

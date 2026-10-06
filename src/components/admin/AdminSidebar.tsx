@@ -20,7 +20,8 @@ import {
 
   Zap,
   Home,
-  Inbox
+  Inbox,
+  ClipboardList
 } from "lucide-react";
 import {
   Sidebar,
@@ -74,6 +75,7 @@ const menuItems = [
     defaultOpen: false,
     items: [
       { title: "Eventos", value: "events", icon: Calendar, description: "Gerenciar eventos" },
+      { title: "Inscrições", value: "registrations", icon: ClipboardList, description: "Inscritos e listas" },
       { title: "Modelos", value: "templates", icon: Copy, description: "Templates reutilizáveis" },
     ]
   },

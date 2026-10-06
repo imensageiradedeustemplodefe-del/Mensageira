@@ -15,11 +15,9 @@ import { Badge } from '@/components/ui/badge';
 export function GoogleDriveManager() {
   const [scriptUrl, setScriptUrl] = useState('');
   const [folderId, setFolderId] = useState('');
-  const [eventScriptUrl, setEventScriptUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const isAdmin = true;
   const [isSaved, setIsSaved] = useState(false);
-  const [eventScriptSaved, setEventScriptSaved] = useState(false);
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
 
@@ -39,14 +37,9 @@ export function GoogleDriveManager() {
 
       const urlSetting = data?.find(s => s.setting_key === 'google_drive_script_url');
       const folderSetting = data?.find(s => s.setting_key === 'google_drive_folder_id');
-      const eventUrlSetting = data?.find(s => s.setting_key === 'event_registration_script_url');
 
       if (urlSetting) setScriptUrl(urlSetting.setting_value || '');
       if (folderSetting) setFolderId(folderSetting.setting_value || '');
-      if (eventUrlSetting) {
-        setEventScriptUrl(eventUrlSetting.setting_value || '');
-        if (eventUrlSetting.setting_value) setEventScriptSaved(true);
-      }
       
       // Basta a URL do script estar salva para liberar a sincronização e a visualização
       if (urlSetting?.setting_value?.trim()) {
@@ -109,29 +102,6 @@ export function GoogleDriveManager() {
     }
   };
 
-  const saveEventScriptSettings = async () => {
-    if (!eventScriptUrl.trim()) {
-      toast.error('Informe a URL do Apps Script para Inscrições');
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      await api('/api/admin/settings', {
-        method: 'PUT',
-        json: { settings: [{ setting_key: 'event_registration_script_url', setting_value: eventScriptUrl }] },
-      });
-
-      setEventScriptSaved(true);
-      toast.success('URL do Apps Script de Inscrições salva com sucesso!');
-    } catch (error) {
-      console.error('Erro ao salvar configuração:', error);
-      toast.error('Erro ao salvar configuração');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!isAdmin) {
     return (
@@ -436,90 +406,6 @@ export function GoogleDriveManager() {
       )}
 
       {/* Event Registration Apps Script */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Cloud className="w-5 h-5" />
-            Inscrições de Eventos (Google Apps Script)
-          </CardTitle>
-          <CardDescription>
-            Configure o Apps Script para sincronizar inscrições de eventos com planilhas do Google
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4 p-4 bg-muted rounded-lg">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-              <div className="space-y-2 text-sm">
-                <p className="font-medium">Como Configurar:</p>
-                <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                  <li>Acesse <a href="https://script.google.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
-                    Google Apps Script <ExternalLink className="w-3 h-3" />
-                  </a></li>
-                  <li>Crie um novo projeto e cole o código do arquivo <code className="bg-background px-1 py-0.5 rounded">google-apps-script/EventRegistrations.gs</code></li>
-                  <li>Implante como "Web app" executando como "Eu" e acesso "Qualquer pessoa"</li>
-                  <li>Copie a URL gerada e cole abaixo</li>
-                  <li>As inscrições serão automaticamente sincronizadas em planilhas na pasta "Inscrições_Eventos"</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="eventScriptUrl">URL do Apps Script (Inscrições de Eventos) *</Label>
-              <Input
-                id="eventScriptUrl"
-                type="url"
-                value={eventScriptUrl}
-                onChange={(e) => {
-                  setEventScriptUrl(e.target.value);
-                  setEventScriptSaved(false);
-                }}
-                placeholder="https://script.google.com/macros/s/AKfycby.../exec"
-                className="font-mono text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Cole a URL da web app do seu Apps Script para gerenciar inscrições de eventos
-              </p>
-            </div>
-
-            <Button
-              onClick={saveEventScriptSettings}
-              disabled={loading || !eventScriptUrl.trim()}
-              className="w-full"
-            >
-              {loading ? (
-                <>
-                  <Save className="mr-2 h-4 w-4 animate-spin" />
-                  Salvando...
-                </>
-              ) : eventScriptSaved ? (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Configuração Salva ✓
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Salvar URL do Apps Script
-                </>
-              )}
-            </Button>
-          </div>
-
-          {eventScriptSaved && (
-            <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-              <p className="text-sm text-green-700 dark:text-green-400">
-                ✓ URL configurada! As inscrições de eventos serão automaticamente sincronizadas com o Google Sheets.
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Quando usuários se inscreverem em eventos, as informações serão enviadas para planilhas organizadas na pasta "Inscrições_Eventos".
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
