@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Radio, RefreshCw, AlertTriangle, Volume2, ChevronDown, ChevronUp, ListMusic, PictureInPicture2 } from "lucide-react";
-import { isRadioPipSupported } from "@/lib/radio-pip";
+import { isRadioFloatSupported } from "@/lib/radio-pip";
 import { openFloatingRadio } from "@/components/GlobalAudioPlayer";
 import { toast } from "@/hooks/use-toast";
 import { useAudio, getMediaType, type AudioMediaItem } from "@/contexts/AudioContext";
@@ -22,7 +22,7 @@ export function MediaPlayer() {
 
   const { currentMedia, isPlaying, error, loading: audioLoading, play, pause, loadMedia, clearError } = useAudio();
   const [pipSupported, setPipSupported] = useState(false);
-  useEffect(() => setPipSupported(isRadioPipSupported()), []);
+  useEffect(() => setPipSupported(isRadioFloatSupported()), []);
 
   useEffect(() => {
     (async () => {
@@ -226,7 +226,7 @@ export function MediaPlayer() {
               {isExternalLink
                 ? "Este conteúdo será aberto no Spotify Web Player"
                 : pipSupported
-                  ? "Toque em \"Janela flutuante\" antes de sair do app para continuar vendo a rádio por cima dos outros apps"
+                  ? "Toque em \"Janela flutuante\" para continuar vendo a rádio por cima dos outros apps"
                   : "A rádio continua tocando com o celular bloqueado; use os controles da notificação"}
             </p>
           </div>

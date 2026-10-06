@@ -21,6 +21,8 @@ let logo: HTMLImageElement | null = null;
 let timer: ReturnType<typeof setInterval> | null = null;
 let state: RadioPipState = { title: "Rádio", playing: false };
 let tick = 0;
+let active = false; // janela flutuante (ou tela cheia que vira janela) em uso
+let hint = false; // mostra a instrução "aperte o botão Início" (modo tela cheia do Android)
 
 export function isRadioPipSupported() {
   if (typeof document === "undefined") return false;
@@ -32,8 +34,30 @@ export function isRadioPipSupported() {
   );
 }
 
+const isAndroid = () => typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
+
+/**
+ * Android: o Chrome não deixa o site abrir a janela flutuante direto, mas um vídeo em TELA CHEIA vira
+ * janela flutuante automaticamente quando a pessoa aperta o botão Início. Então abrimos o cartão da
+ * rádio em tela cheia com essa instrução.
+ */
+function canFullscreenFloat() {
+  return (
+    isAndroid() &&
+    typeof document !== "undefined" &&
+    !!document.fullscreenEnabled &&
+    typeof HTMLCanvasElement !== "undefined" &&
+    typeof HTMLCanvasElement.prototype.captureStream === "function"
+  );
+}
+
+/** Há alguma forma de mostrar a rádio flutuando fora do app neste aparelho? */
+export function isRadioFloatSupported() {
+  return isRadioPipSupported() || canFullscreenFloat();
+}
+
 export function isRadioPipOpen() {
-  return typeof document !== "undefined" && !!video && document.pictureInPictureElement === video;
+  return typeof document !== "undefined" && !!video && (document.pictureInPictureElement === video || active);
 }
 
 function setup() {
@@ -55,7 +79,22 @@ function setup() {
   Object.assign(video.style, { position: "fixed", width: "1px", height: "1px", opacity: "0", pointerEvents: "none", bottom: "0", left: "0" });
   document.body.appendChild(video);
   video.srcObject = canvas.captureStream(15);
-  video.addEventListener("leavepictureinpicture", stopTimer);
+  video.addEventListener("leavepictureinpicture", () => {
+    active = false;
+    stopTimer();
+  });
+  document.addEventListener("fullscreenchange", () => {
+    if (!video) return;
+    if (document.fullscreenElement === video) return;
+    // saiu da tela cheia: se o app continua visível, a pessoa fechou (não foi para a janelinha)
+    hint = false;
+    Object.assign(video.style, { width: "1px", height: "1px", opacity: "0" });
+    if (document.visibilityState === "visible" && document.pictureInPictureElement !== video) {
+      active = false;
+      stopTimer();
+      video.pause();
+    }
+  });
 }
 
 function wrap(text: string, max: number) {
@@ -108,6 +147,17 @@ function draw() {
   ctx.fillStyle = "#FFD700";
   ctx.font = "22px Roboto, Arial, sans-serif";
   ctx.fillText("Mensageira de Deus", tx, 305);
+
+  // Instrução (só na tela cheia do Android; some quando vira janelinha)
+  if (hint && document.fullscreenElement === video && document.visibilityState === "visible") {
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillRect(0, H - 52, W, 52);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 19px Roboto, Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Aperte o botão Início do celular para a rádio virar uma janelinha", W / 2, H - 20);
+    ctx.textAlign = "left";
+  }
 }
 
 function startTimer() {
@@ -126,13 +176,32 @@ function stopTimer() {
 
 /** Abre a janela flutuante. Precisa ser chamado a partir de um toque/clique do usuário. */
 export async function openRadioPip(next: RadioPipState) {
-  if (!isRadioPipSupported()) throw new Error("unsupported");
+  if (!isRadioFloatSupported()) throw new Error("unsupported");
   setup();
   state = next;
+
+  if (isRadioPipSupported()) {
+    draw();
+    startTimer();
+    await video!.play();
+    await video!.requestPictureInPicture();
+    active = true;
+    return "window" as const;
+  }
+
+  // Android: tela cheia -> botão Início -> janela flutuante automática
+  hint = true;
   draw();
   startTimer();
+  Object.assign(video!.style, { width: "100%", height: "100%", opacity: "1" });
+  // o Chrome só transforma em janela vídeos "com som"; o cartão não tem faixa de áudio, então fica mudo de fato
+  video!.muted = false;
+  await video!.requestFullscreen({ navigationUI: "hide" });
   await video!.play();
-  await video!.requestPictureInPicture();
+  // deitado, a janelinha fica no formato 16:9 do cartão (se o aparelho permitir)
+  await (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.("landscape").catch(() => {});
+  active = true;
+  return "fullscreen" as const;
 }
 
 export function updateRadioPip(next: RadioPipState) {
@@ -151,5 +220,7 @@ export function updateRadioPip(next: RadioPipState) {
 
 export async function closeRadioPip() {
   stopTimer();
-  if (isRadioPipOpen()) await document.exitPictureInPicture().catch(() => {});
+  active = false;
+  if (document.pictureInPictureElement) await document.exitPictureInPicture().catch(() => {});
+  if (video && document.fullscreenElement === video) await document.exitFullscreen().catch(() => {});
 }

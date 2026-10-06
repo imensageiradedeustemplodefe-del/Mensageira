@@ -6,7 +6,7 @@ import { Play, Pause, X, Radio, PictureInPicture2 } from "lucide-react";
 import { useAudio } from "@/contexts/AudioContext";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { isRadioPipSupported, openRadioPip, updateRadioPip, closeRadioPip } from "@/lib/radio-pip";
+import { isRadioFloatSupported, openRadioPip, updateRadioPip, closeRadioPip } from "@/lib/radio-pip";
 
 /**
  * Miniplayer da rádio, no estilo do YouTube: aparece quando a rádio está tocando e o player
@@ -119,7 +119,7 @@ export const GlobalAudioPlayer: React.FC = () => {
             )}
           </button>
 
-          {isRadioPipSupported() && (
+          {isRadioFloatSupported() && (
             <button
               type="button"
               onClick={(e) => {
@@ -201,8 +201,11 @@ function useBottomNavHeight(isMobile: boolean) {
 /** Abre a janela flutuante da rádio (a partir de um toque) e explica como usar. */
 export async function openFloatingRadio(title: string, subtitle: string | null | undefined, playing: boolean) {
   try {
-    await openRadioPip({ title, subtitle, playing });
-    toast({ title: "Janela flutuante aberta", description: "Pode sair do app: a rádio continua tocando numa janelinha por cima dos outros apps." });
+    const mode = await openRadioPip({ title, subtitle, playing });
+    if (mode === "window") {
+      toast({ title: "Janela flutuante aberta", description: "Pode sair do app: a rádio continua tocando numa janelinha por cima dos outros apps." });
+    }
+    // modo "fullscreen" (Android): a própria tela mostra "aperte o botão Início"
   } catch (err) {
     console.error("[RadioPiP]", err);
     toast({
