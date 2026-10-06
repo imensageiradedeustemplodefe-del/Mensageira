@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Radio, RefreshCw, AlertTriangle, Volume2, ChevronDown, ChevronUp, ListMusic } from "lucide-react";
+import { Play, Pause, Radio, RefreshCw, AlertTriangle, Volume2, ChevronDown, ChevronUp, ListMusic, PictureInPicture2 } from "lucide-react";
+import { isRadioPipSupported } from "@/lib/radio-pip";
+import { openFloatingRadio } from "@/components/GlobalAudioPlayer";
 import { toast } from "@/hooks/use-toast";
 import { useAudio, getMediaType, type AudioMediaItem } from "@/contexts/AudioContext";
 import { api } from "@/lib/fetcher";
@@ -19,6 +21,8 @@ export function MediaPlayer() {
   const [showStations, setShowStations] = useState(false);
 
   const { currentMedia, isPlaying, error, loading: audioLoading, play, pause, loadMedia, clearError } = useAudio();
+  const [pipSupported, setPipSupported] = useState(false);
+  useEffect(() => setPipSupported(isRadioPipSupported()), []);
 
   useEffect(() => {
     (async () => {
@@ -206,8 +210,24 @@ export function MediaPlayer() {
               )}
             </Button>
 
+            {playingThis && !isExternalLink && pipSupported && currentMedia && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openFloatingRadio(currentMedia.title, currentMedia.artist, isPlaying)}
+                className="border-primary/30"
+              >
+                <PictureInPicture2 className="w-4 h-4 mr-2" />
+                Janela flutuante
+              </Button>
+            )}
+
             <p className="text-xs text-muted-foreground">
-              {isExternalLink ? "Este conteúdo será aberto no Spotify Web Player" : "Use o player flutuante para controles em segundo plano"}
+              {isExternalLink
+                ? "Este conteúdo será aberto no Spotify Web Player"
+                : pipSupported
+                  ? "Toque em \"Janela flutuante\" antes de sair do app para continuar vendo a rádio por cima dos outros apps"
+                  : "A rádio continua tocando com o celular bloqueado; use os controles da notificação"}
             </p>
           </div>
         </div>

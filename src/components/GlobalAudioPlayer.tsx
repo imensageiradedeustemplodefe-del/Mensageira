@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Play, Pause, X, Radio } from "lucide-react";
+import { Play, Pause, X, Radio, PictureInPicture2 } from "lucide-react";
 import { useAudio } from "@/contexts/AudioContext";
 import { toast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { isRadioPipSupported, openRadioPip, updateRadioPip, closeRadioPip } from "@/lib/radio-pip";
 
 /**
  * Miniplayer da rádio, no estilo do YouTube: aparece quando a rádio está tocando e o player
@@ -23,6 +24,15 @@ export const GlobalAudioPlayer: React.FC = () => {
   useEffect(() => {
     if (error) toast({ title: "Erro de Reprodução", description: error, variant: "destructive" });
   }, [error]);
+
+  // Mantém a janela flutuante (PiP) em dia com a rádio; fecha junto com o player
+  useEffect(() => {
+    if (!currentMedia) {
+      closeRadioPip();
+      return;
+    }
+    updateRadioPip({ title: currentMedia.title, subtitle: currentMedia.artist, playing: isPlaying });
+  }, [currentMedia, isPlaying]);
 
   if (!currentMedia || !hasStartedPlayback || inlineVisible) return null;
 
@@ -109,6 +119,21 @@ export const GlobalAudioPlayer: React.FC = () => {
             )}
           </button>
 
+          {isRadioPipSupported() && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openFloatingRadio(currentMedia.title, currentMedia.artist, isPlaying);
+              }}
+              aria-label="Janela flutuante"
+              title="Janela flutuante (continua aparecendo fora do app)"
+              className="h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 transition"
+            >
+              <PictureInPicture2 className="w-5 h-5" />
+            </button>
+          )}
+
           <button
             type="button"
             onClick={close}
@@ -171,4 +196,19 @@ function useBottomNavHeight(isMobile: boolean) {
   }, [isMobile]); // o menu inferior só existe no celular e monta depois da hidratação
 
   return height;
+}
+
+/** Abre a janela flutuante da rádio (a partir de um toque) e explica como usar. */
+export async function openFloatingRadio(title: string, subtitle: string | null | undefined, playing: boolean) {
+  try {
+    await openRadioPip({ title, subtitle, playing });
+    toast({ title: "Janela flutuante aberta", description: "Pode sair do app: a rádio continua tocando numa janelinha por cima dos outros apps." });
+  } catch (err) {
+    console.error("[RadioPiP]", err);
+    toast({
+      title: "Não foi possível abrir a janela flutuante",
+      description: "Verifique se o Picture-in-Picture está permitido para o Chrome nas configurações do celular.",
+      variant: "destructive",
+    });
+  }
 }
