@@ -13,23 +13,11 @@ export const GET = handler(async () => {
   }
 
   const has = (k: string) => !!process.env[k]?.trim();
-  // Só esquema + host (sem usuário/senha), para diagnosticar qual conexão está configurada
-  const urlInfo = (k: string) => {
-    const v = process.env[k]?.trim();
-    if (!v) return null;
-    try {
-      const u = new URL(v);
-      return `${u.protocol}//${u.hostname}${u.port ? ":" + u.port : ""}`;
-    } catch {
-      return "formato inválido";
-    }
-  };
 
   return json({
     ok: database && has("AUTH_SECRET"),
     database,
     dbMode,
-    dbUrls: { DATABASE_URL: urlInfo("DATABASE_URL"), POSTGRES_URL: urlInfo("POSTGRES_URL"), PRISMA_DATABASE_URL: urlInfo("PRISMA_DATABASE_URL") },
     dbError,
     env: {
       DATABASE_URL: has("DATABASE_URL"),
