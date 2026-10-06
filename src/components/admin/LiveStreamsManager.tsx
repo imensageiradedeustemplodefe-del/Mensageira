@@ -135,8 +135,8 @@ const LiveStreamsManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Transmissões ao Vivo</h2>
+      <div className="flex flex-wrap justify-between items-center gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold">Transmissões ao Vivo</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
@@ -277,10 +277,10 @@ const LiveStreamsManager = () => {
           streams.map((stream) => (
             <Card key={stream.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <CardTitle className="text-lg">{stream.title}</CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="space-y-2 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <CardTitle className="text-lg break-words">{stream.title}</CardTitle>
                       <Badge 
                         variant={stream.is_live ? "destructive" : "secondary"}
                         className={stream.is_live ? "animate-pulse" : ""}
@@ -293,7 +293,7 @@ const LiveStreamsManager = () => {
                         {stream.is_active ? "Ativa" : "Inativa"}
                       </Badge>
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                       <div className="flex items-center space-x-1">
                         <Badge variant="outline" className={getPlatformColor(stream.platform)}>
                           {getPlatformIcon(stream.platform)}
@@ -312,7 +312,7 @@ const LiveStreamsManager = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <Button
                       variant={stream.is_live ? "destructive" : "default"}
                       size="sm"
@@ -341,7 +341,7 @@ const LiveStreamsManager = () => {
               </CardHeader>
               {stream.description && (
                 <CardContent>
-                  <p className="text-muted-foreground">{stream.description}</p>
+                  <p className="text-muted-foreground break-words">{stream.description}</p>
                   <div className="mt-3 pt-3 border-t">
                     <p className="text-xs text-muted-foreground break-all">
                       <strong>URL:</strong> {stream.stream_url}

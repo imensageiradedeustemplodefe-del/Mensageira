@@ -64,6 +64,8 @@ interface EventTemplate {
 
 export default function EventsManager() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [view, setView] = useState<"upcoming" | "past" | "all">("upcoming");
+  const [search, setSearch] = useState("");
   const [templates, setTemplates] = useState<EventTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -268,6 +270,21 @@ export default function EventsManager() {
     );
   }
 
+  const nowMs = Date.now() - 6 * 3600 * 1000; // até 6h depois do início ainda conta como "próximo"
+  const upcomingCount = events.filter((e) => new Date(e.event_date).getTime() >= nowMs).length;
+  const visibleEvents = events
+    .filter((e) => {
+      const t = new Date(e.event_date).getTime();
+      if (view === "upcoming" && t < nowMs) return false;
+      if (view === "past" && t >= nowMs) return false;
+      const q = search.trim().toLowerCase();
+      return !q || e.title.toLowerCase().includes(q) || (e.location ?? "").toLowerCase().includes(q);
+    })
+    .sort((a, b) => {
+      const d = new Date(a.event_date).getTime() - new Date(b.event_date).getTime();
+      return view === "upcoming" ? d : -d;
+    });
+
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
@@ -438,6 +455,37 @@ export default function EventsManager() {
       </CardHeader>
 
       <CardContent>
+        {events.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
+            <div className="inline-flex rounded-lg border p-1 bg-muted/40 self-start">
+              {([
+                ["upcoming", `Próximos (${upcomingCount})`],
+                ["past", "Anteriores"],
+                ["all", "Todos"],
+              ] as const).map(([v, label]) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setView(v)}
+                  className={`px-3 py-1.5 text-sm rounded-md transition ${view === v ? "bg-background shadow font-medium" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar evento…"
+              className="sm:max-w-xs"
+            />
+          </div>
+        )}
+
+        {events.length > 0 && visibleEvents.length === 0 && (
+          <p className="text-center text-muted-foreground py-8">Nenhum evento {view === "past" ? "anterior" : view === "upcoming" ? "próximo" : ""} encontrado{search ? ` para “${search}”` : ""}.</p>
+        )}
+
         {events.length === 0 ? (
           <div className="text-center py-8">
             <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -450,16 +498,19 @@ export default function EventsManager() {
           </div>
         ) : (
           <div className="grid gap-4">
-            {events.map((event) => (
+            {visibleEvents.map((event) => (
               <Card key={event.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-foreground">{event.title}</h3>
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-foreground break-words min-w-0">{event.title}</h3>
                         <Badge className={getCategoryColor(event.category)}>
                           {event.category.charAt(0).toUpperCase() + event.category.slice(1)}
                         </Badge>
+                        {event.registration_required && (
+                          <Badge variant="outline" className="text-primary border-primary">Com inscrição</Badge>
+                        )}
                         {event.is_published ? (
                           <Badge variant="outline" className="text-green-600 border-green-600">
                             Publicado
@@ -477,7 +528,7 @@ export default function EventsManager() {
                         </p>
                       )}
 
-                      <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                         <div className="flex items-center">
                           <Clock className="w-3 h-3 mr-1" />
                           {format(new Date(event.event_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
@@ -491,7 +542,7 @@ export default function EventsManager() {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2 ml-4">
+                    <div className="flex items-center gap-2 shrink-0">
                       {event.registration_required && (
                         <Button
                           variant="outline"

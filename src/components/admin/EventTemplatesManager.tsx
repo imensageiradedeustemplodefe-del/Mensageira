@@ -202,7 +202,7 @@ export default function EventTemplatesManager() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
         <CardTitle className="flex items-center">
           <Copy className="w-5 h-5 mr-2" />
           Modelos de Eventos

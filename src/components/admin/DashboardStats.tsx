@@ -249,16 +249,16 @@ const DashboardStats = () => {
   return (
     <div className="space-y-6">
       {/* Enhanced Stats Cards with Animations */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="group hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500 hover:scale-105">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Testemunhos</CardTitle>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="group hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2 p-4 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">Testemunhos</CardTitle>
             <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
               <MessageCircle className="h-4 w-4 text-blue-500" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground mb-1">{stats.totalTestimonies}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">{stats.totalTestimonies}</div>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-muted rounded-full h-1.5">
                 <div 
@@ -273,15 +273,15 @@ const DashboardStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="group hover:shadow-lg transition-all duration-300 border-l-4 border-l-green-500 hover:scale-105">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pedidos de Oração</CardTitle>
+        <Card className="group hover:shadow-lg transition-all duration-300 border-l-4 border-l-green-500">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2 p-4 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">Pedidos de Oração</CardTitle>
             <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
               <Heart className="h-4 w-4 text-green-500" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground mb-1">{stats.totalPrayerRequests}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">{stats.totalPrayerRequests}</div>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               {stats.pendingPrayerRequests > 0 && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
@@ -299,15 +299,15 @@ const DashboardStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="group hover:shadow-lg transition-all duration-300 border-l-4 border-l-orange-500 hover:scale-105">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Eventos</CardTitle>
+        <Card className="group hover:shadow-lg transition-all duration-300 border-l-4 border-l-orange-500">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2 p-4 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">Eventos</CardTitle>
             <div className="h-8 w-8 rounded-full bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
               <Calendar className="h-4 w-4 text-orange-500" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground mb-1">{stats.totalEvents}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">{stats.totalEvents}</div>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               {stats.upcomingEvents > 0 ? (
                 <>
@@ -321,15 +321,15 @@ const DashboardStats = () => {
           </CardContent>
         </Card>
 
-        <Card className="group hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-500 hover:scale-105">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Transmissões</CardTitle>
+        <Card className="group hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-500">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2 p-4 sm:p-6">
+            <CardTitle className="text-xs sm:text-sm font-medium leading-tight">Transmissões</CardTitle>
             <div className="h-8 w-8 rounded-full bg-red-500/10 flex items-center justify-center group-hover:bg-red-500/20 transition-colors">
               <Radio className="h-4 w-4 text-red-500" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground mb-1">{stats.totalStreams}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-foreground mb-1">{stats.totalStreams}</div>
             <p className="text-xs text-muted-foreground">
               {stats.liveStreams > 0 ? (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
@@ -349,7 +349,7 @@ const DashboardStats = () => {
         {/* Activity Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center text-base sm:text-xl">
               <TrendingUp className="w-5 h-5 mr-2" />
               Atividade dos Últimos 6 Meses
             </CardTitle>
@@ -383,7 +383,7 @@ const DashboardStats = () => {
         {/* Content Distribution */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center text-base sm:text-xl">
               <Eye className="w-5 h-5 mr-2" />
               Distribuição de Conteúdo
             </CardTitle>
@@ -427,7 +427,7 @@ const DashboardStats = () => {
         {/* Recent Activity */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center text-base sm:text-xl">
               <Activity className="w-5 h-5 mr-2" />
               Atividade Recente
             </CardTitle>
@@ -461,7 +461,7 @@ const DashboardStats = () => {
         {/* Quick Status */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center text-base sm:text-xl">
               <CheckCircle className="w-5 h-5 mr-2" />
               Status Rápido
             </CardTitle>

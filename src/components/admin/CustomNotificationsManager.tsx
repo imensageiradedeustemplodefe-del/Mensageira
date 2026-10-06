@@ -271,13 +271,13 @@ export const CustomNotificationsManager = () => {
                     <TableCell className="text-2xl">
                       {notification.icon}
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium min-w-[140px]">
                       {notification.title}
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
                       {notification.message}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground break-all min-w-[120px]">
                       {notification.url}
                     </TableCell>
                     <TableCell>

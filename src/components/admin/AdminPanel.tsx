@@ -80,7 +80,7 @@ export function AdminPanel() {
                 <Breadcrumb className="hidden sm:block">
                   <BreadcrumbList>
                     <BreadcrumbItem>
-                      <BreadcrumbLink href="/admin">Admin</BreadcrumbLink>
+                      <BreadcrumbLink href="/admin">Palavra Viva</BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>

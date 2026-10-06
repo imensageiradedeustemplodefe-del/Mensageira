@@ -62,7 +62,7 @@ export function TestimoniesManager() {
                         (expandedTestimony === testimony.id || testimony.content.length <= 200) 
                           ? '' 
                           : 'line-clamp-3'
-                      } text-sm text-muted-foreground cursor-pointer`}
+                      } text-sm text-muted-foreground cursor-pointer break-words whitespace-pre-line min-w-0`}
                       onClick={() => {
                         if (testimony.content.length > 200) {
                           setExpandedTestimony(
@@ -134,7 +134,7 @@ export function TestimoniesManager() {
                         (expandedTestimony === testimony.id || testimony.content.length <= 200) 
                           ? '' 
                           : 'line-clamp-3'
-                      } text-sm text-muted-foreground cursor-pointer`}
+                      } text-sm text-muted-foreground cursor-pointer break-words whitespace-pre-line min-w-0`}
                       onClick={() => {
                         if (testimony.content.length > 200) {
                           setExpandedTestimony(

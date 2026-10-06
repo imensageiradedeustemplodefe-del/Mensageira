@@ -264,8 +264,8 @@ export default function PrayerRequestsManager() {
 
             <div>
               <p className="font-semibold text-sm sm:text-base">{request.name}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {isExpanded ? request.request_text : `${request.request_text.substring(0, 100)}...`}
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words whitespace-pre-line">
+                {isExpanded || request.request_text.length <= 100 ? request.request_text : `${request.request_text.substring(0, 100)}...`}
               </p>
             </div>
 
@@ -352,7 +352,7 @@ export default function PrayerRequestsManager() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsList className="grid w-full grid-cols-3 h-auto [&>button]:whitespace-normal [&>button]:text-xs sm:[&>button]:text-sm">
             <TabsTrigger value="pending" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 text-xs sm:text-sm">
               <Eye className="w-3 sm:w-4 h-3 sm:h-4" />
               <span className="hidden xs:inline">Pendentes</span>

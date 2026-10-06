@@ -186,9 +186,9 @@ export function MediaManager() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Gerenciar Mídias</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Gerenciar Mídias</h2>
           <p className="text-muted-foreground">Gerencie músicas, pregações e rádios</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>

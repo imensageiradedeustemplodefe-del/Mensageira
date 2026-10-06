@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/fetcher";
 import { 
   BarChart3, 
   MessageCircle, 
@@ -18,7 +19,6 @@ import {
   Image,
   Users,
 
-  Zap,
   Home,
   Inbox,
   ClipboardList
@@ -50,60 +50,75 @@ interface AdminSidebarProps {
   onTabChange: (value: string) => void;
 }
 
-const menuItems = [
+type BadgeKey = "contact" | "prayers" | "testimonies" | "live";
+
+const menuItems: {
+  title: string;
+  icon: typeof Home;
+  defaultOpen: boolean;
+  items: { title: string; value: string; icon: typeof Home; description: string; badgeKey?: BadgeKey }[];
+}[] = [
   {
     title: "Visão Geral",
     icon: Home,
     defaultOpen: true,
+    items: [{ title: "Dashboard", value: "dashboard", icon: BarChart3, description: "Resumo e números" }],
+  },
+  {
+    title: "Eventos",
+    icon: Calendar,
+    defaultOpen: true,
     items: [
-      { title: "Dashboard", value: "dashboard", icon: BarChart3, description: "Estatísticas e métricas" },
-    ]
+      { title: "Eventos", value: "events", icon: Calendar, description: "Programação e cultos" },
+      { title: "Inscrições", value: "registrations", icon: ClipboardList, description: "Inscritos e listas" },
+      { title: "Modelos", value: "templates", icon: Copy, description: "Eventos prontos para reusar" },
+    ],
+  },
+  {
+    title: "Comunidade",
+    icon: Users,
+    defaultOpen: true,
+    items: [
+      { title: "Pedidos de Oração", value: "prayers", icon: Heart, description: "Orações recebidas", badgeKey: "prayers" },
+      { title: "Mensagens", value: "contact", icon: Inbox, description: "Formulário de contato", badgeKey: "contact" },
+      { title: "Testemunhos", value: "testimonies", icon: MessageCircle, description: "Histórias de fé", badgeKey: "testimonies" },
+      { title: "Notificações", value: "notifications", icon: Bell, description: "Avisos para os celulares" },
+    ],
   },
   {
     title: "Conteúdo",
     icon: Image,
     defaultOpen: true,
     items: [
-      { title: "Google Drive", value: "drive", icon: Cloud, description: "Sincronização de fotos" },
-      { title: "Mídia", value: "media", icon: Music, description: "Vídeos e áudios" },
-      { title: "Transmissões", value: "live", icon: Radio, description: "Lives e streaming", badge: "Ao Vivo" },
-    ]
-  },
-  {
-    title: "Eventos",
-    icon: Calendar,
-    defaultOpen: false,
-    items: [
-      { title: "Eventos", value: "events", icon: Calendar, description: "Gerenciar eventos" },
-      { title: "Inscrições", value: "registrations", icon: ClipboardList, description: "Inscritos e listas" },
-      { title: "Modelos", value: "templates", icon: Copy, description: "Templates reutilizáveis" },
-    ]
-  },
-  {
-    title: "Comunidade",
-    icon: Users,
-    defaultOpen: false,
-    items: [
-      { title: "Pedidos de Oração", value: "prayers", icon: Heart, description: "Orações recebidas" },
-      { title: "Mensagens", value: "contact", icon: Inbox, description: "Formulário de contato" },
-      { title: "Testemunhos", value: "testimonies", icon: MessageCircle, description: "Histórias de fé" },
-      { title: "Notificações", value: "notifications", icon: Bell, description: "Notificações personalizadas" },
-    ]
+      { title: "Galeria (Drive)", value: "drive", icon: Cloud, description: "Álbuns de fotos e vídeos" },
+      { title: "Mídia e Rádios", value: "media", icon: Music, description: "Rádios, vídeos e áudios" },
+      { title: "Transmissões", value: "live", icon: Radio, description: "Culto ao vivo", badgeKey: "live" },
+    ],
   },
   {
     title: "Sistema",
     icon: Settings,
-    defaultOpen: false,
-    items: [
-      { title: "Configurações", value: "settings", icon: Settings, description: "Textos, contatos e integrações" },
-    ]
-  }
+    defaultOpen: true,
+    items: [{ title: "Configurações", value: "settings", icon: Settings, description: "Textos, contatos e horários" }],
+  },
 ];
 
 export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [searchQuery, setSearchQuery] = useState("");
+  const [badges, setBadges] = useState<{ contact: number; prayers: number; testimonies: number; live: boolean } | null>(null);
+  useEffect(() => {
+    const load = () => api<typeof badges>("/api/admin/badges").then(setBadges).catch(() => {});
+    load();
+    const t = setInterval(load, 60_000);
+    return () => clearInterval(t);
+  }, [activeTab]);
+  const badgeFor = (key?: BadgeKey) => {
+    if (!key || !badges) return null;
+    if (key === "live") return badges.live ? "Ao Vivo" : null;
+    return badges[key] > 0 ? String(badges[key]) : null;
+  };
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     menuItems.forEach(group => {
@@ -154,8 +169,8 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
           </div>
           {!isCollapsed && (
             <div className="flex flex-col animate-fade-in">
-              <span className="font-bold text-sm text-sidebar-foreground">Admin Panel</span>
-              <span className="text-xs text-muted-foreground">Mensageira de Deus</span>
+              <span className="font-bold text-sm text-sidebar-foreground">Palavra Viva</span>
+              <span className="text-xs text-muted-foreground">Painel da Mensageira de Deus</span>
             </div>
           )}
         </div>
@@ -163,7 +178,8 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
 
       <SidebarContent className="px-2 py-3">
         {/* Search */}
-        {!isCollapsed && (
+        {/* Busca só no computador (no celular abriria o teclado ao abrir o menu) */}
+        {!isCollapsed && !isMobile && (
           <div className="mb-4 px-2 animate-fade-in">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -253,7 +269,7 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
                                 <div className="flex-1 flex flex-col items-start gap-0.5">
                                   <div className="flex items-center gap-2">
                                     <span className="text-sm">{item.title}</span>
-                                    {item.badge && (
+                                    {badgeFor(item.badgeKey) && (
                                       <Badge 
                                         variant="secondary" 
                                         className={cn(
@@ -263,7 +279,7 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
                                             : "bg-destructive/10 text-destructive"
                                         )}
                                       >
-                                        {item.badge}
+                                        {badgeFor(item.badgeKey)}
                                       </Badge>
                                     )}
                                   </div>
@@ -301,15 +317,20 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
       {/* Footer */}
       {!isCollapsed && (
         <SidebarFooter className="border-t border-sidebar-border p-4 animate-fade-in">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10">
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20 transition-colors"
+          >
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
-              <Zap className="w-4 h-4" />
+              <Home className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">Painel Ativo</p>
-              <p className="text-[10px] text-muted-foreground">Todas as funcionalidades disponíveis</p>
+              <p className="text-xs font-medium text-foreground truncate">Ver o site</p>
+              <p className="text-[10px] text-muted-foreground truncate">imensageiradedeus.com.br</p>
             </div>
-          </div>
+          </a>
         </SidebarFooter>
       )}
     </Sidebar>
