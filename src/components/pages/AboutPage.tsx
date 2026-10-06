@@ -68,6 +68,7 @@ export function AboutPage() {
     { name: "Guerreiros De Fé", leaders: "Márcia e Ademar Malmann", type: "Grupo De Oração", icon: "🙏" },
     { name: "Palavra Viva", leaders: "Jessica Vacelkoski e Elisa Maria", type: "Mídia", icon: "📱" },
     { name: "Ourinhos de Cristo", leaders: "Leonice Cardoso", type: "Grupo De Crianças", icon: "👶" },
+    { name: "Escolinha", leaders: "Adriana e Julias Santos", type: "Ministério Infantil", icon: "🎒" },
     { name: "Nova Geração Kids", leaders: "Daniela Azeredo", type: "Grupo De Crianças", icon: "👶" },
     { name: "Mensageiras Do Cristo Rei", leaders: "Ana Venconi", type: "Grupo De Mulheres", icon: "👩" },
   ];
