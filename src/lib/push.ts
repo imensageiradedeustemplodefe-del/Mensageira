@@ -9,6 +9,11 @@ export interface PushPayload {
   tag?: string;
 }
 
+// Urgência alta: no Android (FCM) mensagens "normal" ficam retidas enquanto o aparelho está em
+// economia de energia (Doze) e só chegam quando o Chrome é aberto. "high" acorda o aparelho e
+// entrega na hora. TTL de 24h: se o celular estiver sem internet, o aviso ainda chega no mesmo dia.
+const SEND_OPTIONS = { urgency: "high" as const, TTL: 24 * 60 * 60 };
+
 function configured() {
   const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const priv = process.env.VAPID_PRIVATE_KEY;
@@ -30,7 +35,8 @@ export async function sendPushTo(sub: Sub, payload: PushPayload) {
   try {
     await webpush.sendNotification(
       { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-      JSON.stringify({ icon: "/icons/notification-192.png", ...payload })
+      JSON.stringify({ icon: "/icons/notification-192.png", ...payload }),
+      SEND_OPTIONS
     );
     return true;
   } catch (err: unknown) {
@@ -56,7 +62,8 @@ export async function sendPushToAll(payload: PushPayload, source = "manual") {
       try {
         await webpush.sendNotification(
           { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-          JSON.stringify({ icon: "/icons/notification-192.png", ...payload })
+          JSON.stringify({ icon: "/icons/notification-192.png", ...payload }),
+          SEND_OPTIONS
         );
         sent++;
       } catch (err: unknown) {
