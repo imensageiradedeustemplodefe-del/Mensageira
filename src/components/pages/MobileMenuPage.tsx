@@ -18,7 +18,7 @@ export function MobileMenuPage() {
 
   const settingsItems = [
     { name: "Notificações", href: "/notificacoes", icon: Bell, description: "Configurar alertas" },
-    { name: "Palavra Viva", href: "/admin/login", icon: Settings, description: "Área administrativa" },
+    { name: "Palavra Viva", href: "/admin/login", icon: Settings, description: "Área da equipe de mídia" },
   ];
 
   return (
