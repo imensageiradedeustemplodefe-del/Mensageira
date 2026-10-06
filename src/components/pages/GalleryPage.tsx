@@ -248,7 +248,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="relative py-16 md:py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10">
+      <div className="relative py-10 sm:py-16 md:py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <Camera className="w-12 h-12 text-primary mx-auto mb-6" />
@@ -376,7 +376,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
         )}
 
         {!selected && !albumsLoading && filteredAlbums.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-8 sm:py-12">
             <FolderOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">Nenhum álbum encontrado</p>
             {filtersActive && (
@@ -397,7 +397,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
         )}
 
         {!selected && filteredAlbums.length > 0 && (
-          <div className="mb-12">
+          <div className="mb-8 sm:mb-12">
             <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
               <FolderOpen className="w-8 h-8 text-primary" />
               Álbuns
@@ -486,7 +486,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
         )}
 
         {selected && !photosLoading && filteredPhotos.length === 0 && (
-          <div className="text-center py-12">
+          <div className="text-center py-8 sm:py-12">
             <ImageIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">Nenhuma foto encontrada neste álbum.</p>
           </div>
@@ -495,7 +495,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
         {selected && totalPages > 1 && <div className="mt-4">{pagination}</div>}
 
         {!selected && albums.length > 0 && (
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="mt-10 sm:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardContent className="p-6 text-center">
                 <FolderOpen className="w-12 h-12 mx-auto mb-3 text-primary" />

@@ -154,7 +154,7 @@ export function EventsPage() {
         </div>
       </section>
 
-      <section className="pt-6 pb-16 sm:py-16">
+      <section className="pt-6 pb-10 sm:pb-16 sm:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {!loading && months.length > 0 && (
             <div
@@ -241,13 +241,13 @@ export function EventsPage() {
           )}
 
           {loading ? (
-            <div className="flex justify-center items-center py-12">
+            <div className="flex justify-center items-center py-8 sm:py-12">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2" />
               <span className="text-muted-foreground">Carregando eventos...</span>
             </div>
           ) : (
             <>
-              <div className="mb-16">
+              <div className="mb-10 sm:mb-16">
                 <div className="text-center mb-6 sm:mb-10">
                   <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Próximos Eventos</h2>
                 </div>
@@ -337,7 +337,7 @@ export function EventsPage() {
 
               {pastEvents.length > 0 && (
                 <div>
-                  <div className="text-center mb-12">
+                  <div className="text-center mb-8 sm:mb-12">
                     <h2 className="text-3xl font-bold text-foreground mb-4">Eventos Anteriores</h2>
                     <p className="text-lg text-muted-foreground">Veja alguns dos eventos que já realizamos.</p>
                   </div>

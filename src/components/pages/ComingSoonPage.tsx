@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export function ComingSoonPage() {
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-16 sm:py-24">
+      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Clock className="w-16 h-16 text-primary mx-auto mb-6" />
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">Em Breve</h1>
@@ -22,7 +22,7 @@ export function ComingSoonPage() {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8">
             <Card className="text-center">
@@ -48,7 +48,7 @@ export function ComingSoonPage() {
             </Card>
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-8 sm:mt-12">
             <p className="text-muted-foreground mb-4">
               Enquanto isso, confira nossa programação de eventos e participe dos nossos cultos presenciais.
             </p>

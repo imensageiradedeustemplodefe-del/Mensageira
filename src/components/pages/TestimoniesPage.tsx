@@ -65,7 +65,7 @@ export function TestimoniesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-16 sm:py-20">
+      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Heart className="w-12 h-12 text-primary mx-auto mb-6" />
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">{settings.testimonies_page_title}</h1>
@@ -76,11 +76,11 @@ export function TestimoniesPage() {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {filteredTestimonies.length > 0 && (
             <>
-              <h2 className="text-3xl font-bold text-center text-foreground mb-12">{settings.testimonies_featured_title}</h2>
+              <h2 className="text-3xl font-bold text-center text-foreground mb-8 sm:mb-12">{settings.testimonies_featured_title}</h2>
               <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8 mb-8 sm:mb-12">
                 {filteredTestimonies.slice(0, 2).map((testimony) => (
                   <Card
@@ -122,9 +122,9 @@ export function TestimoniesPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-accent/30">
+      <section className="py-10 sm:py-16 bg-accent/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-12">{settings.testimonies_all_title}</h2>
+          <h2 className="text-3xl font-bold text-center text-foreground mb-8 sm:mb-12">{settings.testimonies_all_title}</h2>
 
           {filteredTestimonies.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -146,7 +146,7 @@ export function TestimoniesPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
+            <div className="text-center py-8 sm:py-12">
               <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-lg text-muted-foreground">{settings.testimonies_empty_message}</p>
             </div>
@@ -154,7 +154,7 @@ export function TestimoniesPage() {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="bg-card/60 backdrop-blur border-none">
             <CardHeader>

@@ -11,7 +11,7 @@ interface HeroSectionProps {
 
 export const HeroSection = ({ installable, onInstallClick }: HeroSectionProps) => {
   return (
-    <section className="relative bg-gradient-to-br from-primary/10 via-background to-peaceful-blue/20 py-16 sm:py-24">
+    <section className="relative bg-gradient-to-br from-primary/10 via-background to-peaceful-blue/20 py-10 sm:py-24">
       <div className="absolute inset-0 bg-gradient-to-r from-spiritual-glow/5 to-transparent"></div>
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center space-y-6">

@@ -131,7 +131,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-background py-12">
+      <div className="min-h-screen bg-background py-8 sm:py-12">
         <div className="container mx-auto px-4 max-w-2xl">
           <Card>
             <CardContent className="p-12 text-center">
@@ -149,7 +149,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-background py-12">
+    <div className="min-h-screen bg-background py-8 sm:py-12">
       <div className="container mx-auto px-4 max-w-2xl">
         <Card>
           <CardHeader>

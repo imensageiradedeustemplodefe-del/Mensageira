@@ -30,7 +30,7 @@ export function PrayerPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-16 sm:py-20">
+      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">Casa de Oração</h1>
           <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
@@ -39,9 +39,9 @@ export function PrayerPage() {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Compartilhe Sua Necessidade</h2>
             <p className="text-lg text-muted-foreground">Nossa equipe pastoral estará intercedendo por você em oração.</p>
           </div>
@@ -49,15 +49,15 @@ export function PrayerPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-accent/30">
+      <section className="py-10 sm:py-16 bg-accent/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Pedidos da Comunidade</h2>
             <p className="text-lg text-muted-foreground">Vamos interceder uns pelos outros em comunhão.</p>
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-12">
+            <div className="flex justify-center items-center py-8 sm:py-12">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2" />
               <span className="text-muted-foreground">Carregando pedidos...</span>
             </div>

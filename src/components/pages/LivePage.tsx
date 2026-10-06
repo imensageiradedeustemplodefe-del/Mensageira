@@ -136,7 +136,7 @@ export function LivePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-16 sm:py-20">
+      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">Transmissão ao Vivo</h1>
           <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
@@ -317,9 +317,9 @@ export function LivePage() {
         </div>
       </section>
 
-      <section className="py-16 bg-accent/30">
+      <section className="py-10 sm:py-16 bg-accent/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Programação de Transmissões</h2>
             <p className="text-lg text-muted-foreground">Acompanhe nossa programação regular de cultos e eventos especiais.</p>
           </div>
@@ -347,7 +347,7 @@ export function LivePage() {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="bg-gradient-to-br from-primary/5 to-peaceful-blue/10 border-none">
             <CardHeader>

@@ -11,14 +11,14 @@ const EMAIL = "imensageiradedeustemplodefe@gmail.com";
 export default function Page() {
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-16">
+      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4">Política de Privacidade</h1>
           <p className="text-lg text-muted-foreground">Última atualização: 21 de setembro de 2026</p>
         </div>
       </section>
 
-      <section className="py-12">
+      <section className="py-8 sm:py-12">
         <article className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 text-foreground leading-relaxed">
           <p>
             A <strong>Igreja Mensageira de Deus Templo de Fé</strong> (&quot;Igreja&quot;, &quot;nós&quot;) respeita a sua

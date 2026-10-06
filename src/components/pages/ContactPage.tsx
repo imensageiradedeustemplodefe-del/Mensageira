@@ -63,7 +63,7 @@ export function ContactPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-16 sm:py-20">
+      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">Entre em Contato</h1>
           <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
@@ -73,9 +73,9 @@ export function ContactPage() {
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-10 sm:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-12 sm:mb-16">
+          <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-16">
             {contactInfo.map((info, index) => {
               const Icon = info.icon;
               return (
@@ -100,9 +100,9 @@ export function ContactPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-accent/30">
+      <section className="py-10 sm:py-16 bg-accent/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12">
             <div>
               <Card className="bg-card/60 backdrop-blur border-none">
                 <CardHeader>

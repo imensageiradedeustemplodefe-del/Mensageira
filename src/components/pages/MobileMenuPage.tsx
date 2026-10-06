@@ -22,7 +22,7 @@ export function MobileMenuPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-16">
+    <div className="min-h-screen bg-background pb-10 sm:pb-16">
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
         <div className="px-4 py-3">
           <div className="flex items-center space-x-3">

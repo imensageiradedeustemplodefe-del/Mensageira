@@ -11,7 +11,7 @@ export const ContactSection = () => {
     settings.contact_address_full || settings.church_address || "R. Elias Biasi, 49 - Berger, Caçador - SC, 89500-000";
 
   return (
-    <section className="py-16 bg-background">
+    <section className="py-10 sm:py-16 bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6">Venha nos Visitar</h2>
         <div className="flex items-center justify-center text-muted-foreground mb-6">

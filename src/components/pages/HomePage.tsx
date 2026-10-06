@@ -51,7 +51,7 @@ export function HomePage() {
     <div className="min-h-screen bg-background">
       <HeroSection installable={installable} onInstallClick={handleInstallClick} />
 
-      <section className="py-12 bg-background" aria-labelledby="daily-verse-heading">
+      <section className="py-8 sm:py-12 bg-background" aria-labelledby="daily-verse-heading">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 id="daily-verse-heading" className="sr-only">
             Palavra do Dia
@@ -60,7 +60,7 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="py-12 bg-accent/30" aria-labelledby="media-player-heading">
+      <section className="py-8 sm:py-12 bg-accent/30" aria-labelledby="media-player-heading">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 id="media-player-heading" className="sr-only">
             Player de Mídia
