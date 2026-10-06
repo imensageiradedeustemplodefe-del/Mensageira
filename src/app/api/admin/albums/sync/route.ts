@@ -66,7 +66,7 @@ export const POST = handler(async () => {
 
     // Casa pelo id da pasta do Drive (renomear a pasta não cria álbum duplicado); nome é só o fallback
     const existing =
-      (await prisma.galleryAlbum.findFirst({ where: { driveFolderId: album.id } })) ??
+      (await prisma.galleryAlbum.findFirst({ where: { driveFolderId: album.id }, orderBy: { createdAt: "asc" } })) ??
       (await prisma.galleryAlbum.findFirst({ where: { name: { equals: album.name, mode: "insensitive" }, driveFolderId: null } }));
 
     if (existing) {
@@ -90,10 +90,23 @@ export const POST = handler(async () => {
 
   // Álbuns cuja pasta não existe mais no Drive (apagada, ou duplicata antiga): saem da galeria
   const driveIds = albums.map((a) => a.id);
-  const hidden = await prisma.galleryAlbum.updateMany({
+  const orphans = await prisma.galleryAlbum.updateMany({
     where: { isPublished: true, OR: [{ driveFolderId: { notIn: driveIds } }, { driveFolderId: null }] },
     data: { isPublished: false },
   });
+
+  // Duplicatas da mesma pasta (criadas quando a pasta foi renomeada): fica só o álbum mais antigo
+  const published = await prisma.galleryAlbum.findMany({
+    where: { isPublished: true, driveFolderId: { in: driveIds } },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, driveFolderId: true },
+  });
+  const seen = new Set<string>();
+  const duplicateIds = published.filter((a) => (seen.has(a.driveFolderId!) ? true : (seen.add(a.driveFolderId!), false))).map((a) => a.id);
+  const duplicates = duplicateIds.length
+    ? await prisma.galleryAlbum.updateMany({ where: { id: { in: duplicateIds } }, data: { isPublished: false } })
+    : { count: 0 };
+  const hidden = { count: orphans.count + duplicates.count };
 
   if (newAlbumNames.length > 0) {
     await sendPushToAll({
