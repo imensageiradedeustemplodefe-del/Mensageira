@@ -34,6 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EventRegistrationManager } from './EventRegistrationManager';
+import { GenerateYearEvents } from './GenerateYearEvents';
 
 interface Event {
   id: string;
@@ -269,11 +270,13 @@ export default function EventsManager() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
         <CardTitle className="flex items-center">
           <Calendar className="w-5 h-5 mr-2" />
           Gerenciar Eventos
         </CardTitle>
+        <div className="flex flex-wrap items-center gap-2">
+          <GenerateYearEvents onDone={fetchEvents} />
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
@@ -431,6 +434,7 @@ export default function EventsManager() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </CardHeader>
 
       <CardContent>
