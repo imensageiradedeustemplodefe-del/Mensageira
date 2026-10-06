@@ -12,6 +12,7 @@ import { Plus, Trash2, GripVertical, Eye, ChevronUp, ChevronDown, Copy, Settings
 import { api } from "@/lib/fetcher";
 import { useToast } from "@/hooks/use-toast";
 import { RegistrationsList } from "./RegistrationsList";
+import { RatingInput, RatingStylePicker, ratingStyleOf } from "@/components/forms/RatingInput";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -53,6 +54,7 @@ const FIELD_TYPES = [
   { value: "textarea", label: "Texto Longo", icon: "¶", description: "Múltiplas linhas" },
   { value: "select", label: "Lista de Opções", icon: "▼", description: "Menu dropdown" },
   { value: "checkbox", label: "Caixa de Seleção", icon: "☑", description: "Sim/Não" },
+  { value: "rating", label: "Escala 0 a 5", icon: "⭐", description: "Ícones para marcar de 0 a 5 (ex.: expectativa)" },
 ];
 
 export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants, defaultTab = "fields" }: EventRegistrationManagerProps) => {
@@ -83,6 +85,7 @@ export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants,
     { field_label: "", field_type: "text", is_required: true, field_placeholder: "", field_options: [] as string[] },
   ]);
   const [showQuickSetup, setShowQuickSetup] = useState(true);
+  const [ratingPreview, setRatingPreview] = useState<string | undefined>(undefined);
   const [quickFieldOptionInputs, setQuickFieldOptionInputs] = useState<string[]>(["", "", "", "", ""]);
 
   useEffect(() => {
@@ -142,7 +145,12 @@ export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants,
       field_label: newField.field_label,
       field_placeholder: newField.field_placeholder || null,
       is_required: newField.is_required,
-      field_options: newField.field_type === "select" ? newField.field_options : null,
+      field_options:
+        newField.field_type === "select"
+          ? newField.field_options
+          : newField.field_type === "rating"
+            ? [ratingStyleOf(newField.field_options)]
+            : null,
       field_order: editingField ? editingField.field_order : fields.length,
     };
 
@@ -305,7 +313,12 @@ export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants,
         field_label: field.field_label,
         field_placeholder: field.field_placeholder || null,
         is_required: field.is_required,
-        field_options: field.field_type === "select" && field.field_options.length > 0 ? field.field_options : null,
+        field_options:
+          field.field_type === "select" && field.field_options.length > 0
+            ? field.field_options
+            : field.field_type === "rating"
+              ? [ratingStyleOf(field.field_options)]
+              : null,
         field_order: fields.length + index,
       }));
 
@@ -479,6 +492,20 @@ export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants,
                             onChange={(e) => {
                               const newFields = [...quickFields];
                               newFields[index].field_placeholder = e.target.value;
+                              setQuickFields(newFields);
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {field.field_type === "rating" && (
+                        <div className="border-2 border-primary/20 rounded-lg p-3 bg-primary/5 space-y-2">
+                          <Label className="text-sm font-semibold block">Estilo dos ícones</Label>
+                          <RatingStylePicker
+                            value={ratingStyleOf(field.field_options)}
+                            onChange={(st) => {
+                              const newFields = [...quickFields];
+                              newFields[index].field_options = [st];
                               setQuickFields(newFields);
                             }}
                           />
@@ -680,6 +707,21 @@ export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants,
                         </p>
                       </div>
 
+                      {newField.field_type === "rating" && (
+                        <div className="border-2 border-primary/20 rounded-lg p-4 bg-primary/5 space-y-3">
+                          <Label className="text-base font-semibold">5. Estilo dos ícones</Label>
+                          <RatingStylePicker
+                            value={ratingStyleOf(newField.field_options)}
+                            onChange={(st) => setNewField({ ...newField, field_options: [st] })}
+                          />
+                          <div className="rounded-lg border bg-background p-3">
+                            <p className="text-xs text-muted-foreground mb-2">Prévia (como a pessoa vai ver):</p>
+                            <p className="text-sm font-medium mb-2">{newField.field_label || "Sua pergunta aqui"}</p>
+                            <RatingInput style={ratingStyleOf(newField.field_options)} value={ratingPreview} onChange={setRatingPreview} />
+                          </div>
+                        </div>
+                      )}
+
                       {newField.field_type === "select" && (
                         <div className="border-2 border-primary/20 rounded-lg p-4 bg-primary/5">
                           <Label className="text-base font-semibold">5. Opções do Menu *</Label>
@@ -730,7 +772,7 @@ export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants,
                       <div className="flex items-center justify-between p-4 border-2 rounded-lg bg-muted/50">
                         <div>
                           <Label htmlFor="is_required" className="cursor-pointer text-base font-semibold">
-                            {newField.field_type === "select" ? "6." : "5."} Campo Obrigatório
+                            {newField.field_type === "select" || newField.field_type === "rating" ? "6." : "5."} Campo Obrigatório
                           </Label>
                           <p className="text-sm text-muted-foreground">
                             O usuário será obrigado a preencher este campo

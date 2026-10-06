@@ -7,12 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { api } from "@/lib/fetcher";
 import { useToast } from "@/hooks/use-toast";
+import { RATING_STYLES, ratingStyleOf } from "@/components/forms/RatingInput";
 
 interface Field {
   id: string;
   field_name: string;
   field_label: string;
   field_order: number;
+  field_type?: string;
+  field_options?: string[] | null;
 }
 interface Registration {
   id: string;
@@ -64,7 +67,11 @@ export function RegistrationsList({
 
   // Colunas: campos do formulário + dados extras que não sejam campos
   const columns = useMemo(() => {
-    const cols = fields.map((f) => ({ key: f.field_name, label: f.field_label }));
+    const cols: { key: string; label: string; rating?: string }[] = fields.map((f) => ({
+      key: f.field_name,
+      label: f.field_label,
+      rating: f.field_type === "rating" ? RATING_STYLES[ratingStyleOf(f.field_options)].icons[4] : undefined,
+    }));
     const known = new Set(cols.map((c) => c.key));
     for (const r of rows) {
       for (const k of Object.keys(r.registration_data ?? {})) {
@@ -95,6 +102,16 @@ export function RegistrationsList({
       toast({ title: "Erro ao excluir", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
+
+  const cellText = (c: { rating?: string }, v: unknown) => (c.rating && v !== undefined && v !== "" ? `${c.rating} ${v}/5` : show(v));
+
+  // Média de cada pergunta de escala (0 a 5)
+  const ratingAverages = columns
+    .filter((c) => c.rating)
+    .map((c) => {
+      const nums = rows.map((r) => Number(r.registration_data?.[c.key])).filter((n) => !Number.isNaN(n) && n >= 0 && n <= 5);
+      return { label: c.label, icon: c.rating!, avg: nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null, n: nums.length };
+    });
 
   const fmt = (d: string) => new Date(d).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
   const vagas = maxParticipants ? Math.max(0, maxParticipants - rows.length) : null;
@@ -131,6 +148,22 @@ export function RegistrationsList({
           </a>
         </div>
       </div>
+
+      {ratingAverages.some((a) => a.avg !== null) && (
+        <div className="flex flex-wrap gap-2">
+          {ratingAverages.map((a) =>
+            a.avg === null ? null : (
+              <div key={a.label} className="rounded-lg border px-3 py-2 text-sm">
+                <span className="text-muted-foreground">{a.label}: </span>
+                <strong>
+                  {a.icon} {a.avg.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} de 5
+                </strong>
+                <span className="text-xs text-muted-foreground"> (média de {a.n})</span>
+              </div>
+            )
+          )}
+        </div>
+      )}
 
       {rows.length > 0 && (
         <div className="relative">
@@ -169,7 +202,7 @@ export function RegistrationsList({
                   <td className="px-3 py-2 text-muted-foreground">{rows.indexOf(r) + 1}</td>
                   {columns.slice(0, 4).map((c) => (
                     <td key={c.key} className="px-3 py-2 max-w-[220px] truncate">
-                      {show(r.registration_data?.[c.key])}
+                      {cellText(c, r.registration_data?.[c.key])}
                     </td>
                   ))}
                   <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">{fmt(r.created_at)}</td>
@@ -209,7 +242,7 @@ export function RegistrationsList({
               {columns.map((c) => (
                 <div key={c.key} className="p-3 border-l-4 border-primary bg-muted/30 rounded-r">
                   <p className="text-xs font-medium text-muted-foreground mb-0.5">{c.label}</p>
-                  <p className="text-sm font-medium break-words">{show(viewing.registration_data?.[c.key])}</p>
+                  <p className="text-sm font-medium break-words">{cellText(c, viewing.registration_data?.[c.key])}</p>
                 </div>
               ))}
               <Button variant="destructive" className="w-full" onClick={() => remove(viewing)}>

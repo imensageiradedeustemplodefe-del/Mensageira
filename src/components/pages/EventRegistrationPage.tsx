@@ -12,6 +12,8 @@ import { Calendar, Loader2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/fetcher";
 import type { Event, EventRegistrationField } from "@/types/database";
+import { Switch } from "@/components/ui/switch";
+import { RatingInput, ratingStyleOf } from "@/components/forms/RatingInput";
 
 type EventWithFields = Event & { registration_fields: EventRegistrationField[]; registrations_count: number };
 
@@ -49,7 +51,10 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
     e.preventDefault();
 
     const missingFields = fields
-      .filter((field) => field.is_required && !formData[field.field_name])
+      .filter((field) =>
+        field.is_required &&
+        (field.field_type === "checkbox" ? formData[field.field_name] !== "Sim" : !formData[field.field_name])
+      )
       .map((field) => field.field_label);
 
     if (missingFields.length > 0) {
@@ -108,12 +113,33 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
             </SelectContent>
           </Select>
         );
+      case "rating":
+        return (
+          <RatingInput
+            id={field.field_name}
+            style={ratingStyleOf(field.field_options)}
+            value={formData[field.field_name]}
+            onChange={(v) => setFormData({ ...formData, [field.field_name]: v })}
+          />
+        );
+      case "checkbox":
+        return (
+          <div className="flex items-center gap-3 rounded-lg border p-3">
+            <Switch
+              id={field.field_name}
+              checked={formData[field.field_name] === "Sim"}
+              onCheckedChange={(c) => setFormData({ ...formData, [field.field_name]: c ? "Sim" : "Não" })}
+            />
+            <span className="text-sm">{formData[field.field_name] === "Sim" ? "Sim" : "Não"}</span>
+          </div>
+        );
       case "date":
         return <Input {...commonProps} type="date" />;
       case "number":
         return <Input {...commonProps} type="number" />;
       case "phone":
-        return <Input {...commonProps} type="tel" />;
+      case "tel":
+        return <Input {...commonProps} type="tel" inputMode="tel" />;
       case "email":
         return <Input {...commonProps} type="email" />;
       default:
