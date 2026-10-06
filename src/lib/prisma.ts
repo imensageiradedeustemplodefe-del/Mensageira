@@ -6,22 +6,33 @@ import { PrismaPg } from "@prisma/adapter-pg";
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 /**
- * Como o app se conecta ao banco:
- * - "pooled": produção na Vercel, via PRISMA_DATABASE_URL (prisma+postgres://). O pool de conexões
- *   fica do lado do Prisma Postgres, então muitas instâncias serverless ao mesmo tempo não estouram o
- *   limite de conexões do banco (era o "Too many database connections" que derrubava login e páginas).
- * - "direct": desenvolvimento local / fallback, conexão TCP direta com um pool pequeno.
+ * URL usada pelo app em tempo de execução.
+ * O Prisma Postgres tem dois hosts: `db.prisma.io` (direto, limite de 10 conexões no plano grátis,
+ * para migrações) e `pooled.db.prisma.io` (PgBouncer, para o tráfego do app). Usar o direto em
+ * serverless esgotava as conexões ("Too many database connections") e derrubava login e páginas.
+ * As migrações continuam no host direto (prisma.config.ts usa DATABASE_URL sem alteração).
  */
-export const dbMode: "pooled" | "direct" = process.env.PRISMA_DATABASE_URL?.startsWith("prisma+postgres://")
-  ? "pooled"
-  : "direct";
+function runtimeUrl() {
+  const raw = process.env.DATABASE_URL;
+  if (!raw) return { url: raw, mode: "direct" as const };
+  try {
+    const u = new URL(raw);
+    if (u.hostname === "db.prisma.io") {
+      u.hostname = "pooled.db.prisma.io";
+      return { url: u.toString(), mode: "pooled" as const };
+    }
+  } catch {
+    // URL fora do padrão: usa como está
+  }
+  return { url: raw, mode: "direct" as const };
+}
+
+const { url, mode } = runtimeUrl();
+export const dbMode = mode;
 
 function createClient() {
-  if (dbMode === "pooled") {
-    return new PrismaClient({ accelerateUrl: process.env.PRISMA_DATABASE_URL! });
-  }
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: url,
     max: 3,
     idleTimeoutMillis: 5_000,
     connectionTimeoutMillis: 10_000,
