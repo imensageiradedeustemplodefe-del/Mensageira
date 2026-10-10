@@ -14,6 +14,7 @@ export function PixPayment({
   note,
   txid,
   description,
+  receiver,
   label = "Pagar com PIX",
   className = "",
 }: {
@@ -21,6 +22,8 @@ export function PixPayment({
   note?: string | null;
   txid?: string;
   description?: string;
+  /** recebedor próprio (ex.: do evento); sem isso usa o PIX padrão de Configurações */
+  receiver?: { key?: string | null; name?: string | null; city?: string | null };
   label?: string;
   className?: string;
 }) {
@@ -29,13 +32,15 @@ export function PixPayment({
   const [qr, setQr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const configured = !!settings.pix_key?.trim() && !!settings.pix_name?.trim();
+  // Recebedor do evento (se tiver chave e nome) ou o padrão da igreja
+  const own = !!receiver?.key?.trim() && !!receiver?.name?.trim();
+  const pixKey = (own ? receiver?.key : settings.pix_key)?.trim() ?? "";
+  const pixName = (own ? receiver?.name : settings.pix_name)?.trim() ?? "";
+  const pixCity = (own ? receiver?.city : settings.pix_city)?.trim() || "Cacador";
+  const configured = !!pixKey && !!pixName;
   const code = useMemo(
-    () =>
-      configured
-        ? pixPayload({ key: settings.pix_key, name: settings.pix_name, city: settings.pix_city || "Cacador", amountCents, txid, description })
-        : "",
-    [configured, settings.pix_key, settings.pix_name, settings.pix_city, amountCents, txid, description]
+    () => (configured ? pixPayload({ key: pixKey, name: pixName, city: pixCity, amountCents, txid, description }) : ""),
+    [configured, pixKey, pixName, pixCity, amountCents, txid, description]
   );
 
   useEffect(() => {
@@ -103,7 +108,7 @@ export function PixPayment({
           </div>
 
           <p className="text-[11px] text-muted-foreground text-center">
-            Recebedor: <strong>{settings.pix_name}</strong>. Confira o nome no app do banco antes de confirmar.
+            Recebedor: <strong>{pixName}</strong>. Confira o nome no app do banco antes de confirmar.
           </p>
         </div>
       </DialogContent>

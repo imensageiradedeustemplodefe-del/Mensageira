@@ -49,6 +49,9 @@ interface Event {
   max_participants?: number | null;
   contribution_cents?: number | null;
   contribution_note?: string | null;
+  pix_key?: string | null;
+  pix_name?: string | null;
+  pix_city?: string | null;
   image_url?: string | null;
   created_at: string;
 }
@@ -90,7 +93,10 @@ export default function EventsManager() {
     image_url: '',
     max_participants: '',
     contribution: '',
-    contribution_note: ''
+    contribution_note: '',
+    pix_key: '',
+    pix_name: '',
+    pix_city: ''
   });
 
   useEffect(() => {
@@ -136,7 +142,10 @@ export default function EventsManager() {
       image_url: '',
       max_participants: '',
       contribution: '',
-      contribution_note: ''
+      contribution_note: '',
+      pix_key: '',
+      pix_name: '',
+      pix_city: ''
     });
     setEditingEvent(null);
     setSelectedTemplate('');
@@ -178,7 +187,10 @@ export default function EventsManager() {
       image_url: event.image_url || '',
       max_participants: event.max_participants ? String(event.max_participants) : '',
       contribution: event.contribution_cents ? (event.contribution_cents / 100).toFixed(2).replace('.', ',') : '',
-      contribution_note: event.contribution_note || ''
+      contribution_note: event.contribution_note || '',
+      pix_key: event.pix_key || '',
+      pix_name: event.pix_name || '',
+      pix_city: event.pix_city || ''
     });
     setIsDialogOpen(true);
   };
@@ -206,7 +218,10 @@ export default function EventsManager() {
       contribution_cents: formData.contribution.trim()
         ? Math.round(parseFloat(formData.contribution.replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '')) * 100) || null
         : null,
-      contribution_note: formData.contribution_note.trim() || null
+      contribution_note: formData.contribution_note.trim() || null,
+      pix_key: formData.pix_key.trim() || null,
+      pix_name: formData.pix_name.trim() || null,
+      pix_city: formData.pix_city.trim() || null
     };
 
     try {
@@ -496,6 +511,48 @@ export default function EventsManager() {
                         onChange={(e) => setFormData({...formData, contribution_note: e.target.value})}
                         placeholder="Ex.: para o lanche e a decoração"
                       />
+                    </div>
+                  )}
+                  {formData.contribution.trim() && (
+                    <div className="space-y-3 rounded-lg border border-[#32BCAD]/40 bg-[#32BCAD]/5 p-3">
+                      <div>
+                        <p className="text-sm font-medium">Quem recebe o PIX deste evento</p>
+                        <p className="text-xs text-muted-foreground">
+                          Deixe em branco para usar o PIX padrão da igreja (Configurações → PIX / Contribuições).
+                        </p>
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5 sm:col-span-2">
+                          <Label htmlFor="pix_key">Chave PIX</Label>
+                          <Input
+                            id="pix_key"
+                            value={formData.pix_key}
+                            onChange={(e) => setFormData({...formData, pix_key: e.target.value})}
+                            placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="pix_name">Nome de quem recebe</Label>
+                          <Input
+                            id="pix_name"
+                            value={formData.pix_name}
+                            onChange={(e) => setFormData({...formData, pix_name: e.target.value})}
+                            placeholder="Igual aparece no banco"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="pix_city">Cidade</Label>
+                          <Input
+                            id="pix_city"
+                            value={formData.pix_city}
+                            onChange={(e) => setFormData({...formData, pix_city: e.target.value})}
+                            placeholder="Cacador"
+                          />
+                        </div>
+                      </div>
+                      {formData.pix_key.trim() && !formData.pix_name.trim() && (
+                        <p className="text-xs text-destructive">Preencha também o nome de quem recebe.</p>
+                      )}
                     </div>
                   )}
                 </div>

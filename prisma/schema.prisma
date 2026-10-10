@@ -93,6 +93,10 @@ model Event {
   /// Contribuição pedida na inscrição, em centavos (ex.: 1000 = R$ 10,00). null = sem contribuição
   contributionCents    Int?     @map("contribution_cents")
   contributionNote     String?  @map("contribution_note")
+  // recebedor do PIX deste evento (em branco = PIX padrão da igreja)
+  pixKey               String?  @map("pix_key")
+  pixName              String?  @map("pix_name")
+  pixCity              String?  @map("pix_city")
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
 

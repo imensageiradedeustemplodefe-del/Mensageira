@@ -39,6 +39,9 @@ export interface Event {
   registration_required: boolean;
   contribution_cents?: number | null;
   contribution_note?: string | null;
+  pix_key?: string | null;
+  pix_name?: string | null;
+  pix_city?: string | null;
   contact_info?: string | null;
   created_at: string;
   updated_at: string;

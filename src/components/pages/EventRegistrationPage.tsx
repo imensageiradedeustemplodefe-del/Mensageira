@@ -197,6 +197,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                     registrationId={regId}
                     amountCents={event.contribution_cents}
                     note={event.contribution_note}
+                    receiver={{ key: event.pix_key, name: event.pix_name, city: event.pix_city }}
                   />
                 </div>
               ) : null}
@@ -254,6 +255,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                       label={r.label}
                       amountCents={event.contribution_cents!}
                       note={event.contribution_note}
+                      receiver={{ key: event.pix_key, name: event.pix_name, city: event.pix_city }}
                       onMissing={() => setSaved(getSavedRegistrations(eventId))}
                     />
                   ))

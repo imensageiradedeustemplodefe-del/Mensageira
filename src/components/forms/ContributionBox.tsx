@@ -69,6 +69,7 @@ export function ContributionBox({
   label,
   amountCents,
   note,
+  receiver,
   onMissing,
 }: {
   eventId: string;
@@ -77,6 +78,7 @@ export function ContributionBox({
   label?: string;
   amountCents: number;
   note?: string | null;
+  receiver?: { key?: string | null; name?: string | null; city?: string | null };
   onMissing?: () => void;
 }) {
   const code = registrationCode(registrationId);
@@ -237,6 +239,7 @@ export function ContributionBox({
             note={note}
             txid={`INSC${code}`}
             description={`Inscricao ${code}`}
+            receiver={receiver}
             className="w-full"
           />
           <Button type="button" variant="outline" className="w-full gap-2" onClick={report} disabled={reporting}>

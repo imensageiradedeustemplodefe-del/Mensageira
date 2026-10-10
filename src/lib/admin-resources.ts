@@ -66,6 +66,10 @@ const eventBase = z.object({
   registration_required: z.boolean().default(false),
   contribution_cents: z.number().int().min(0).max(10_000_000).nullable().optional(),
   contribution_note: optionalStr,
+  // recebedor do PIX só deste evento (em branco = padrão de Configurações)
+  pix_key: z.string().trim().max(77).nullable().optional(),
+  pix_name: z.string().trim().max(60).nullable().optional(),
+  pix_city: z.string().trim().max(30).nullable().optional(),
 });
 export const events = {
   delegate: prisma.event,
