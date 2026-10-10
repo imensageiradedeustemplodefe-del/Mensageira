@@ -79,6 +79,15 @@ export default async function Page({ params }: Props) {
                     <span>{event.location}</span>
                   </div>
                 )}
+                {event.contributionCents ? (
+                  <div className="flex items-center gap-3">
+                    <span className="w-5 h-5 shrink-0 text-center font-bold text-[#32BCAD]">R$</span>
+                    <span>
+                      Contribuição: {(event.contributionCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      {event.contributionNote ? ` — ${event.contributionNote}` : ""} (PIX na inscrição)
+                    </span>
+                  </div>
+                ) : null}
                 {event.maxParticipants && (
                   <div className="flex items-center gap-3">
                     <Users className="w-5 h-5 text-primary shrink-0" />

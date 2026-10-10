@@ -64,6 +64,8 @@ const eventBase = z.object({
   is_published: z.boolean().default(false),
   max_participants: z.number().int().positive().nullable().optional(),
   registration_required: z.boolean().default(false),
+  contribution_cents: z.number().int().min(0).max(10_000_000).nullable().optional(),
+  contribution_note: optionalStr,
 });
 export const events = {
   delegate: prisma.event,

@@ -46,6 +46,9 @@ interface Event {
   category: string;
   is_published: boolean;
   registration_required: boolean;
+  max_participants?: number | null;
+  contribution_cents?: number | null;
+  contribution_note?: string | null;
   image_url?: string | null;
   created_at: string;
 }
@@ -84,7 +87,10 @@ export default function EventsManager() {
     category: 'geral',
     is_published: false,
     registration_required: false,
-    image_url: ''
+    image_url: '',
+    max_participants: '',
+    contribution: '',
+    contribution_note: ''
   });
 
   useEffect(() => {
@@ -127,7 +133,10 @@ export default function EventsManager() {
       category: 'geral',
       is_published: false,
       registration_required: false,
-      image_url: ''
+      image_url: '',
+      max_participants: '',
+      contribution: '',
+      contribution_note: ''
     });
     setEditingEvent(null);
     setSelectedTemplate('');
@@ -166,7 +175,10 @@ export default function EventsManager() {
       category: event.category,
       is_published: event.is_published,
       registration_required: event.registration_required,
-      image_url: event.image_url || ''
+      image_url: event.image_url || '',
+      max_participants: event.max_participants ? String(event.max_participants) : '',
+      contribution: event.contribution_cents ? (event.contribution_cents / 100).toFixed(2).replace('.', ',') : '',
+      contribution_note: event.contribution_note || ''
     });
     setIsDialogOpen(true);
   };
@@ -188,7 +200,13 @@ export default function EventsManager() {
       category: formData.category,
       is_published: formData.is_published,
       registration_required: formData.registration_required,
-      image_url: formData.image_url || null
+      image_url: formData.image_url || null,
+      max_participants: formData.max_participants ? Math.max(1, parseInt(formData.max_participants, 10)) || null : null,
+      // "10", "10,00" ou "10.50" -> centavos
+      contribution_cents: formData.contribution.trim()
+        ? Math.round(parseFloat(formData.contribution.replace(/\./g, '').replace(',', '.').replace(/[^0-9.]/g, '')) * 100) || null
+        : null,
+      contribution_note: formData.contribution_note.trim() || null
     };
 
     try {
@@ -416,7 +434,7 @@ export default function EventsManager() {
                 />
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="registration_required"
@@ -439,6 +457,49 @@ export default function EventsManager() {
                   <Label htmlFor="is_published">Publicado</Label>
                 </div>
               </div>
+
+              {formData.registration_required && (
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
+                  <p className="text-sm font-semibold">Inscrição</p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="max_participants">Máximo de participantes (opcional)</Label>
+                      <Input
+                        id="max_participants"
+                        type="number"
+                        min={1}
+                        inputMode="numeric"
+                        value={formData.max_participants}
+                        onChange={(e) => setFormData({...formData, max_participants: e.target.value})}
+                        placeholder="Sem limite"
+                      />
+                      <p className="text-xs text-muted-foreground">Quando lotar, o site fecha as inscrições sozinho.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="contribution">Contribuição em R$ (opcional)</Label>
+                      <Input
+                        id="contribution"
+                        inputMode="decimal"
+                        value={formData.contribution}
+                        onChange={(e) => setFormData({...formData, contribution: e.target.value})}
+                        placeholder="Ex.: 10,00"
+                      />
+                      <p className="text-xs text-muted-foreground">Mostra o QR Code do PIX depois da inscrição.</p>
+                    </div>
+                  </div>
+                  {formData.contribution.trim() && (
+                    <div className="space-y-2">
+                      <Label htmlFor="contribution_note">Descrição da contribuição (opcional)</Label>
+                      <Input
+                        id="contribution_note"
+                        value={formData.contribution_note}
+                        onChange={(e) => setFormData({...formData, contribution_note: e.target.value})}
+                        placeholder="Ex.: para o lanche e a decoração"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -605,7 +666,7 @@ export default function EventsManager() {
             <DialogTitle>Gerenciar Formulário de Inscrição</DialogTitle>
           </DialogHeader>
           {managingEventId && (
-            <EventRegistrationManager eventId={managingEventId} eventTitle={managingEventTitle} />
+            <EventRegistrationManager eventId={managingEventId} eventTitle={managingEventTitle} maxParticipants={events.find((e) => e.id === managingEventId)?.max_participants} contributionCents={events.find((e) => e.id === managingEventId)?.contribution_cents} />
           )}
         </DialogContent>
       </Dialog>

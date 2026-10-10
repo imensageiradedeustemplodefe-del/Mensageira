@@ -14,6 +14,7 @@ interface Row {
   event_date: string;
   location: string | null;
   max_participants: number | null;
+  contribution_cents: number | null;
   registration_required: boolean;
   is_published: boolean;
   registrations: number;
@@ -63,7 +64,7 @@ export function RegistrationsOverview() {
             </p>
           </CardContent>
         </Card>
-        <EventRegistrationManager eventId={selected.id} eventTitle={selected.title} maxParticipants={selected.max_participants} defaultTab="registrations" />
+        <EventRegistrationManager eventId={selected.id} eventTitle={selected.title} maxParticipants={selected.max_participants} contributionCents={selected.contribution_cents} defaultTab="registrations" />
       </div>
     );
   }

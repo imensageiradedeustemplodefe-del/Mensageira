@@ -5,6 +5,9 @@ import { api } from "@/lib/fetcher";
 import type { SiteSettingRow } from "@/types/database";
 
 export interface SiteSettings {
+  pix_key: string;
+  pix_name: string;
+  pix_city: string;
   church_name: string;
   church_slogan: string;
   hero_title: string;
@@ -75,6 +78,9 @@ export interface SiteSettings {
 }
 
 export const defaultSettings: SiteSettings = {
+  pix_key: "",
+  pix_name: "",
+  pix_city: "Cacador",
   church_name: "Igreja Mensageira de Deus - Templo de Fé",
   church_slogan: "Proclamando a Palavra de Deus com Fé e Amor",
   hero_title: "Bem-vindos à Mensageira de Deus",

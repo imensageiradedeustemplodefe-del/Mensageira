@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { api } from "@/lib/fetcher";
+import { maskPhoneInput } from "@/lib/phone";
 
 const DEFAULT_EMAIL = "imensageiradedeustemplodefe@gmail.com";
 const DEFAULT_ADDRESS = "R. Elias Biasi, 49 - Berger, Caçador - SC, 89500-000";
@@ -127,7 +128,7 @@ export function ContactPage() {
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="phone">Telefone (Opcional)</Label>
-                        <Input id="phone" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="(00) 00000-0000" />
+                        <Input id="phone" name="phone" type="tel" inputMode="tel" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: maskPhoneInput(e.target.value) })} placeholder="(49) 99999-9999" />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="subject">Assunto</Label>

@@ -14,6 +14,7 @@ import type { SiteSettingFull } from "@/types/database";
 
 const CATEGORY_LABELS: Record<string, string> = {
   general: "Geral",
+  pix: "PIX / Contribuições",
   contact: "Contato",
   social: "Redes Sociais",
   schedule: "Horários",
@@ -22,7 +23,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   integrations: "Integrações Google",
 };
 
-const CATEGORY_ORDER = ["general", "contact", "social", "schedule", "live", "about", "integrations"];
+const CATEGORY_ORDER = ["general", "contact", "social", "schedule", "live", "about", "pix", "integrations"];
 
 export function SiteSettingsManager() {
   const [settings, setSettings] = useState<SiteSettingFull[]>([]);

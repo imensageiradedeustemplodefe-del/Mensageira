@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, Phone, MailOpen, Trash2, Clock, ChevronDown, ChevronUp, MessageCircle, Inbox } from "lucide-react";
 import { api } from "@/lib/fetcher";
 import { useToast } from "@/hooks/use-toast";
+import { formatPhoneBR } from "@/lib/phone";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -123,7 +124,7 @@ export function ContactMessagesManager() {
                     <a href={`tel:${m.phone}`}>
                       <Button size="sm" variant="outline">
                         <Phone className="w-4 h-4 mr-2" />
-                        {m.phone}
+                        {formatPhoneBR(m.phone)}
                       </Button>
                     </a>
                     {whatsapp.length >= 10 && (

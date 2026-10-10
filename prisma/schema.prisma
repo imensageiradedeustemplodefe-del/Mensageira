@@ -90,6 +90,9 @@ model Event {
   isPublished          Boolean  @default(false) @map("is_published")
   maxParticipants      Int?     @map("max_participants")
   registrationRequired Boolean  @default(false) @map("registration_required")
+  /// Contribuição pedida na inscrição, em centavos (ex.: 1000 = R$ 10,00). null = sem contribuição
+  contributionCents    Int?     @map("contribution_cents")
+  contributionNote     String?  @map("contribution_note")
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
 
@@ -153,6 +156,7 @@ model EventRegistration {
   spreadsheetId    String?   @map("spreadsheet_id")
   syncedToSheets   Boolean   @default(false) @map("synced_to_sheets")
   syncedAt         DateTime? @map("synced_at")
+  contributionPaid Boolean   @default(false) @map("contribution_paid")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 

@@ -41,6 +41,7 @@ interface EventRegistrationManagerProps {
   eventId: string;
   eventTitle: string;
   maxParticipants?: number | null;
+  contributionCents?: number | null;
   /** aba aberta inicialmente: formulário (campos) ou lista de inscritos */
   defaultTab?: "fields" | "registrations";
 }
@@ -54,10 +55,10 @@ const FIELD_TYPES = [
   { value: "textarea", label: "Texto Longo", icon: "¶", description: "Múltiplas linhas" },
   { value: "select", label: "Lista de Opções", icon: "▼", description: "Menu dropdown" },
   { value: "checkbox", label: "Caixa de Seleção", icon: "☑", description: "Sim/Não" },
-  { value: "rating", label: "Escala 0 a 5", icon: "⭐", description: "Ícones para marcar de 0 a 5 (ex.: expectativa)" },
+  { value: "rating", label: "Escala 0 a 5", icon: "⭐", description: "Ícones de 0 a 5 (ex.: expectativa)" },
 ];
 
-export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants, defaultTab = "fields" }: EventRegistrationManagerProps) => {
+export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants, contributionCents, defaultTab = "fields" }: EventRegistrationManagerProps) => {
   const [fields, setFields] = useState<RegistrationField[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -616,43 +617,47 @@ export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants,
                         <Label className="text-base font-semibold mb-3 block">
                           1. Escolha o Tipo de Campo
                         </Label>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {FIELD_TYPES.map((type) => (
-                            <button
-                              key={type.value}
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                console.log("Tipo selecionado:", type.value);
-                                setNewField({ ...newField, field_type: type.value });
-                              }}
-                              className={`p-4 rounded-lg border-2 transition-all hover:border-primary hover:shadow-md cursor-pointer ${
-                                newField.field_type === type.value
-                                  ? "border-primary bg-primary/10 shadow-sm"
-                                  : "border-border bg-background"
-                              }`}
-                            >
-                              <div className="text-2xl mb-2">{type.icon}</div>
-                              <div className="text-sm font-medium">{type.label}</div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                {type.description}
-                              </div>
-                              {newField.field_type === type.value && (
-                                <div className="mt-2 text-primary text-xs font-semibold">
-                                  ✓ Selecionado
-                                </div>
-                              )}
-                            </button>
-                          ))}
+                        <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Tipo de campo">
+                          {FIELD_TYPES.map((type) => {
+                            const selected = newField.field_type === type.value;
+                            return (
+                              <button
+                                key={type.value}
+                                type="button"
+                                role="radio"
+                                aria-checked={selected}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setNewField({ ...newField, field_type: type.value });
+                                }}
+                                className={`flex w-full items-center gap-3 rounded-lg border-2 px-3 py-2.5 text-left transition-colors ${
+                                  selected ? "border-primary bg-primary/10" : "border-border bg-background hover:border-primary/50 hover:bg-muted/40"
+                                }`}
+                              >
+                                <span
+                                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-base font-semibold ${
+                                    selected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                                  }`}
+                                  aria-hidden
+                                >
+                                  {type.icon}
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="block text-sm font-medium leading-tight">{type.label}</span>
+                                  <span className="block text-xs text-muted-foreground leading-snug">{type.description}</span>
+                                </span>
+                                <span
+                                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] ${
+                                    selected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40"
+                                  }`}
+                                  aria-hidden
+                                >
+                                  {selected ? "✓" : ""}
+                                </span>
+                              </button>
+                            );
+                          })}
                         </div>
-                        {newField.field_type && (
-                          <div className="mt-3 p-3 bg-primary/5 rounded-lg border border-primary/20">
-                            <p className="text-sm text-primary font-medium">
-                              ✓ Tipo selecionado:{" "}
-                              {FIELD_TYPES.find((t) => t.value === newField.field_type)?.label}
-                            </p>
-                          </div>
-                        )}
                       </div>
 
                       <div className="space-y-4">
@@ -898,7 +903,7 @@ export const EventRegistrationManager = ({ eventId, eventTitle, maxParticipants,
         </TabsContent>
 
         <TabsContent value="registrations" className="space-y-4">
-          <RegistrationsList eventId={eventId} eventTitle={eventTitle} maxParticipants={maxParticipants} onChange={fetchRegistrations} />
+          <RegistrationsList eventId={eventId} eventTitle={eventTitle} maxParticipants={maxParticipants} contributionCents={contributionCents} onChange={fetchRegistrations} />
         </TabsContent>
       </Tabs>
 

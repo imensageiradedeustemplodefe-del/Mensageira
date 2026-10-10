@@ -2,6 +2,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { handler, json, error, param, parseBody } from "@/lib/api";
 import { snake } from "@/lib/case";
+import { formatPhoneBR } from "@/lib/phone";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -22,8 +23,16 @@ export const POST = handler(async (req, ctx: Ctx) => {
     return error("As vagas para este evento estão esgotadas", 409);
   }
 
+  // Telefones sempre no mesmo formato: (49) 99199-0484
+  const phoneFields = await prisma.eventRegistrationField.findMany({
+    where: { eventId: id, fieldType: { in: ["phone", "tel"] } },
+    select: { fieldName: true },
+  });
+  const data = { ...body.registration_data };
+  for (const f of phoneFields) if (typeof data[f.fieldName] === "string") data[f.fieldName] = formatPhoneBR(data[f.fieldName]);
+
   const registration = await prisma.eventRegistration.create({
-    data: { eventId: id, registrationData: body.registration_data as object },
+    data: { eventId: id, registrationData: data as object },
   });
 
   return json(snake(registration), { status: 201 });

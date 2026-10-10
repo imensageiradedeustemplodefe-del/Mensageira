@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/auth";
 import { AutoPrint } from "./AutoPrint";
+import { formatPhoneBR, isPhoneFieldType } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Lista de inscritos", robots: { index: false, follow: false } };
@@ -22,13 +23,13 @@ export default async function Page({ params }: { params: Promise<{ eventId: stri
   const fields = await prisma.eventRegistrationField.findMany({ where: { eventId }, orderBy: { fieldOrder: "asc" } });
   const regs = await prisma.eventRegistration.findMany({ where: { eventId }, orderBy: { createdAt: "asc" } });
 
-  const columns = fields.map((f) => ({ key: f.fieldName, label: f.fieldLabel }));
+  const columns = fields.map((f) => ({ key: f.fieldName, label: f.fieldLabel, phone: isPhoneFieldType(f.fieldType) }));
   const known = new Set(columns.map((c) => c.key));
   for (const r of regs) {
     for (const k of Object.keys((r.registrationData as Record<string, unknown>) ?? {})) {
       if (known.has(k)) continue;
       known.add(k);
-      columns.push({ key: k, label: k.replace(/_/g, " ") });
+      columns.push({ key: k, label: k.replace(/_/g, " "), phone: false });
     }
   }
 
@@ -70,7 +71,11 @@ export default async function Page({ params }: { params: Promise<{ eventId: stri
 
       <p className="muted" style={{ marginTop: 10 }}>
         Total: <strong>{regs.length}</strong> inscrito(s)
-        {event.maxParticipants ? ` de ${event.maxParticipants} vagas` : ""} • Gerado em {generated}
+        {event.maxParticipants ? ` de ${event.maxParticipants} vagas` : ""}
+        {event.contributionCents
+          ? ` • Contribuição ${(event.contributionCents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}: ${regs.filter((r) => r.contributionPaid).length} pagas`
+          : ""}{" "}
+        • Gerado em {generated}
       </p>
 
       <table>
@@ -80,6 +85,7 @@ export default async function Page({ params }: { params: Promise<{ eventId: stri
             {columns.map((c) => (
               <th key={c.key}>{c.label}</th>
             ))}
+            {event.contributionCents ? <th style={{ width: 80 }}>Contribuição</th> : null}
             <th style={{ width: 110 }}>Inscrito em</th>
           </tr>
         </thead>
@@ -90,8 +96,9 @@ export default async function Page({ params }: { params: Promise<{ eventId: stri
               <tr key={r.id}>
                 <td>{i + 1}</td>
                 {columns.map((c) => (
-                  <td key={c.key}>{show(data[c.key])}</td>
+                  <td key={c.key}>{c.phone && data[c.key] ? formatPhoneBR(data[c.key]) : show(data[c.key])}</td>
                 ))}
+                {event.contributionCents ? <td>{r.contributionPaid ? "Pago" : "Pendente"}</td> : null}
                 <td>{r.createdAt.toLocaleString("pt-BR", { ...tz, dateStyle: "short", timeStyle: "short" })}</td>
               </tr>
             );

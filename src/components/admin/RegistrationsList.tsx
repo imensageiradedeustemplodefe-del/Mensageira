@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { api } from "@/lib/fetcher";
 import { useToast } from "@/hooks/use-toast";
 import { RATING_STYLES, ratingStyleOf } from "@/components/forms/RatingInput";
+import { formatBRL } from "@/lib/pix";
+import { formatPhoneBR, isPhoneFieldType } from "@/lib/phone";
 
 interface Field {
   id: string;
@@ -21,6 +23,7 @@ interface Registration {
   id: string;
   registration_data: Record<string, unknown>;
   created_at: string;
+  contribution_paid?: boolean;
 }
 
 const show = (v: unknown) =>
@@ -31,11 +34,14 @@ export function RegistrationsList({
   eventId,
   eventTitle,
   maxParticipants,
+  contributionCents,
   onChange,
 }: {
   eventId: string;
   eventTitle?: string;
   maxParticipants?: number | null;
+  /** valor da contribuição do evento (centavos); quando houver, aparece a coluna "Contribuição" */
+  contributionCents?: number | null;
   onChange?: () => void;
 }) {
   const [fields, setFields] = useState<Field[]>([]);
@@ -67,9 +73,10 @@ export function RegistrationsList({
 
   // Colunas: campos do formulário + dados extras que não sejam campos
   const columns = useMemo(() => {
-    const cols: { key: string; label: string; rating?: string }[] = fields.map((f) => ({
+    const cols: { key: string; label: string; rating?: string; phone?: boolean }[] = fields.map((f) => ({
       key: f.field_name,
       label: f.field_label,
+      phone: isPhoneFieldType(f.field_type),
       rating: f.field_type === "rating" ? RATING_STYLES[ratingStyleOf(f.field_options)].icons[4] : undefined,
     }));
     const known = new Set(cols.map((c) => c.key));
@@ -103,7 +110,8 @@ export function RegistrationsList({
     }
   };
 
-  const cellText = (c: { rating?: string }, v: unknown) => (c.rating && v !== undefined && v !== "" ? `${c.rating} ${v}/5` : show(v));
+  const cellText = (c: { rating?: string; phone?: boolean }, v: unknown) =>
+    c.rating && v !== undefined && v !== "" ? `${c.rating} ${v}/5` : c.phone && v ? formatPhoneBR(v) : show(v);
 
   // Média de cada pergunta de escala (0 a 5)
   const ratingAverages = columns
@@ -113,6 +121,18 @@ export function RegistrationsList({
       return { label: c.label, icon: c.rating!, avg: nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null, n: nums.length };
     });
 
+  const togglePaid = async (r: Registration) => {
+    const next = !r.contribution_paid;
+    setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, contribution_paid: next } : x)));
+    try {
+      await api(`/api/admin/events/${eventId}/registrations/${r.id}`, { method: "PATCH", json: { contribution_paid: next } });
+    } catch (err) {
+      setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, contribution_paid: !next } : x)));
+      toast({ title: "Não foi possível atualizar", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
+    }
+  };
+  const paidCount = rows.filter((r) => r.contribution_paid).length;
+
   const fmt = (d: string) => new Date(d).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
   const vagas = maxParticipants ? Math.max(0, maxParticipants - rows.length) : null;
 
@@ -120,7 +140,7 @@ export function RegistrationsList({
     <div className="space-y-4">
       {/* Resumo + exportação */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-muted rounded-lg">
-        <div className="flex gap-6">
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
           <div>
             <p className="text-xs font-medium text-muted-foreground">Inscritos</p>
             <p className="text-2xl font-bold">
@@ -128,6 +148,15 @@ export function RegistrationsList({
               {maxParticipants ? <span className="text-base font-normal text-muted-foreground"> / {maxParticipants}</span> : null}
             </p>
           </div>
+          {contributionCents ? (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">Contribuições ({formatBRL(contributionCents)})</p>
+              <p className="text-2xl font-bold">
+                {paidCount}
+                <span className="text-base font-normal text-muted-foreground"> pagas • {formatBRL(paidCount * contributionCents)}</span>
+              </p>
+            </div>
+          ) : null}
           {vagas !== null && (
             <div>
               <p className="text-xs font-medium text-muted-foreground">Vagas restantes</p>
@@ -192,6 +221,7 @@ export function RegistrationsList({
                     {c.label}
                   </th>
                 ))}
+                {contributionCents ? <th className="px-3 py-2 font-medium whitespace-nowrap">Contribuição</th> : null}
                 <th className="px-3 py-2 font-medium whitespace-nowrap">Inscrito em</th>
                 <th className="px-3 py-2 w-20" />
               </tr>
@@ -205,6 +235,22 @@ export function RegistrationsList({
                       {cellText(c, r.registration_data?.[c.key])}
                     </td>
                   ))}
+                  {contributionCents ? (
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => togglePaid(r)}
+                        title="Clique para alternar"
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold border transition ${
+                          r.contribution_paid
+                            ? "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/40"
+                            : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/40"
+                        }`}
+                      >
+                        {r.contribution_paid ? "✓ Pago" : "Pendente"}
+                      </button>
+                    </td>
+                  ) : null}
                   <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">{fmt(r.created_at)}</td>
                   <td className="px-2 py-1 whitespace-nowrap text-right">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewing(r)} title="Ver tudo">
@@ -218,7 +264,7 @@ export function RegistrationsList({
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={columns.slice(0, 4).length + 3} className="px-3 py-6 text-center text-muted-foreground">
+                  <td colSpan={columns.slice(0, 4).length + 3 + (contributionCents ? 1 : 0)} className="px-3 py-6 text-center text-muted-foreground">
                     Ninguém encontrado para “{query}”.
                   </td>
                 </tr>

@@ -14,6 +14,9 @@ import { api } from "@/lib/fetcher";
 import type { Event, EventRegistrationField } from "@/types/database";
 import { Switch } from "@/components/ui/switch";
 import { RatingInput, ratingStyleOf } from "@/components/forms/RatingInput";
+import { PixPayment } from "@/components/forms/PixPayment";
+import { formatBRL } from "@/lib/pix";
+import { maskPhoneInput } from "@/lib/phone";
 
 type EventWithFields = Event & { registration_fields: EventRegistrationField[]; registrations_count: number };
 
@@ -139,7 +142,15 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
         return <Input {...commonProps} type="number" />;
       case "phone":
       case "tel":
-        return <Input {...commonProps} type="tel" inputMode="tel" />;
+        return (
+          <Input
+            {...commonProps}
+            type="tel"
+            inputMode="tel"
+            placeholder={field.field_placeholder || "(49) 99999-9999"}
+            onChange={(e) => setFormData({ ...formData, [field.field_name]: maskPhoneInput(e.target.value) })}
+          />
+        );
       case "email":
         return <Input {...commonProps} type="email" />;
       default:
@@ -160,13 +171,21 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
       <div className="min-h-screen bg-background py-8 sm:py-12">
         <div className="container mx-auto px-4 max-w-2xl">
           <Card>
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-6 sm:p-12 text-center">
               <CheckCircle2 className="w-20 h-20 text-green-500 mx-auto mb-4" />
               <h1 className="text-3xl font-bold mb-4">Inscrição Confirmada!</h1>
               <p className="text-lg text-muted-foreground mb-8">
                 Sua inscrição para <strong>{event?.title}</strong> foi registrada com sucesso.
               </p>
-              <Button onClick={() => router.push("/eventos")}>Ver Outros Eventos</Button>
+              {event?.contribution_cents ? (
+                <div className="mb-8 rounded-xl border border-[#32BCAD]/40 bg-[#32BCAD]/10 p-5 text-left space-y-3">
+                  <p className="font-semibold">Contribuição: {formatBRL(event.contribution_cents)}</p>
+                  {event.contribution_note && <p className="text-sm text-muted-foreground">{event.contribution_note}</p>}
+                  <p className="text-sm text-muted-foreground">Se quiser já deixar acertado, pague agora pelo PIX:</p>
+                  <PixPayment amountCents={event.contribution_cents} note={event.contribution_note} txid={event.title.slice(0, 20)} className="w-full" />
+                </div>
+              ) : null}
+              <Button variant={event?.contribution_cents ? "outline" : "default"} onClick={() => router.push("/eventos")}>Ver Outros Eventos</Button>
             </CardContent>
           </Card>
         </div>
@@ -215,6 +234,13 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                   {renderField(field)}
                 </div>
               ))}
+              {event?.contribution_cents ? (
+                <div className="rounded-lg border border-[#32BCAD]/40 bg-[#32BCAD]/10 p-4 text-sm">
+                  <p className="font-semibold">Contribuição: {formatBRL(event.contribution_cents)}</p>
+                  {event.contribution_note && <p className="text-muted-foreground mt-0.5">{event.contribution_note}</p>}
+                  <p className="text-muted-foreground mt-1">Depois de confirmar a inscrição, aparece o QR Code do PIX para pagar.</p>
+                </div>
+              ) : null}
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? (
                   <>

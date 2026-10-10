@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { handler, error, param, requireAdmin } from "@/lib/api";
+import { formatPhoneBR, isPhoneFieldType } from "@/lib/phone";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -9,7 +10,7 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   await requireAdmin();
   const eventId = await param(ctx, "id");
 
-  const event = await prisma.event.findUnique({ where: { id: eventId }, select: { title: true, eventDate: true } });
+  const event = await prisma.event.findUnique({ where: { id: eventId }, select: { title: true, eventDate: true, contributionCents: true } });
   if (!event) return error("Evento não encontrado", 404);
 
   const [fields, registrations] = await Promise.all([
@@ -18,13 +19,13 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   ]);
 
   // Colunas: campos do formulário (na ordem do painel) + qualquer dado extra que tenha vindo
-  const columns = fields.map((f) => ({ key: f.fieldName, label: f.fieldLabel }));
+  const columns = fields.map((f) => ({ key: f.fieldName, label: f.fieldLabel, phone: isPhoneFieldType(f.fieldType) }));
   const known = new Set(columns.map((c) => c.key));
   for (const r of registrations) {
     for (const key of Object.keys((r.registrationData as Record<string, unknown>) ?? {})) {
       if (!known.has(key)) {
         known.add(key);
-        columns.push({ key, label: key });
+        columns.push({ key, label: key, phone: false });
       }
     }
   }
@@ -35,10 +36,11 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   };
   const fmt = (d: Date) => d.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
-  const header = ["Nº", "Data da inscrição", ...columns.map((c) => c.label)];
+  const withPay = !!event.contributionCents;
+  const header = ["Nº", "Data da inscrição", ...columns.map((c) => c.label), ...(withPay ? ["Contribuição"] : [])];
   const rows = registrations.map((r, i) => {
     const data = (r.registrationData as Record<string, unknown>) ?? {};
-    return [String(i + 1), fmt(r.createdAt), ...columns.map((c) => data[c.key])];
+    return [String(i + 1), fmt(r.createdAt), ...columns.map((c) => (c.phone && data[c.key] ? formatPhoneBR(data[c.key]) : data[c.key])), ...(withPay ? [r.contributionPaid ? "Pago" : "Pendente"] : [])];
   });
   const csv = "﻿" + [header, ...rows].map((row) => row.map(cell).join(";")).join("\r\n") + "\r\n";
 

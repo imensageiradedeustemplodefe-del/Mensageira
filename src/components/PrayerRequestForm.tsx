@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { maskPhoneInput } from "@/lib/phone";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -179,7 +180,14 @@ export default function PrayerRequestForm() {
                   <FormItem>
                     <FormLabel>Telefone (Opcional)</FormLabel>
                     <FormControl>
-                      <Input type="tel" placeholder="(00) 00000-0000" autoComplete="tel" {...field} />
+                      <Input
+                        type="tel"
+                        inputMode="tel"
+                        placeholder="(49) 99999-9999"
+                        autoComplete="tel"
+                        {...field}
+                        onChange={(e) => field.onChange(maskPhoneInput(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

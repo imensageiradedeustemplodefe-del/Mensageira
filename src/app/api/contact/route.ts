@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { handler, json, parseBody } from "@/lib/api";
+import { formatPhoneBR } from "@/lib/phone";
 
 const schema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -14,7 +15,7 @@ const schema = z.object({
 export const POST = handler(async (req) => {
   const data = await parseBody(req, schema);
   await prisma.contactMessage.create({
-    data: { name: data.name, email: data.email, phone: data.phone?.trim() || null, subject: data.subject, message: data.message },
+    data: { name: data.name, email: data.email, phone: data.phone?.trim() ? formatPhoneBR(data.phone) : null, subject: data.subject, message: data.message },
   });
   return json({ success: true }, { status: 201 });
 });
