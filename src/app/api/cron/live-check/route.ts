@@ -2,19 +2,14 @@ import { prisma } from "@/lib/prisma";
 import { handler, json, error } from "@/lib/api";
 import { sendPushToAll } from "@/lib/push";
 import { getChannelId, getChannelLive } from "@/lib/youtube-live";
+import { isCronAuthorized } from "@/lib/cron-auth";
 
 export const maxDuration = 30;
 
 // Chamado a cada poucos minutos pelo agendador externo (cron-job.org): se o canal entrou AO VIVO,
 // avisa todo mundo por push — uma única vez por transmissão.
 export const GET = handler(async (req) => {
-  const auth = req.headers.get("authorization");
-  const key = new URL(req.url).searchParams.get("key");
-  const external = process.env.CRON_EXTERNAL_KEY;
-  const ok =
-    (!!process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`) ||
-    (!!external && (auth === `Bearer ${external}` || key === external));
-  if (!ok) return error("Não autorizado", 401);
+  if (!isCronAuthorized(req)) return error("Não autorizado", 401);
 
   const yt = await getChannelLive(await getChannelId());
   if (!yt.live || !yt.videoId) return json({ live: false });

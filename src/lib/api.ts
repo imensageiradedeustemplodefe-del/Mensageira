@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { ZodError, type ZodType } from "zod";
 import { getAdminSession } from "@/lib/auth";
+import { HttpError } from "@/lib/http-error";
+
+export { HttpError };
 
 export function json<T>(data: T, init?: ResponseInit) {
   return NextResponse.json(data, init);
@@ -8,12 +11,6 @@ export function json<T>(data: T, init?: ResponseInit) {
 
 export function error(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
-}
-
-export class HttpError extends Error {
-  constructor(public status: number, message: string) {
-    super(message);
-  }
 }
 
 /** Throws a 401 HttpError when the current user is not an admin. */
@@ -47,7 +44,8 @@ export function handler<Ctx>(fn: (request: Request, ctx: Ctx) => Promise<Respons
       if (err instanceof HttpError) return error(err.message, err.status);
       if (err instanceof ZodError) return error(err.issues[0]?.message ?? "Dados inválidos", 400);
       console.error(err);
-      return error(err instanceof Error ? err.message : "Erro interno", 500);
+      // Nunca devolve detalhes internos (consultas, tabelas, stack) para quem chamou
+      return error("Erro interno. Tente novamente em instantes.", 500);
     }
   };
 }

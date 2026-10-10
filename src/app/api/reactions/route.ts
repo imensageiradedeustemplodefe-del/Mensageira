@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { handler, json, error, parseBody } from "@/lib/api";
+import { limitOrThrow } from "@/lib/rate-limit";
 
 const REACTIONS = ["love", "prayer", "amen", "hallelujah", "glory", "fire"] as const;
 
@@ -24,6 +25,7 @@ const schema = z.object({
 
 // POST -> add/replace the user's reaction (mirrors add_photo_reaction)
 export const POST = handler(async (req) => {
+  await limitOrThrow(req, "reaction", 60, 600);
   const data = await parseBody(req, schema);
   await prisma.photoReaction.upsert({
     where: { photoId_userId: { photoId: data.photo_id, userId: data.user_id } },
@@ -35,6 +37,7 @@ export const POST = handler(async (req) => {
 
 // DELETE -> remove own reaction (mirrors delete_own_reaction)
 export const DELETE = handler(async (req) => {
+  await limitOrThrow(req, "reaction", 60, 600);
   const data = await parseBody(req, schema.pick({ photo_id: true, user_id: true }));
   await prisma.photoReaction.deleteMany({ where: { photoId: data.photo_id, userId: data.user_id } });
   return json({ success: true });

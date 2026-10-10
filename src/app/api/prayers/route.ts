@@ -4,6 +4,7 @@ import { handler, json, parseBody } from "@/lib/api";
 import { snake } from "@/lib/case";
 import { encryptContact, encryptionKeyHash } from "@/lib/crypto";
 import { PRAYER_CATEGORIES, sanitizeName } from "@/lib/prayers";
+import { limitOrThrow } from "@/lib/rate-limit";
 
 // Public, sanitized list (mirrors the `public_prayer_requests` view)
 export const GET = handler(async () => {
@@ -33,6 +34,7 @@ const schema = z.object({
 });
 
 export const POST = handler(async (req) => {
+  await limitOrThrow(req, "prayer", 5, 600);
   const data = await parseBody(req, schema);
   const email = data.email?.trim() || null;
   const phone = data.phone?.trim() || null;

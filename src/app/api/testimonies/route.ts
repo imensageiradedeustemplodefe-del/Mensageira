@@ -2,6 +2,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { handler, json, parseBody } from "@/lib/api";
 import { snake } from "@/lib/case";
+import { limitOrThrow } from "@/lib/rate-limit";
 
 export const GET = handler(async () => {
   const testimonies = await prisma.testimony.findMany({
@@ -17,6 +18,7 @@ const schema = z.object({
 });
 
 export const POST = handler(async (req) => {
+  await limitOrThrow(req, "testimony", 5, 600);
   const data = await parseBody(req, schema);
   const testimony = await prisma.testimony.create({ data });
   return json(snake(testimony), { status: 201 });

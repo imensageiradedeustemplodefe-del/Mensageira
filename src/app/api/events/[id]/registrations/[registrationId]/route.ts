@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { handler, json, error } from "@/lib/api";
 import { registrationCode } from "@/lib/pix";
 import { alertAdminsAboutRegistration } from "@/lib/registration-alerts";
+import { limitOrThrow } from "@/lib/rate-limit";
 
 type Ctx = { params: Promise<{ id: string; registrationId: string }> };
 
@@ -38,6 +39,7 @@ const schema = z.object({
 });
 
 export const PATCH = handler(async (req, ctx: Ctx) => {
+  await limitOrThrow(req, "reg-status", 30, 600);
   const r = await find(ctx);
   if (!r) return error("Inscrição não encontrada", 404);
   const body = schema.safeParse(await req.json().catch(() => ({})));

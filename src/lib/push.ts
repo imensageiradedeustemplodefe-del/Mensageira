@@ -22,6 +22,18 @@ function configured() {
   return true;
 }
 
+// Só aceita endereços dos serviços de push reais (Chrome/Android, Firefox, Safari/iPhone, Edge).
+// Sem isso, qualquer um poderia cadastrar uma URL qualquer e fazer o servidor enviar requisições para ela.
+const PUSH_HOSTS = [/^fcm\.googleapis\.com$/, /(^|\.)push\.services\.mozilla\.com$/, /(^|\.)push\.apple\.com$/, /(^|\.)notify\.windows\.com$/];
+export function isValidPushEndpoint(endpoint: string) {
+  try {
+    const u = new URL(endpoint);
+    return u.protocol === "https:" && !u.port && PUSH_HOSTS.some((re) => re.test(u.hostname));
+  } catch {
+    return false;
+  }
+}
+
 interface Sub {
   id: string;
   endpoint: string;

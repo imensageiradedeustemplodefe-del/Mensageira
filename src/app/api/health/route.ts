@@ -1,7 +1,8 @@
 import { prisma, dbMode } from "@/lib/prisma";
 import { handler, json } from "@/lib/api";
+import { getAdminSession } from "@/lib/auth";
 
-// Health check: reports which integrations are configured (never exposes values).
+// Health check. Público: só { ok }. Admin logado: quais integrações estão configuradas (nunca os valores).
 export const GET = handler(async () => {
   let database = false;
   let dbError: string | null = null;
@@ -13,9 +14,11 @@ export const GET = handler(async () => {
   }
 
   const has = (k: string) => !!process.env[k]?.trim();
+  const ok = database && (has("AUTH_SECRET") || has("NEXTAUTH_SECRET"));
+  if (!(await getAdminSession())) return json({ ok }, { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } });
 
   return json({
-    ok: database && has("AUTH_SECRET"),
+    ok,
     database,
     dbMode,
     dbError,

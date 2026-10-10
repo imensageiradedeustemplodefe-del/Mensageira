@@ -14,9 +14,18 @@ export const GET = handler(async (req) => {
 
   const incoming = new URL(req.url).searchParams;
   const params = new URLSearchParams();
-  for (const key of ["action", "album", "pageSize", "order", "pageToken"]) {
+  const rules: Record<string, RegExp> = {
+    action: /^albums$/,
+    album: /^[A-Za-z0-9_-]{10,100}$/,
+    pageSize: /^\d{1,3}$/,
+    order: /^(asc|desc|newest|oldest|name)$/,
+    pageToken: /^[A-Za-z0-9_\-.~=+/]{1,500}$/,
+  };
+  for (const [key, re] of Object.entries(rules)) {
     const v = incoming.get(key);
-    if (v) params.set(key, v);
+    if (!v) continue;
+    if (!re.test(v)) return error(`Parâmetro inválido: ${key}`);
+    params.set(key, v);
   }
 
   const res = await fetchAppsScript(`${scriptUrl}?${params.toString()}`, { cache: undefined, next: { revalidate: 3600 } });

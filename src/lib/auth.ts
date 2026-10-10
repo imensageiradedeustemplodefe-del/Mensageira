@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { clientIp, hit } from "@/lib/rate-limit";
 
 declare module "next-auth" {
   interface Session {
@@ -17,12 +18,13 @@ declare module "next-auth" {
 }
 
 const credentialsSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().email().max(255),
+  password: z.string().min(6).max(200),
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  session: { strategy: "jwt" },
+  // sessão do painel vale 7 dias
+  session: { strategy: "jwt", maxAge: 7 * 24 * 3600 },
   pages: { signIn: "/admin/login" },
   providers: [
     Credentials({
@@ -30,14 +32,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "E-mail", type: "email" },
         password: { label: "Senha", type: "password" },
       },
-      async authorize(raw) {
+      async authorize(raw, request) {
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
 
+        // Contra tentativa de adivinhar senha: no máximo 10 tentativas a cada 15 min por IP
+        // e 30 por hora para o mesmo e-mail (vindas de qualquer lugar)
+        const email = parsed.data.email.toLowerCase().trim();
+        const ipOk = await hit(`login-ip:${clientIp(request)}`, 10, 900);
+        const emailOk = await hit(`login-email:${email}`, 30, 3600);
+        if (!ipOk || !emailOk) return null;
+
         const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email.toLowerCase().trim() },
+          where: { email },
         });
-        if (!user) return null;
+        if (!user) {
+          // mesmo tempo de resposta com ou sem usuário (não revela quais e-mails existem)
+          await bcrypt.compare(parsed.data.password, "$2a$10$CwTycUXWue0Thq9StjUM0uJ8.UpN0Zl6WuJ3mJhDmlCuLwMz2VK8a");
+          return null;
+        }
 
         const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!ok) return null;

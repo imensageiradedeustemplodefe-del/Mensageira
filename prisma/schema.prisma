@@ -386,3 +386,15 @@ model PushSubscription {
 
   @@map("push_subscriptions")
 }
+
+// ---------- Segurança ----------
+
+// Contador por IP/ação para limitar spam e tentativas de senha
+model RateLimit {
+  key     String   @id
+  count   Int      @default(0)
+  resetAt DateTime @map("reset_at")
+
+  @@index([resetAt])
+  @@map("rate_limits")
+}
