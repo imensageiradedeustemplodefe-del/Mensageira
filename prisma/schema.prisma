@@ -158,6 +158,7 @@ model EventRegistration {
   syncedAt         DateTime? @map("synced_at")
   contributionPaid Boolean   @default(false) @map("contribution_paid")
   paymentReportedAt DateTime? @map("payment_reported_at")
+  pushEndpoint      String?   @map("push_endpoint")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 

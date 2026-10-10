@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Download, FileText, Search, Trash2, Eye, Users, Loader2 } from "lucide-react";
+import { Download, FileText, Search, Trash2, Eye, Users, Loader2, MessageCircle, BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -25,6 +25,7 @@ interface Registration {
   created_at: string;
   contribution_paid?: boolean;
   payment_reported_at?: string | null;
+  push_endpoint?: string | null;
 }
 
 const show = (v: unknown) =>
@@ -128,13 +129,32 @@ export function RegistrationsList({
     const next = !r.contribution_paid;
     setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, contribution_paid: next } : x)));
     try {
-      await api(`/api/admin/events/${eventId}/registrations/${r.id}`, { method: "PATCH", json: { contribution_paid: next } });
+      const res = await api<{ notified?: boolean }>(`/api/admin/events/${eventId}/registrations/${r.id}`, { method: "PATCH", json: { contribution_paid: next } });
+      if (next) {
+        toast({
+          title: "Pagamento confirmado",
+          description: res?.notified
+            ? "A pessoa recebeu uma notificação no celular."
+            : "Ela não ativou as notificações — se quiser, avise pelo botão do WhatsApp ao lado.",
+        });
+      }
     } catch (err) {
       setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, contribution_paid: !next } : x)));
       toast({ title: "Não foi possível atualizar", description: err instanceof Error ? err.message : String(err), variant: "destructive" });
     }
   };
   const paidCount = rows.filter((r) => r.contribution_paid).length;
+
+  // Mensagem pronta no WhatsApp para o telefone que a pessoa informou
+  const phoneCol = columns.find((c) => c.phone);
+  const nameCol = columns.find((c) => !c.phone && !c.rating);
+  const whatsappLink = (r: Registration) => {
+    const digits = phoneCol ? String(r.registration_data?.[phoneCol.key] ?? "").replace(/\D/g, "") : "";
+    if (digits.length < 10) return null;
+    const name = nameCol ? String(r.registration_data?.[nameCol.key] ?? "").trim().split(/\s+/)[0] : "";
+    const msg = `Olá${name ? ` ${name}` : ""}! Confirmamos o seu PIX de ${contributionCents ? formatBRL(contributionCents) : "contribuição"} para o ${eventTitle ?? "evento"} (código ${registrationCode(r.id)}). Obrigado e até lá! 🙏`;
+    return `https://wa.me/${digits.startsWith("55") && digits.length > 11 ? digits : `55${digits}`}?text=${encodeURIComponent(msg)}`;
+  };
   const toCheck = rows.filter((r) => !r.contribution_paid && r.payment_reported_at).length;
 
   const fmt = (d: string) => new Date(d).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
@@ -269,6 +289,22 @@ export function RegistrationsList({
                       >
                         {r.contribution_paid ? "✓ Pago" : r.payment_reported_at ? "Informou PIX • Confirmar" : "Pendente"}
                       </button>
+                      {r.push_endpoint && !r.contribution_paid && (
+                        <span title="Será avisada por notificação no celular quando você confirmar">
+                          <BellRing className="ml-1.5 inline w-3.5 h-3.5 text-primary" />
+                        </span>
+                      )}
+                      {r.contribution_paid && whatsappLink(r) && (
+                        <a
+                          href={whatsappLink(r)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Avisar no WhatsApp que o pagamento foi confirmado"
+                          className="ml-1.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-green-600 hover:bg-green-500/15 align-middle"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </a>
+                      )}
                     </td>
                   ) : null}
                   <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">{fmt(r.created_at)}</td>

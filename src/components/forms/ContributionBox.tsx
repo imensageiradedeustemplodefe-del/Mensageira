@@ -1,16 +1,31 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Clock, Loader2, Send } from "lucide-react";
+import { Bell, BellRing, CheckCircle2, Clock, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PixPayment } from "@/components/forms/PixPayment";
 import { api, ApiError } from "@/lib/fetcher";
 import { formatBRL, registrationCode } from "@/lib/pix";
+import { usePushSubscription } from "@/hooks/usePushSubscription";
 
 interface Status {
   code: string;
   contribution_paid: boolean;
   payment_reported_at: string | null;
+  notify?: boolean;
+}
+
+/** Endpoint da assinatura de notificação deste aparelho (se as notificações estiverem ativas). */
+async function currentPushEndpoint() {
+  try {
+    if (!("serviceWorker" in navigator) || !("Notification" in window) || Notification.permission !== "granted") return null;
+    // sem service worker registrado o "ready" nunca resolve: não pode travar o "Já fiz o PIX"
+    const reg = await Promise.race([navigator.serviceWorker.ready, new Promise<null>((r) => setTimeout(() => r(null), 3000))]);
+    if (!reg) return null;
+    return (await reg.pushManager.getSubscription())?.endpoint ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // Inscrições feitas neste aparelho, para a pessoa ver depois se o pagamento foi confirmado.
@@ -66,6 +81,7 @@ export function ContributionBox({
   const code = registrationCode(registrationId);
   const [status, setStatus] = useState<Status | null>(null);
   const [reporting, setReporting] = useState(false);
+  const push = usePushSubscription();
   const url = `/api/events/${eventId}/registrations/${registrationId}`;
 
   const load = useCallback(async () => {
@@ -101,13 +117,41 @@ export function ContributionBox({
   const report = async () => {
     setReporting(true);
     try {
-      setStatus(await api<Status>(url, { method: "PATCH" }));
+      const endpoint = await currentPushEndpoint();
+      setStatus(await api<Status>(url, { method: "PATCH", json: { report: true, ...(endpoint ? { push_endpoint: endpoint } : {}) } }));
     } finally {
       setReporting(false);
     }
   };
 
+  // Notificações já ativas neste aparelho: liga à inscrição para avisar quando confirmarem
+  const needsLink = !!status && !status.contribution_paid && !status.notify;
+  useEffect(() => {
+    if (!needsLink || !push.isEnabled) return;
+    currentPushEndpoint().then((endpoint) => {
+      if (endpoint) api<Status>(url, { method: "PATCH", json: { push_endpoint: endpoint } }).then(setStatus).catch(() => {});
+    });
+  }, [needsLink, push.isEnabled, url]);
+
+  const askNotify = async () => {
+    if (await push.subscribe()) {
+      const endpoint = await currentPushEndpoint();
+      if (endpoint) setStatus(await api<Status>(url, { method: "PATCH", json: { push_endpoint: endpoint } }));
+    }
+  };
+
   const reported = !!status?.payment_reported_at;
+  const notifyLine =
+    !status || paid ? null : status.notify ? (
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <BellRing className="w-3.5 h-3.5 text-primary" /> Você vai receber uma notificação no celular quando confirmarmos.
+      </p>
+    ) : push.ready && push.isSupported && push.permission !== "denied" ? (
+      <Button type="button" variant="ghost" size="sm" className="w-full gap-2 text-primary" onClick={askNotify} disabled={push.busy}>
+        {push.busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4" />}
+        Me avise no celular quando confirmarem
+      </Button>
+    ) : null;
 
   return (
     <div className="rounded-xl border border-[#32BCAD]/40 bg-[#32BCAD]/10 p-5 text-left space-y-3">
@@ -132,13 +176,16 @@ export function ContributionBox({
           </div>
         </div>
       ) : reported ? (
-        <div className="flex items-center gap-3 rounded-lg bg-sky-500/10 border border-sky-500/40 p-3">
-          <Clock className="w-6 h-6 text-sky-600 shrink-0" />
-          <div>
-            <p className="font-semibold">Recebemos seu aviso de pagamento</p>
-            <p className="text-sm text-muted-foreground">A equipe vai conferir o PIX e confirmar. Esta tela se atualiza sozinha.</p>
+        <>
+          <div className="flex items-center gap-3 rounded-lg bg-sky-500/10 border border-sky-500/40 p-3">
+            <Clock className="w-6 h-6 text-sky-600 shrink-0" />
+            <div>
+              <p className="font-semibold">Recebemos seu aviso de pagamento</p>
+              <p className="text-sm text-muted-foreground">A equipe vai conferir o PIX e confirmar. Esta tela se atualiza sozinha.</p>
+            </div>
           </div>
-        </div>
+          {notifyLine}
+        </>
       ) : (
         <>
           <p className="text-sm text-muted-foreground">Se quiser já deixar acertado, pague pelo PIX — o código vai junto para identificarmos você:</p>
@@ -156,6 +203,7 @@ export function ContributionBox({
           <p className="text-[11px] text-muted-foreground text-center">
             Depois de pagar, toque em “Já fiz o PIX” para avisar a equipe do {eventTitle}.
           </p>
+          {notifyLine}
         </>
       )}
     </div>
