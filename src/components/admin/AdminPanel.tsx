@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,11 @@ const DESCRIPTIONS: Record<string, string> = {
 
 export function AdminPanel() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  // link de notificação: /admin?tab=registrations&event=...
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    if (tab && tab in TITLES) setActiveTab(tab);
+  }, []);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/" });

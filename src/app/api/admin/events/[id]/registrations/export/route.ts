@@ -41,7 +41,7 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   const header = ["Nº", "Data da inscrição", ...columns.map((c) => c.label), ...(withPay ? ["Código PIX", "Contribuição"] : [])];
   const rows = registrations.map((r, i) => {
     const data = (r.registrationData as Record<string, unknown>) ?? {};
-    return [String(i + 1), fmt(r.createdAt), ...columns.map((c) => (c.phone && data[c.key] ? formatPhoneBR(data[c.key]) : data[c.key])), ...(withPay ? [registrationCode(r.id), (r.contributionPaid ? "Pago" : r.paymentReportedAt ? "Informou PIX" : "Pendente")] : [])];
+    return [String(i + 1), fmt(r.createdAt), ...columns.map((c) => (c.phone && data[c.key] ? formatPhoneBR(data[c.key]) : data[c.key])), ...(withPay ? [registrationCode(r.id), (r.contributionPaid ? (r.paymentMethod === "cash" ? "Pago (dinheiro)" : r.paymentMethod === "pix" ? "Pago (PIX)" : "Pago") : r.paymentReportedAt ? "Informou PIX" : r.paymentMethod === "cash" ? "Dinheiro no dia" : "Pendente")] : [])];
   });
   const csv = "﻿" + [header, ...rows].map((row) => row.map(cell).join(";")).join("\r\n") + "\r\n";
 

@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/fetcher";
 import { EventRegistrationManager } from "./EventRegistrationManager";
+import { AdminAlertsToggle } from "./AdminAlertsToggle";
 
 interface Row {
   id: string;
@@ -34,7 +35,18 @@ export function RegistrationsOverview() {
 
   const load = useCallback(async () => {
     try {
-      setRows(await api<Row[]>("/api/admin/registrations"));
+      const data = await api<Row[]>("/api/admin/registrations");
+      setRows(data);
+      // veio de uma notificação: abre direto a lista daquele evento
+      const params = new URLSearchParams(window.location.search);
+      const wanted = params.get("event");
+      if (wanted) {
+        const row = data.find((r) => r.id === wanted);
+        if (row) setSelected(row);
+        params.delete("event");
+        params.delete("tab");
+        window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : ""));
+      }
     } finally {
       setLoading(false);
     }
@@ -130,6 +142,7 @@ export function RegistrationsOverview() {
 
   return (
     <div className="space-y-8">
+      <AdminAlertsToggle />
       {rows.length === 0 && (
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground space-y-2">

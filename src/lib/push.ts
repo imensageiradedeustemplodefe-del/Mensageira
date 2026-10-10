@@ -48,6 +48,14 @@ export async function sendPushTo(sub: Sub, payload: PushPayload) {
   }
 }
 
+/** Avisos só para os aparelhos da equipe que ativaram "Avisar este celular" no painel. */
+export async function sendPushToAdmins(payload: PushPayload) {
+  if (!configured()) return 0;
+  const subs = await prisma.pushSubscription.findMany({ where: { isActive: true, notifyAdmin: true } });
+  const results = await Promise.all(subs.map((s) => sendPushTo(s, payload)));
+  return results.filter(Boolean).length;
+}
+
 /** Sends a push notification to every active subscription; prunes dead ones and records a log entry. */
 export async function sendPushToAll(payload: PushPayload, source = "manual") {
   if (!configured()) return { sent: 0, failed: 0, skipped: true };

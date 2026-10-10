@@ -278,7 +278,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                 <div className="rounded-lg border border-[#32BCAD]/40 bg-[#32BCAD]/10 p-4 text-sm">
                   <p className="font-semibold">Contribuição: {formatBRL(event.contribution_cents)}</p>
                   {event.contribution_note && <p className="text-muted-foreground mt-0.5">{event.contribution_note}</p>}
-                  <p className="text-muted-foreground mt-1">Depois de confirmar a inscrição, aparece o QR Code do PIX para pagar.</p>
+                  <p className="text-muted-foreground mt-1">Depois de confirmar a inscrição, você escolhe: PIX (com QR Code) ou dinheiro no dia.</p>
                 </div>
               ) : null}
               <Button type="submit" className="w-full" disabled={submitting}>

@@ -159,6 +159,7 @@ model EventRegistration {
   contributionPaid Boolean   @default(false) @map("contribution_paid")
   paymentReportedAt DateTime? @map("payment_reported_at")
   pushEndpoint      String?   @map("push_endpoint")
+  paymentMethod     String?   @map("payment_method") // "pix" | "cash"
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
@@ -378,6 +379,8 @@ model PushSubscription {
   p256dh    String
   auth      String
   isActive  Boolean  @default(true) @map("is_active")
+  // aparelho da equipe: recebe avisos do painel (novas inscrições, PIX informado)
+  notifyAdmin Boolean @default(false) @map("notify_admin")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

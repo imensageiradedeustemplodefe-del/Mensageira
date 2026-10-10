@@ -26,6 +26,7 @@ interface Registration {
   contribution_paid?: boolean;
   payment_reported_at?: string | null;
   push_endpoint?: string | null;
+  payment_method?: string | null;
 }
 
 const show = (v: unknown) =>
@@ -156,6 +157,7 @@ export function RegistrationsList({
     return `https://wa.me/${digits.startsWith("55") && digits.length > 11 ? digits : `55${digits}`}?text=${encodeURIComponent(msg)}`;
   };
   const toCheck = rows.filter((r) => !r.contribution_paid && r.payment_reported_at).length;
+  const cashPending = rows.filter((r) => !r.contribution_paid && !r.payment_reported_at && r.payment_method === "cash").length;
 
   const fmt = (d: string) => new Date(d).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
   const vagas = maxParticipants ? Math.max(0, maxParticipants - rows.length) : null;
@@ -182,6 +184,11 @@ export function RegistrationsList({
               {toCheck > 0 && (
                 <p className="text-xs font-medium text-sky-600 dark:text-sky-400">
                   {toCheck} {toCheck === 1 ? "pessoa avisou" : "pessoas avisaram"} que pagou — confira no extrato
+                </p>
+              )}
+              {cashPending > 0 && (
+                <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                  💵 {cashPending} {cashPending === 1 ? "vai pagar" : "vão pagar"} em dinheiro no dia ({formatBRL(cashPending * contributionCents)})
                 </p>
               )}
             </div>
@@ -277,7 +284,9 @@ export function RegistrationsList({
                             ? "Clique para voltar para pendente"
                             : r.payment_reported_at
                               ? `Avisou que pagou em ${fmt(r.payment_reported_at)} — confira no extrato e clique para confirmar`
-                              : "Clique para marcar como pago"
+                              : r.payment_method === "cash"
+                                ? "Vai pagar em dinheiro no dia — clique quando receber"
+                                : "Clique para marcar como pago"
                         }
                         className={`rounded-full px-2.5 py-0.5 text-xs font-semibold border transition ${
                           r.contribution_paid
@@ -287,7 +296,13 @@ export function RegistrationsList({
                               : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/40"
                         }`}
                       >
-                        {r.contribution_paid ? "✓ Pago" : r.payment_reported_at ? "Informou PIX • Confirmar" : "Pendente"}
+                        {r.contribution_paid
+                          ? `✓ Pago${r.payment_method === "cash" ? " • Dinheiro" : r.payment_method === "pix" ? " • PIX" : ""}`
+                          : r.payment_reported_at
+                            ? "Informou PIX • Confirmar"
+                            : r.payment_method === "cash"
+                              ? "💵 Dinheiro no dia"
+                              : "Pendente"}
                       </button>
                       {r.push_endpoint && !r.contribution_paid && (
                         <span title="Será avisada por notificação no celular quando você confirmar">

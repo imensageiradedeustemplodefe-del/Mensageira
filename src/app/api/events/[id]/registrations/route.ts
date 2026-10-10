@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { handler, json, error, param, parseBody } from "@/lib/api";
 import { snake } from "@/lib/case";
 import { formatPhoneBR } from "@/lib/phone";
+import { alertAdminsAboutRegistration } from "@/lib/registration-alerts";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -35,5 +37,6 @@ export const POST = handler(async (req, ctx: Ctx) => {
     data: { eventId: id, registrationData: data as object },
   });
 
+  after(() => alertAdminsAboutRegistration(registration.id, "new"));
   return json(snake(registration), { status: 201 });
 });

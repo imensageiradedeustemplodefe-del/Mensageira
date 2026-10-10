@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Bell, BellRing, CheckCircle2, Clock, Loader2, Send } from "lucide-react";
+import { Banknote, Bell, BellRing, CheckCircle2, Clock, Loader2, QrCode, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PixPayment } from "@/components/forms/PixPayment";
 import { api, ApiError } from "@/lib/fetcher";
@@ -12,6 +12,7 @@ interface Status {
   code: string;
   contribution_paid: boolean;
   payment_reported_at: string | null;
+  payment_method?: "pix" | "cash" | null;
   notify?: boolean;
 }
 
@@ -60,7 +61,7 @@ function forgetRegistration(eventId: string, id: string) {
   } catch {}
 }
 
-/** Caixa da contribuição de uma inscrição: PIX, botão "Já fiz o PIX" e a situação (aguardando / confirmado). */
+/** Caixa da contribuição de uma inscrição: escolha PIX ou dinheiro, botão "Já fiz o PIX" e a situação (aguardando / confirmado). */
 export function ContributionBox({
   eventId,
   eventTitle,
@@ -119,6 +120,16 @@ export function ContributionBox({
     try {
       const endpoint = await currentPushEndpoint();
       setStatus(await api<Status>(url, { method: "PATCH", json: { report: true, ...(endpoint ? { push_endpoint: endpoint } : {}) } }));
+    } finally {
+      setReporting(false);
+    }
+  };
+
+  const choose = async (method: "pix" | "cash") => {
+    setReporting(true);
+    try {
+      const endpoint = await currentPushEndpoint();
+      setStatus(await api<Status>(url, { method: "PATCH", json: { payment_method: method, ...(endpoint ? { push_endpoint: endpoint } : {}) } }));
     } finally {
       setReporting(false);
     }
@@ -186,9 +197,41 @@ export function ContributionBox({
           </div>
           {notifyLine}
         </>
+      ) : status.payment_method === "cash" ? (
+        <>
+          <div className="flex items-center gap-3 rounded-lg bg-amber-500/10 border border-amber-500/40 p-3">
+            <Banknote className="w-6 h-6 text-amber-600 shrink-0" />
+            <div>
+              <p className="font-semibold">Combinado: pagamento em dinheiro</p>
+              <p className="text-sm text-muted-foreground">
+                Leve {formatBRL(amountCents)} no dia do evento e entregue para a equipe. Assim que recebermos, confirmamos aqui.
+              </p>
+            </div>
+          </div>
+          {notifyLine}
+          <Button type="button" variant="link" size="sm" className="w-full" onClick={() => choose("pix")} disabled={reporting}>
+            Prefiro pagar com PIX
+          </Button>
+        </>
+      ) : status.payment_method !== "pix" ? (
+        <>
+          <p className="text-sm text-muted-foreground">Como você prefere pagar?</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button type="button" className="h-auto flex-col gap-1 py-3 bg-[#32BCAD] hover:bg-[#2aa496] text-white" onClick={() => choose("pix")} disabled={reporting}>
+              <QrCode className="w-5 h-5" />
+              <span className="font-semibold">PIX</span>
+              <span className="text-[11px] font-normal opacity-90">pagar agora</span>
+            </Button>
+            <Button type="button" variant="outline" className="h-auto flex-col gap-1 py-3" onClick={() => choose("cash")} disabled={reporting}>
+              <Banknote className="w-5 h-5 text-amber-600" />
+              <span className="font-semibold">Dinheiro</span>
+              <span className="text-[11px] font-normal text-muted-foreground">no dia do evento</span>
+            </Button>
+          </div>
+        </>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">Se quiser já deixar acertado, pague pelo PIX — o código vai junto para identificarmos você:</p>
+          <p className="text-sm text-muted-foreground">Pague pelo PIX — o código vai junto para identificarmos você:</p>
           <PixPayment
             amountCents={amountCents}
             note={note}
@@ -204,6 +247,9 @@ export function ContributionBox({
             Depois de pagar, toque em “Já fiz o PIX” para avisar a equipe do {eventTitle}.
           </p>
           {notifyLine}
+          <Button type="button" variant="link" size="sm" className="w-full" onClick={() => choose("cash")} disabled={reporting}>
+            Prefiro pagar em dinheiro no dia
+          </Button>
         </>
       )}
     </div>
