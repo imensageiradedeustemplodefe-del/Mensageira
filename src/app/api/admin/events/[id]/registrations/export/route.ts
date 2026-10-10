@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { handler, error, param, requireAdmin } from "@/lib/api";
 import { formatPhoneBR, isPhoneFieldType } from "@/lib/phone";
+import { registrationCode } from "@/lib/pix";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -37,10 +38,10 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   const fmt = (d: Date) => d.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 
   const withPay = !!event.contributionCents;
-  const header = ["Nº", "Data da inscrição", ...columns.map((c) => c.label), ...(withPay ? ["Contribuição"] : [])];
+  const header = ["Nº", "Data da inscrição", ...columns.map((c) => c.label), ...(withPay ? ["Código PIX", "Contribuição"] : [])];
   const rows = registrations.map((r, i) => {
     const data = (r.registrationData as Record<string, unknown>) ?? {};
-    return [String(i + 1), fmt(r.createdAt), ...columns.map((c) => (c.phone && data[c.key] ? formatPhoneBR(data[c.key]) : data[c.key])), ...(withPay ? [r.contributionPaid ? "Pago" : "Pendente"] : [])];
+    return [String(i + 1), fmt(r.createdAt), ...columns.map((c) => (c.phone && data[c.key] ? formatPhoneBR(data[c.key]) : data[c.key])), ...(withPay ? [registrationCode(r.id), r.contributionPaid ? "Pago" : "Pendente"] : [])];
   });
   const csv = "﻿" + [header, ...rows].map((row) => row.map(cell).join(";")).join("\r\n") + "\r\n";
 

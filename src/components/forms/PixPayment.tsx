@@ -13,12 +13,14 @@ export function PixPayment({
   amountCents,
   note,
   txid,
+  description,
   label = "Pagar com PIX",
   className = "",
 }: {
   amountCents: number;
   note?: string | null;
   txid?: string;
+  description?: string;
   label?: string;
   className?: string;
 }) {
@@ -31,9 +33,9 @@ export function PixPayment({
   const code = useMemo(
     () =>
       configured
-        ? pixPayload({ key: settings.pix_key, name: settings.pix_name, city: settings.pix_city || "Cacador", amountCents, txid })
+        ? pixPayload({ key: settings.pix_key, name: settings.pix_name, city: settings.pix_city || "Cacador", amountCents, txid, description })
         : "",
-    [configured, settings.pix_key, settings.pix_name, settings.pix_city, amountCents, txid]
+    [configured, settings.pix_key, settings.pix_name, settings.pix_city, amountCents, txid, description]
   );
 
   useEffect(() => {

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { api } from "@/lib/fetcher";
 import { useToast } from "@/hooks/use-toast";
 import { RATING_STYLES, ratingStyleOf } from "@/components/forms/RatingInput";
-import { formatBRL } from "@/lib/pix";
+import { formatBRL, registrationCode } from "@/lib/pix";
 import { formatPhoneBR, isPhoneFieldType } from "@/lib/phone";
 
 interface Field {
@@ -93,7 +93,9 @@ export function RegistrationsList({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return rows;
-    return rows.filter((r) => Object.values(r.registration_data ?? {}).some((v) => show(v).toLowerCase().includes(q)));
+    return rows.filter(
+      (r) => registrationCode(r.id).toLowerCase().includes(q) || Object.values(r.registration_data ?? {}).some((v) => show(v).toLowerCase().includes(q))
+    );
   }, [rows, query]);
 
   const remove = async (r: Registration) => {
@@ -237,6 +239,9 @@ export function RegistrationsList({
                   ))}
                   {contributionCents ? (
                     <td className="px-3 py-2 whitespace-nowrap">
+                      <span className="mr-2 font-mono text-xs text-muted-foreground" title="Código que aparece no PIX (identificador)">
+                        {registrationCode(r.id)}
+                      </span>
                       <button
                         type="button"
                         onClick={() => togglePaid(r)}

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/auth";
 import { AutoPrint } from "./AutoPrint";
 import { formatPhoneBR, isPhoneFieldType } from "@/lib/phone";
+import { registrationCode } from "@/lib/pix";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Lista de inscritos", robots: { index: false, follow: false } };
@@ -85,7 +86,7 @@ export default async function Page({ params }: { params: Promise<{ eventId: stri
             {columns.map((c) => (
               <th key={c.key}>{c.label}</th>
             ))}
-            {event.contributionCents ? <th style={{ width: 80 }}>Contribuição</th> : null}
+            {event.contributionCents ? <th style={{ width: 120 }}>Contribuição</th> : null}
             <th style={{ width: 110 }}>Inscrito em</th>
           </tr>
         </thead>
@@ -98,7 +99,9 @@ export default async function Page({ params }: { params: Promise<{ eventId: stri
                 {columns.map((c) => (
                   <td key={c.key}>{c.phone && data[c.key] ? formatPhoneBR(data[c.key]) : show(data[c.key])}</td>
                 ))}
-                {event.contributionCents ? <td>{r.contributionPaid ? "Pago" : "Pendente"}</td> : null}
+                {event.contributionCents ? <td>
+                    {registrationCode(r.id)} — {r.contributionPaid ? "Pago" : "Pendente"}
+                  </td> : null}
                 <td>{r.createdAt.toLocaleString("pt-BR", { ...tz, dateStyle: "short", timeStyle: "short" })}</td>
               </tr>
             );

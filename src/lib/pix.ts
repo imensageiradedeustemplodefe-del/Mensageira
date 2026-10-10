@@ -78,4 +78,7 @@ export function pixPayload({ key, name, city, amountCents, txid, description }: 
   return payload + crc16(payload);
 }
 
+/** Código curto da inscrição (6 caracteres) que vai no PIX como identificador e aparece na lista do painel. */
+export const registrationCode = (id: string) => id.replace(/-/g, "").slice(0, 6).toUpperCase();
+
 export const formatBRL = (cents: number) => (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });

@@ -15,7 +15,7 @@ import type { Event, EventRegistrationField } from "@/types/database";
 import { Switch } from "@/components/ui/switch";
 import { RatingInput, ratingStyleOf } from "@/components/forms/RatingInput";
 import { PixPayment } from "@/components/forms/PixPayment";
-import { formatBRL } from "@/lib/pix";
+import { formatBRL, registrationCode } from "@/lib/pix";
 import { maskPhoneInput } from "@/lib/phone";
 
 type EventWithFields = Event & { registration_fields: EventRegistrationField[]; registrations_count: number };
@@ -28,6 +28,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [regCode, setRegCode] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -71,7 +72,8 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
 
     setSubmitting(true);
     try {
-      await api(`/api/events/${eventId}/registrations`, { method: "POST", json: { registration_data: formData } });
+      const reg = await api<{ id: string }>(`/api/events/${eventId}/registrations`, { method: "POST", json: { registration_data: formData } });
+      setRegCode(reg?.id ? registrationCode(reg.id) : null);
       setSubmitted(true);
       toast({ title: "Inscrição enviada!", description: "Sua inscrição foi registrada com sucesso" });
     } catch (err) {
@@ -181,8 +183,21 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                 <div className="mb-8 rounded-xl border border-[#32BCAD]/40 bg-[#32BCAD]/10 p-5 text-left space-y-3">
                   <p className="font-semibold">Contribuição: {formatBRL(event.contribution_cents)}</p>
                   {event.contribution_note && <p className="text-sm text-muted-foreground">{event.contribution_note}</p>}
-                  <p className="text-sm text-muted-foreground">Se quiser já deixar acertado, pague agora pelo PIX:</p>
-                  <PixPayment amountCents={event.contribution_cents} note={event.contribution_note} txid={event.title.slice(0, 20)} className="w-full" />
+                  {regCode && (
+                    <p className="text-sm">
+                      Código da sua inscrição: <strong className="font-mono tracking-wider">{regCode}</strong>
+                    </p>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    Se quiser já deixar acertado, pague agora pelo PIX{regCode ? " — o código vai junto no pagamento para identificarmos você" : ""}:
+                  </p>
+                  <PixPayment
+                    amountCents={event.contribution_cents}
+                    note={event.contribution_note}
+                    txid={regCode ? `INSC${regCode}` : event.title.slice(0, 20)}
+                    description={regCode ? `Inscricao ${regCode}` : undefined}
+                    className="w-full"
+                  />
                 </div>
               ) : null}
               <Button variant={event?.contribution_cents ? "outline" : "default"} onClick={() => router.push("/eventos")}>Ver Outros Eventos</Button>
