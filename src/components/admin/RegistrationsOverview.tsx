@@ -20,6 +20,7 @@ interface Row {
   registrations: number;
   fields: number;
   last_registration_at: string | null;
+  payments_to_check?: number;
 }
 
 const fmtDate = (d: string) =>
@@ -111,6 +112,11 @@ export function RegistrationsOverview() {
           )}
           <div className="flex flex-wrap gap-1.5">
             {full && <Badge variant="destructive">Esgotado</Badge>}
+            {!!r.payments_to_check && (
+              <Badge className="bg-sky-600 text-white hover:bg-sky-600">
+                {r.payments_to_check} PIX para conferir
+              </Badge>
+            )}
             {!r.is_published && <Badge variant="outline">Não publicado</Badge>}
             {r.fields === 0 && <Badge variant="outline" className="text-orange-600 border-orange-600">Formulário sem campos</Badge>}
             {r.last_registration_at && (

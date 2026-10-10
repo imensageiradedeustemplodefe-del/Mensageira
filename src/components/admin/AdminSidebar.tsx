@@ -50,7 +50,7 @@ interface AdminSidebarProps {
   onTabChange: (value: string) => void;
 }
 
-type BadgeKey = "contact" | "prayers" | "testimonies" | "live";
+type BadgeKey = "contact" | "prayers" | "testimonies" | "live" | "registrations";
 
 const menuItems: {
   title: string;
@@ -70,7 +70,7 @@ const menuItems: {
     defaultOpen: true,
     items: [
       { title: "Eventos", value: "events", icon: Calendar, description: "Programação e cultos" },
-      { title: "Inscrições", value: "registrations", icon: ClipboardList, description: "Inscritos e listas" },
+      { title: "Inscrições", value: "registrations", icon: ClipboardList, description: "Inscritos e listas", badgeKey: "registrations" },
       { title: "Modelos", value: "templates", icon: Copy, description: "Eventos prontos para reusar" },
     ],
   },
@@ -107,7 +107,7 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [searchQuery, setSearchQuery] = useState("");
-  const [badges, setBadges] = useState<{ contact: number; prayers: number; testimonies: number; live: boolean } | null>(null);
+  const [badges, setBadges] = useState<{ contact: number; prayers: number; testimonies: number; live: boolean; registrations?: number } | null>(null);
   useEffect(() => {
     const load = () => api<typeof badges>("/api/admin/badges").then(setBadges).catch(() => {});
     load();
@@ -117,7 +117,8 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
   const badgeFor = (key?: BadgeKey) => {
     if (!key || !badges) return null;
     if (key === "live") return badges.live ? "Ao Vivo" : null;
-    return badges[key] > 0 ? String(badges[key]) : null;
+    const n = badges[key] ?? 0;
+    return n > 0 ? String(n) : null;
   };
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};

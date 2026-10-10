@@ -8,5 +8,7 @@ export const GET = handler(async () => {
   const prayers = await prisma.prayerRequest.count({ where: { isApproved: false, isCompleted: false } });
   const testimonies = await prisma.testimony.count({ where: { isApproved: false } });
   const live = await prisma.liveStream.count({ where: { isLive: true } });
-  return json({ contact, prayers, testimonies, live: live > 0 });
+  // PIX que a pessoa avisou que pagou e ainda falta a equipe conferir
+  const registrations = await prisma.eventRegistration.count({ where: { paymentReportedAt: { not: null }, contributionPaid: false } });
+  return json({ contact, prayers, testimonies, live: live > 0, registrations });
 });

@@ -157,6 +157,7 @@ model EventRegistration {
   syncedToSheets   Boolean   @default(false) @map("synced_to_sheets")
   syncedAt         DateTime? @map("synced_at")
   contributionPaid Boolean   @default(false) @map("contribution_paid")
+  paymentReportedAt DateTime? @map("payment_reported_at")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 

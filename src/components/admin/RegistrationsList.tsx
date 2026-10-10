@@ -24,6 +24,7 @@ interface Registration {
   registration_data: Record<string, unknown>;
   created_at: string;
   contribution_paid?: boolean;
+  payment_reported_at?: string | null;
 }
 
 const show = (v: unknown) =>
@@ -134,6 +135,7 @@ export function RegistrationsList({
     }
   };
   const paidCount = rows.filter((r) => r.contribution_paid).length;
+  const toCheck = rows.filter((r) => !r.contribution_paid && r.payment_reported_at).length;
 
   const fmt = (d: string) => new Date(d).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
   const vagas = maxParticipants ? Math.max(0, maxParticipants - rows.length) : null;
@@ -157,6 +159,11 @@ export function RegistrationsList({
                 {paidCount}
                 <span className="text-base font-normal text-muted-foreground"> pagas • {formatBRL(paidCount * contributionCents)}</span>
               </p>
+              {toCheck > 0 && (
+                <p className="text-xs font-medium text-sky-600 dark:text-sky-400">
+                  {toCheck} {toCheck === 1 ? "pessoa avisou" : "pessoas avisaram"} que pagou — confira no extrato
+                </p>
+              )}
             </div>
           ) : null}
           {vagas !== null && (
@@ -245,14 +252,22 @@ export function RegistrationsList({
                       <button
                         type="button"
                         onClick={() => togglePaid(r)}
-                        title="Clique para alternar"
+                        title={
+                          r.contribution_paid
+                            ? "Clique para voltar para pendente"
+                            : r.payment_reported_at
+                              ? `Avisou que pagou em ${fmt(r.payment_reported_at)} — confira no extrato e clique para confirmar`
+                              : "Clique para marcar como pago"
+                        }
                         className={`rounded-full px-2.5 py-0.5 text-xs font-semibold border transition ${
                           r.contribution_paid
                             ? "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/40"
-                            : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/40"
+                            : r.payment_reported_at
+                              ? "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/50 animate-pulse"
+                              : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/40"
                         }`}
                       >
-                        {r.contribution_paid ? "✓ Pago" : "Pendente"}
+                        {r.contribution_paid ? "✓ Pago" : r.payment_reported_at ? "Informou PIX • Confirmar" : "Pendente"}
                       </button>
                     </td>
                   ) : null}

@@ -20,6 +20,13 @@ export const GET = handler(async () => {
       registrations: { orderBy: { createdAt: "desc" }, take: 1, select: { createdAt: true } },
     },
   });
+  // PIX avisados pela pessoa e ainda não conferidos, por evento
+  const reported = await prisma.eventRegistration.groupBy({
+    by: ["eventId"],
+    where: { paymentReportedAt: { not: null }, contributionPaid: false },
+    _count: { _all: true },
+  });
+  const reportedBy = new Map(reported.map((r) => [r.eventId, r._count._all]));
   return json(
     events.map((e) => ({
       id: e.id,
@@ -33,6 +40,7 @@ export const GET = handler(async () => {
       registrations: e._count.registrations,
       fields: e._count.registrationFields,
       last_registration_at: e.registrations[0]?.createdAt ?? null,
+      payments_to_check: reportedBy.get(e.id) ?? 0,
     }))
   );
 });

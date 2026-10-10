@@ -14,8 +14,8 @@ import { api } from "@/lib/fetcher";
 import type { Event, EventRegistrationField } from "@/types/database";
 import { Switch } from "@/components/ui/switch";
 import { RatingInput, ratingStyleOf } from "@/components/forms/RatingInput";
-import { PixPayment } from "@/components/forms/PixPayment";
-import { formatBRL, registrationCode } from "@/lib/pix";
+import { ContributionBox, getSavedRegistrations, saveRegistration, type SavedRegistration } from "@/components/forms/ContributionBox";
+import { formatBRL } from "@/lib/pix";
 import { maskPhoneInput } from "@/lib/phone";
 
 type EventWithFields = Event & { registration_fields: EventRegistrationField[]; registrations_count: number };
@@ -28,7 +28,9 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [regCode, setRegCode] = useState<string | null>(null);
+  const [regId, setRegId] = useState<string | null>(null);
+  // inscrições já feitas neste aparelho (para acompanhar o pagamento)
+  const [saved, setSaved] = useState<SavedRegistration[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -36,6 +38,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
         const data = await api<EventWithFields>(`/api/events/${eventId}`);
         if (!data.registration_required) throw new Error("Evento sem inscrição");
         setEvent(data);
+        setSaved(getSavedRegistrations(eventId));
       } catch {
         toast({
           title: "Evento não encontrado",
@@ -73,7 +76,14 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
     setSubmitting(true);
     try {
       const reg = await api<{ id: string }>(`/api/events/${eventId}/registrations`, { method: "POST", json: { registration_data: formData } });
-      setRegCode(reg?.id ? registrationCode(reg.id) : null);
+      if (reg?.id) {
+        // nome (primeiro campo de texto preenchido) só para a pessoa reconhecer a inscrição depois
+        const first = fields.find((f) => !["rating", "checkbox", "select", "date", "number"].includes(f.field_type) && formData[f.field_name]);
+        const label = first ? String(formData[first.field_name]).slice(0, 40) : undefined;
+        saveRegistration(eventId, { id: reg.id, label });
+        setSaved(getSavedRegistrations(eventId));
+        setRegId(reg.id);
+      }
       setSubmitted(true);
       toast({ title: "Inscrição enviada!", description: "Sua inscrição foi registrada com sucesso" });
     } catch (err) {
@@ -179,24 +189,14 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
               <p className="text-lg text-muted-foreground mb-8">
                 Sua inscrição para <strong>{event?.title}</strong> foi registrada com sucesso.
               </p>
-              {event?.contribution_cents ? (
-                <div className="mb-8 rounded-xl border border-[#32BCAD]/40 bg-[#32BCAD]/10 p-5 text-left space-y-3">
-                  <p className="font-semibold">Contribuição: {formatBRL(event.contribution_cents)}</p>
-                  {event.contribution_note && <p className="text-sm text-muted-foreground">{event.contribution_note}</p>}
-                  {regCode && (
-                    <p className="text-sm">
-                      Código da sua inscrição: <strong className="font-mono tracking-wider">{regCode}</strong>
-                    </p>
-                  )}
-                  <p className="text-sm text-muted-foreground">
-                    Se quiser já deixar acertado, pague agora pelo PIX{regCode ? " — o código vai junto no pagamento para identificarmos você" : ""}:
-                  </p>
-                  <PixPayment
+              {event?.contribution_cents && regId ? (
+                <div className="mb-8">
+                  <ContributionBox
+                    eventId={eventId}
+                    eventTitle={event.title}
+                    registrationId={regId}
                     amountCents={event.contribution_cents}
                     note={event.contribution_note}
-                    txid={regCode ? `INSC${regCode}` : event.title.slice(0, 20)}
-                    description={regCode ? `Inscricao ${regCode}` : undefined}
-                    className="w-full"
                   />
                 </div>
               ) : null}
@@ -238,6 +238,31 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
             {event?.description && <p className="text-muted-foreground mt-4">{event.description}</p>}
           </CardHeader>
           <CardContent>
+            {saved.length > 0 && (
+              <div className="mb-8 space-y-3">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  {saved.length === 1 ? "Você já está inscrito(a)" : "Inscrições feitas neste aparelho"}
+                </h2>
+                {event?.contribution_cents ? (
+                  saved.map((r) => (
+                    <ContributionBox
+                      key={r.id}
+                      eventId={eventId}
+                      eventTitle={event.title}
+                      registrationId={r.id}
+                      label={r.label}
+                      amountCents={event.contribution_cents!}
+                      note={event.contribution_note}
+                      onMissing={() => setSaved(getSavedRegistrations(eventId))}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">{saved.map((r) => r.label).filter(Boolean).join(", ") || "Sua inscrição foi registrada."}</p>
+                )}
+                <p className="text-sm text-muted-foreground pt-2">Quer inscrever outra pessoa? É só preencher o formulário abaixo.</p>
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-6">
               <h2 className="text-xl font-semibold">Formulário de Inscrição</h2>
               {fields.map((field) => (

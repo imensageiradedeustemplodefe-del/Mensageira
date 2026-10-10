@@ -100,7 +100,7 @@ export default async function Page({ params }: { params: Promise<{ eventId: stri
                   <td key={c.key}>{c.phone && data[c.key] ? formatPhoneBR(data[c.key]) : show(data[c.key])}</td>
                 ))}
                 {event.contributionCents ? <td>
-                    {registrationCode(r.id)} — {r.contributionPaid ? "Pago" : "Pendente"}
+                    {registrationCode(r.id)} — {(r.contributionPaid ? "Pago" : r.paymentReportedAt ? "Informou PIX" : "Pendente")}
                   </td> : null}
                 <td>{r.createdAt.toLocaleString("pt-BR", { ...tz, dateStyle: "short", timeStyle: "short" })}</td>
               </tr>
