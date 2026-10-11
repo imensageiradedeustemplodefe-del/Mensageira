@@ -1,8 +1,11 @@
-const CACHE_NAME = 'mensageira-app-v2.3';
+const CACHE_NAME = 'mensageira-app-v2.4';
 const OFFLINE_URL = '/offline.html';
+// Ícones das notificações (pombinha): ficam guardados para não depender da internet quando o aviso chega
+const NOTIFICATION_ICON = '/icons/notification-192.png';
+const NOTIFICATION_BADGE = '/icons/badge-96.png';
 
 // URLs essenciais para cache
-const ESSENTIAL_FILES = ['/', '/offline.html', '/manifest.json'];
+const ESSENTIAL_FILES = ['/', '/offline.html', '/manifest.json', NOTIFICATION_ICON, NOTIFICATION_BADGE];
 
 // Instalar service worker
 self.addEventListener('install', (event) => {
@@ -120,8 +123,28 @@ self.addEventListener('message', (event) => {
 // Notificações push
 // Regra do Chrome: todo push PRECISA exibir uma notificação; se falhar, o navegador mostra
 // uma genérica em branco ("site atualizado em segundo plano"). Por isso sempre mostramos algo.
-const DEFAULT_ICON = new URL('/icons/notification-192.png', self.location.origin).href;
-const DEFAULT_BADGE = new URL('/icons/badge-96.png', self.location.origin).href;
+
+// O Android baixa o ícone e o badge na hora de mostrar o aviso; se o celular está dormindo ou sem
+// internet, a imagem não vem e aparece o sininho padrão do Chrome. Entregamos a imagem guardada
+// no cache como data: URL, que não precisa de rede (se não estiver guardada, busca e guarda).
+async function notificationImage(path) {
+  const url = new URL(path, self.location.origin).href;
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    let res = await cache.match(url);
+    if (!res) {
+      res = await fetch(url);
+      if (!res.ok) return url;
+      await cache.put(url, res.clone());
+    }
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    let bin = '';
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return `data:${res.headers.get('content-type') || 'image/png'};base64,${btoa(bin)}`;
+  } catch {
+    return url;
+  }
+}
 
 self.addEventListener('push', (event) => {
   let data = {};
@@ -137,19 +160,32 @@ self.addEventListener('push', (event) => {
 
   const title = (data.title && String(data.title).trim()) || 'Mensageira de Deus';
   const body = (data.body && String(data.body).trim()) || 'Toque para abrir o app.';
-  const options = {
-    body,
-    icon: data.icon ? new URL(data.icon, self.location.origin).href : DEFAULT_ICON,
-    badge: DEFAULT_BADGE,
-    tag: data.tag || undefined,
-    renotify: !!data.tag,
-    data: { url: data.url || '/' },
-  };
+  // O servidor manda o caminho da pombinha; só um ícone diferente desse é buscado direto da rede
+  const customIcon = data.icon && new URL(data.icon, self.location.origin).pathname !== NOTIFICATION_ICON;
 
   event.waitUntil(
-    self.registration
-      .showNotification(title, options)
-      .catch(() => self.registration.showNotification(title, { body, data: { url: data.url || '/' } }))
+    Promise.all([
+      customIcon ? new URL(data.icon, self.location.origin).href : notificationImage(NOTIFICATION_ICON),
+      notificationImage(NOTIFICATION_BADGE),
+    ]).then(([icon, badge]) =>
+      self.registration
+        .showNotification(title, {
+          body,
+          icon,
+          badge,
+          tag: data.tag || undefined,
+          renotify: !!data.tag,
+          data: { url: data.url || '/' },
+        })
+        .catch(() =>
+          self.registration.showNotification(title, {
+            body,
+            icon: new URL(NOTIFICATION_ICON, self.location.origin).href,
+            badge: new URL(NOTIFICATION_BADGE, self.location.origin).href,
+            data: { url: data.url || '/' },
+          })
+        )
+    )
   );
 });
 

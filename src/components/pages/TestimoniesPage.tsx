@@ -56,109 +56,22 @@ export function TestimoniesPage() {
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString("pt-BR");
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-muted-foreground">Carregando testemunhos...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
-      <PageHero icon={Heart} title={settings.testimonies_page_title} subtitle={settings.testimonies_page_subtitle}>
-        <div className="max-w-md mx-auto">
-          <SearchBar onSearch={handleSearch} placeholder="Pesquisar testemunhos..." />
-        </div>
-      </PageHero>
+      <PageHero icon={Heart} title={settings.testimonies_page_title} subtitle={settings.testimonies_page_subtitle} />
 
-      <section className="py-8 sm:py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {filteredTestimonies.length > 0 && (
-            <>
-              <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">{settings.testimonies_featured_title}</h2>
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8 mb-6 sm:mb-8">
-                {filteredTestimonies.slice(0, 2).map((testimony) => (
-                  <Card
-                    key={testimony.id}
-                    className="bg-gradient-to-br from-primary/5 to-peaceful-blue/10 border-none hover:shadow-lg transition-all duration-300"
-                  >
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <User className="w-5 h-5 text-primary" />
-                          <CardTitle className="text-xl">{testimony.name}</CardTitle>
-                        </div>
-                        <Star className="w-4 h-4 text-yellow-500" />
-                      </div>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {formatDate(testimony.created_at)}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="relative">
-                        <Quote className="w-8 h-8 text-primary/20 absolute -top-2 -left-2" />
-                        <p className="text-muted-foreground italic leading-relaxed pl-6">{testimony.content}</p>
-                      </div>
-                      <div className="pt-4 border-t">
-                        <ShareButton
-                          data={shareTestimony(testimony)}
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-
-      <section className="py-8 sm:py-12 bg-accent/30">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">{settings.testimonies_all_title}</h2>
-
-          {filteredTestimonies.length > 0 ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {filteredTestimonies.map((testimony) => (
-                <Card key={testimony.id} className="hover:shadow-lg transition-all duration-300">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{testimony.name}</CardTitle>
-                    </div>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {formatDate(testimony.created_at)}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground leading-relaxed">{testimony.content}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 sm:py-12">
-              <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-lg text-muted-foreground">{settings.testimonies_empty_message}</p>
-            </div>
-          )}
-        </div>
-      </section>
-
+      {/* Formulário primeiro, como na página de orações */}
       <section className="py-8 sm:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card className="bg-card/60 backdrop-blur border-none">
-            <CardHeader>
-              <CardTitle className="text-2xl text-foreground flex items-center justify-center">
-                <Send className="w-6 h-6 mr-2" />
+          <Card className="max-w-2xl mx-auto" role="form" aria-labelledby="testimony-form-title">
+            <CardHeader className="text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
+                <Send className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle id="testimony-form-title" className="text-2xl">
                 {settings.testimonies_form_title}
               </CardTitle>
-              <p className="text-center text-muted-foreground">{settings.testimonies_form_description}</p>
+              <p className="text-muted-foreground">{settings.testimonies_form_description}</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -175,12 +88,13 @@ export function TestimoniesPage() {
                     value={formData.content}
                     onChange={handleInputChange}
                     required
-                    rows={6}
+                    rows={5}
                     placeholder="Conte como Deus tem agido em sua vida..."
+                    className="resize-none"
                   />
                 </div>
 
-                <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+                <Button type="submit" className="w-full" disabled={submitting}>
                   <Send className="w-4 h-4 mr-2" />
                   {submitting ? "Enviando..." : "Enviar Testemunho"}
                 </Button>
@@ -191,6 +105,89 @@ export function TestimoniesPage() {
               </form>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      <section className="py-8 sm:py-12 bg-accent/30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Busca junto da lista, para os resultados aparecerem logo abaixo */}
+          <div className="max-w-md mx-auto mb-6 sm:mb-8">
+            <SearchBar onSearch={handleSearch} placeholder="Pesquisar testemunhos..." />
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-8 sm:py-12">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2" />
+              <span className="text-muted-foreground">Carregando testemunhos...</span>
+            </div>
+          ) : (
+            <>
+              {filteredTestimonies.length > 0 && (
+                <>
+                  <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">{settings.testimonies_featured_title}</h2>
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8 mb-8 sm:mb-12">
+                    {filteredTestimonies.slice(0, 2).map((testimony) => (
+                      <Card
+                        key={testimony.id}
+                        className="bg-gradient-to-br from-primary/5 to-peaceful-blue/10 border-none hover:shadow-lg transition-all duration-300"
+                      >
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <User className="w-5 h-5 text-primary" />
+                              <CardTitle className="text-xl">{testimony.name}</CardTitle>
+                            </div>
+                            <Star className="w-4 h-4 text-yellow-500" />
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Calendar className="w-4 h-4 mr-1" />
+                            {formatDate(testimony.created_at)}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="relative">
+                            <Quote className="w-8 h-8 text-primary/20 absolute -top-2 -left-2" />
+                            <p className="text-muted-foreground italic leading-relaxed pl-6">{testimony.content}</p>
+                          </div>
+                          <div className="pt-4 border-t">
+                            <ShareButton data={shareTestimony(testimony)} variant="outline" size="sm" className="w-full" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">{settings.testimonies_all_title}</h2>
+
+              {filteredTestimonies.length > 0 ? (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {filteredTestimonies.map((testimony) => (
+                    <Card key={testimony.id} className="hover:shadow-lg transition-all duration-300">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-lg">{testimony.name}</CardTitle>
+                        </div>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Calendar className="w-4 h-4 mr-1" />
+                          {formatDate(testimony.created_at)}
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground leading-relaxed">{testimony.content}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 sm:py-12">
+                  <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg text-muted-foreground">{settings.testimonies_empty_message}</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </section>
     </div>

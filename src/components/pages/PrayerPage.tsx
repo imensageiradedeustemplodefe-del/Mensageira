@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Heart, Clock } from "lucide-react";
+import { Heart, Clock, HandHeart } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,14 +32,10 @@ export function PrayerPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHero title="Casa de Oração" subtitle={'"A minha casa será chamada casa de oração para todos os povos" - Isaías 56:7'} />
+      <PageHero icon={HandHeart} title="Casa de Oração" subtitle={'"A minha casa será chamada casa de oração para todos os povos" - Isaías 56:7'} />
 
       <section className="py-8 sm:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Compartilhe Sua Necessidade</h2>
-            <p className="text-lg text-muted-foreground">Nossa equipe pastoral estará intercedendo por você em oração.</p>
-          </div>
           <PrayerRequestForm />
         </div>
       </section>
@@ -47,8 +43,8 @@ export function PrayerPage() {
       <section className="py-8 sm:py-12 bg-accent/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-3xl font-bold text-foreground mb-4">Pedidos da Comunidade</h2>
-            <p className="text-lg text-muted-foreground">Vamos interceder uns pelos outros em comunhão.</p>
+            <h2 className="text-3xl font-bold text-foreground">Pedidos da Comunidade</h2>
+            <p className="text-lg text-muted-foreground mt-2">Vamos interceder uns pelos outros em comunhão.</p>
           </div>
 
           {loading ? (
