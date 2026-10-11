@@ -71,8 +71,7 @@ export function shareAlbum(a: { id: string; name: string; photoCount?: number | 
     `📸 *Álbum de fotos: ${title}*`,
     date ? `🗓️ ${date}` : null,
     total ? `🖼️ ${total} fotos` : null,
-    // as mesmas reações das fotos na galeria: Amei, Oração, Amém, Aleluia, Glória, Aviva
-    `\nConfira as fotos e deixe sua reação ❤️🙏🙌🕊️⭐🔥`,
+    `\nConfira as fotos e deixe sua reação! 🙏`,
     `🔔 Ative as notificações no site e seja avisado quando sair fotos novas.`,
   ].filter(Boolean);
   return { title: `Álbum — ${title}`, text: lines.join("\n"), url: abs(`/galeria/album/${a.id}`) };
