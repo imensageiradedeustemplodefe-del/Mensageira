@@ -15,6 +15,7 @@ import { shareTestimony } from "@/lib/share";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { api } from "@/lib/fetcher";
 import type { Testimony } from "@/types/database";
+import { PageHero } from "@/components/layout/PageHero";
 
 export function TestimoniesPage() {
   const { settings } = useSiteSettings();
@@ -65,23 +66,18 @@ export function TestimoniesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Heart className="w-12 h-12 text-primary mx-auto mb-6" />
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">{settings.testimonies_page_title}</h1>
-          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-8">{settings.testimonies_page_subtitle}</p>
-          <div className="max-w-md mx-auto px-4">
-            <SearchBar onSearch={handleSearch} placeholder="Pesquisar testemunhos..." />
-          </div>
+      <PageHero icon={Heart} title={settings.testimonies_page_title} subtitle={settings.testimonies_page_subtitle}>
+        <div className="max-w-md mx-auto">
+          <SearchBar onSearch={handleSearch} placeholder="Pesquisar testemunhos..." />
         </div>
-      </section>
+      </PageHero>
 
-      <section className="py-10 sm:py-16">
+      <section className="py-8 sm:py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {filteredTestimonies.length > 0 && (
             <>
-              <h2 className="text-3xl font-bold text-center text-foreground mb-8 sm:mb-12">{settings.testimonies_featured_title}</h2>
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8 mb-8 sm:mb-12">
+              <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">{settings.testimonies_featured_title}</h2>
+              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8 mb-6 sm:mb-8">
                 {filteredTestimonies.slice(0, 2).map((testimony) => (
                   <Card
                     key={testimony.id}
@@ -122,9 +118,9 @@ export function TestimoniesPage() {
         </div>
       </section>
 
-      <section className="py-10 sm:py-16 bg-accent/30">
+      <section className="py-8 sm:py-12 bg-accent/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-8 sm:mb-12">{settings.testimonies_all_title}</h2>
+          <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">{settings.testimonies_all_title}</h2>
 
           {filteredTestimonies.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -154,7 +150,7 @@ export function TestimoniesPage() {
         </div>
       </section>
 
-      <section className="py-10 sm:py-16">
+      <section className="py-8 sm:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="bg-card/60 backdrop-blur border-none">
             <CardHeader>

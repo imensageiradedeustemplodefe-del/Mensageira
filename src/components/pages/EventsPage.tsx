@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { api } from "@/lib/fetcher";
 import type { Event } from "@/types/database";
+import { PageHero } from "@/components/layout/PageHero";
 
 const formatEventDate = (dateString: string, formatStr: string) =>
   format(new Date(dateString), formatStr, { locale: ptBR });
@@ -142,19 +143,13 @@ export function EventsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">Eventos e Programação</h1>
-          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-8">
-            Acompanhe nossa programação de eventos especiais e atividades
-          </p>
-          <div className="max-w-md mx-auto px-4">
-            <SearchBar onSearch={handleSearch} placeholder="Pesquisar eventos..." />
-          </div>
+      <PageHero title="Eventos e Programação" subtitle="Acompanhe nossa programação de eventos especiais e atividades">
+        <div className="max-w-md mx-auto">
+          <SearchBar onSearch={handleSearch} placeholder="Pesquisar eventos..." />
         </div>
-      </section>
+      </PageHero>
 
-      <section className="pt-6 pb-10 sm:pb-16 sm:py-16">
+      <section className="pt-6 pb-8 sm:pt-8 sm:pb-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {!loading && months.length > 0 && (
             <div
@@ -247,8 +242,8 @@ export function EventsPage() {
             </div>
           ) : (
             <>
-              <div className="mb-10 sm:mb-16">
-                <div className="text-center mb-6 sm:mb-10">
+              <div className="mb-8 sm:mb-12">
+                <div className="text-center mb-6 sm:mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Próximos Eventos</h2>
                 </div>
 
@@ -344,7 +339,7 @@ export function EventsPage() {
 
               {pastEvents.length > 0 && (
                 <div>
-                  <div className="text-center mb-8 sm:mb-12">
+                  <div className="text-center mb-6 sm:mb-8">
                     <h2 className="text-3xl font-bold text-foreground mb-4">Eventos Anteriores</h2>
                     <p className="text-lg text-muted-foreground">Veja alguns dos eventos que já realizamos.</p>
                   </div>

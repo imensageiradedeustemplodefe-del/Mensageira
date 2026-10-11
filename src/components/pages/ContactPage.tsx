@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { api } from "@/lib/fetcher";
 import { maskPhoneInput } from "@/lib/phone";
+import { PageHero } from "@/components/layout/PageHero";
 
 const DEFAULT_EMAIL = "imensageiradedeustemplodefe@gmail.com";
 const DEFAULT_ADDRESS = "R. Elias Biasi, 49 - Berger, Caçador - SC, 89500-000";
@@ -64,19 +65,14 @@ export function ContactPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">Entre em Contato</h1>
-          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
-            Estamos aqui para você. Entre em contato conosco para dúvidas, pedidos de oração ou para conhecer melhor
-            nossa igreja.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        title="Entre em Contato"
+        subtitle="Estamos aqui para você. Entre em contato conosco para dúvidas, pedidos de oração ou para conhecer melhor nossa igreja."
+      />
 
-      <section className="py-10 sm:py-16">
+      <section className="py-8 sm:py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-16">
+          <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
             {contactInfo.map((info, index) => {
               const Icon = info.icon;
               return (
@@ -101,7 +97,7 @@ export function ContactPage() {
         </div>
       </section>
 
-      <section className="py-10 sm:py-16 bg-accent/30">
+      <section className="py-8 sm:py-12 bg-accent/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 sm:gap-12">
             <div>

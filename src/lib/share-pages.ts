@@ -29,12 +29,10 @@ export const getSharedAlbum = cache(async (id: string) => {
 /** Id de arquivo do Google Drive (evita montar URLs com qualquer texto vindo da URL). */
 export const isDriveId = (id: string) => /^[A-Za-z0-9_-]{10,100}$/.test(id);
 
-const DATE_RE = /(\d{2})[.\-](\d{2})[.\-](\d{4})/;
-/** "Culto Domingo 13-09-2026 Santa Ceia" -> { title: "Santa Ceia", date: "13/09/2026" } */
-export function albumLabel(name: string) {
-  const m = name.match(DATE_RE);
-  const after = name.split(DATE_RE).pop()?.trim();
-  return { title: after || name, date: m ? `${m[1]}/${m[2]}/${m[3]}` : null };
+/** Id do arquivo no Drive a partir da URL da capa do álbum (".../thumbnail?id=XXX" ou ".../d/XXX"). */
+export function driveIdFromUrl(url?: string | null) {
+  const id = url?.match(/[?&]id=([^&]+)/)?.[1] ?? url?.match(/\/d\/([^=/?]+)/)?.[1] ?? null;
+  return id && isDriveId(id) ? id : null;
 }
 
 export const fmtEventDate = (d: Date) =>

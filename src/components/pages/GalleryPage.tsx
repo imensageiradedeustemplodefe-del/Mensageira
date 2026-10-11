@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Camera, Calendar, Image as ImageIcon, FolderOpen, ArrowLeft, Loader2, Search, ChevronLeft, ChevronRight, Play, SlidersHorizontal, CalendarDays } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,8 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGoogleDrivePhotos } from "@/hooks/useGoogleDrivePhotos";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
+import { ShareButton } from "@/components/ShareButton";
+import { PageHero } from "@/components/layout/PageHero";
 import { GalleryLoading, PhotoThumb } from "@/components/gallery/GalleryLoading";
 import { api } from "@/lib/fetcher";
+import { albumPhotoTotal, shareAlbum } from "@/lib/share";
 import type { GalleryAlbum } from "@/types/database";
 
 const DATE_RE = /(\d{2})[.\-](\d{2})[.\-](\d{4})/;
@@ -28,14 +32,6 @@ const stripExt = (name: string) => name.replace(/\.(jpg|jpeg|png|gif|webp|heic|m
 const extractDateFromAlbumName = (albumName: string): string => {
   const m = albumName.match(DATE_RE);
   return m ? `${m[1]}/${m[2]}/${m[3]}` : "";
-};
-
-const getDayOfWeek = (dateString: string): string => {
-  if (!dateString) return "";
-  const [day, month, year] = dateString.split("/");
-  const date = new Date(`${year}-${month}-${day}T12:00:00`);
-  const days = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
-  return days[date.getDay()];
 };
 
 const extractCategoryFromAlbumName = (albumName: string): string => {
@@ -62,14 +58,27 @@ const albumYear = (albumName: string): string | null => albumName.match(DATE_RE)
 const getCoverPhotoId = (coverUrl: string) =>
   coverUrl.match(/[?&]id=([^&]+)/)?.[1] ?? coverUrl.match(/\/d\/([^=/]+)/)?.[1] ?? null;
 
-interface SelectedAlbum {
+interface AlbumItem {
   id: string;
   name: string;
   coverUrl: string;
-  driveFolderId: string | null;
-  date: string;
   photoCount: number | null;
+  driveFolderId: string | null;
 }
+
+interface SelectedAlbum extends AlbumItem {
+  date: string;
+}
+
+const toAlbumItem = (album: GalleryAlbum): AlbumItem => ({
+  id: album.id,
+  name: album.name,
+  coverUrl: album.cover_photo_url || "",
+  photoCount: album.photo_count ?? (album.photos?.length || null),
+  driveFolderId: album.drive_folder_id || null,
+});
+
+const toSelected = (album: AlbumItem): SelectedAlbum => ({ ...album, date: extractDateFromAlbumName(album.name) });
 
 /** Builds the list of page numbers to display: 1 … (current±2) … last */
 const pageRange = (current: number, total: number): (number | "…")[] => {
@@ -86,8 +95,13 @@ const pageRange = (current: number, total: number): (number | "…")[] => {
   return out;
 };
 
-export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] }) {
-  const [selected, setSelected] = useState<SelectedAlbum | null>(null);
+export function GalleryPage({ initialAlbums, initialAlbumId }: { initialAlbums?: GalleryAlbum[]; initialAlbumId?: string }) {
+  const router = useRouter();
+  // Link do álbum (/galeria/album/<id>): já começa dentro do álbum, sem mostrar a lista antes
+  const [selected, setSelected] = useState<SelectedAlbum | null>(() => {
+    const row = initialAlbumId ? initialAlbums?.find((a) => a.id === initialAlbumId) : undefined;
+    return row ? toSelected(toAlbumItem(row)) : null;
+  });
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [yearFilter, setYearFilter] = useState("all");
@@ -102,13 +116,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
     staleTime: 60 * 1000,
   });
 
-  const albums = albumRows.map((album) => ({
-    id: album.id,
-    name: album.name,
-    coverUrl: album.cover_photo_url || "",
-    photoCount: album.photo_count ?? (album.photos?.length || null),
-    driveFolderId: album.drive_folder_id || null,
-  }));
+  const albums = albumRows.map(toAlbumItem);
 
   // A capa (CAPA_001) é o primeiro arquivo por nome; pulamos esse item para que cada página tenha PAGE_SIZE fotos de verdade
   const selectedCoverId = selected?.coverUrl ? getCoverPhotoId(selected.coverUrl) : null;
@@ -165,23 +173,16 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
     if (selected) window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page, selected]);
 
-  const handleAlbumClick = (album: (typeof albums)[number]) => {
-    setSelected({
-      id: album.id,
-      name: album.name,
-      coverUrl: album.coverUrl,
-      driveFolderId: album.driveFolderId,
-      date: extractDateFromAlbumName(album.name),
-      photoCount: album.photoCount,
-    });
+  const handleAlbumClick = (album: AlbumItem) => {
+    setSelected(toSelected(album));
     setPage(1);
   };
 
-  // Link direto para um álbum (/galeria?album=<id>), usado pela página de foto compartilhada
+  // Link direto para um álbum (/galeria/album/<id> ou o antigo /galeria?album=<id>) quando os álbuns só chegam no cliente
   const [openedFromLink, setOpenedFromLink] = useState(false);
   useEffect(() => {
     if (openedFromLink || selected || albums.length === 0) return;
-    const id = new URLSearchParams(window.location.search).get("album");
+    const id = initialAlbumId ?? new URLSearchParams(window.location.search).get("album");
     const album = id ? albums.find((a) => a.id === id) : null;
     setOpenedFromLink(true);
     if (album) handleAlbumClick(album);
@@ -189,8 +190,16 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
   }, [albums.length]);
 
   const handleBackToAlbums = () => {
+    // Veio pelo link do álbum: volta para a galeria de verdade (o endereço deixa de ser o do álbum)
+    if (initialAlbumId) return router.push("/galeria");
     setSelected(null);
     setPage(1);
+  };
+
+  const clearFilters = () => {
+    setYearFilter("all");
+    setTypeFilter("all");
+    setSearchQuery("");
   };
 
   const coverPhotoId = selectedCoverId;
@@ -246,55 +255,98 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
           </nav>
   ) : null;
 
+  // Filtros dos álbuns (ano + tipo de evento), logo abaixo da busca
+  const filters =
+    albums.length > 0 && (yearOptions.length > 1 || typeOptions.length > 1) ? (
+      <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
+        {yearOptions.length > 1 && (
+          <Select
+            value={yearFilter}
+            onValueChange={(v) => {
+              setYearFilter(v);
+              setTypeFilter("all");
+            }}
+          >
+            <SelectTrigger className="h-9 w-auto gap-1.5 rounded-full text-sm bg-background/50" aria-label="Filtrar por ano">
+              <CalendarDays className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os anos</SelectItem>
+              {yearOptions.map(([y, n]) => (
+                <SelectItem key={y} value={y}>
+                  {y} ({n})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {typeOptions.length > 1 && (
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="h-9 w-auto max-w-[220px] gap-1.5 rounded-full text-sm bg-background/50" aria-label="Filtrar por tipo de evento">
+              <SlidersHorizontal className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os eventos</SelectItem>
+              {typeOptions.map(([t, n]) => (
+                <SelectItem key={t} value={t}>
+                  {t} ({n})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {filtersActive && (
+          <Button variant="ghost" size="sm" className="h-9 rounded-full text-muted-foreground" onClick={clearFilters}>
+            Limpar
+          </Button>
+        )}
+      </div>
+    ) : null;
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="relative py-10 sm:py-16 md:py-24 bg-gradient-to-br from-primary/10 via-background to-accent/10">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <Camera className="w-12 h-12 text-primary mx-auto mb-6" />
-            {selected ? (
-              <>
-                <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">
-                  {extractCategoryFromAlbumName(selected.name)}
-                  {selected.date ? ` - ${getDayOfWeek(selected.date)} - ${selected.date}` : ""}
-                </h1>
-                <p className="text-xl md:text-2xl font-semibold text-primary mb-4">{selected.name}</p>
-                <p className="text-base md:text-lg text-muted-foreground">
-                  {selected.photoCount ? `${Math.max(0, selected.photoCount - 1)} fotos` : "Explore as fotos deste momento especial"}
-                </p>
-              </>
-            ) : (
-              <>
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Galeria de Fotos</h1>
-                <p className="text-base md:text-lg text-muted-foreground mb-8">Momentos especiais da nossa comunidade</p>
-                <div className="relative max-w-md mx-auto">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                  <Input
-                    type="text"
-                    placeholder="Buscar por álbum..."
-                    className="pl-10 bg-background/50 backdrop-blur"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-              </>
-            )}
+      {selected ? (
+        <PageHero
+          eyebrow={[extractCategoryFromAlbumName(selected.name), selected.date].filter(Boolean).join(" · ")}
+          title={albumType(selected.name) === "Outros" ? selected.name : albumType(selected.name)}
+          subtitle={selected.photoCount ? `${albumPhotoTotal(selected.photoCount)} fotos` : "Explore as fotos deste momento especial"}
+        />
+      ) : (
+        <PageHero icon={Camera} title="Galeria de Fotos" subtitle="Momentos especiais da nossa comunidade">
+          <div className="relative max-w-md mx-auto">
+            <Search className="absolute left-3 top-1/2 z-10 -translate-y-1/2 pointer-events-none text-muted-foreground w-5 h-5" />
+            <Input
+              type="text"
+              placeholder="Buscar por álbum..."
+              className="pl-10 bg-background/50 backdrop-blur"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-        </div>
-      </div>
+          {filters}
+        </PageHero>
+      )}
 
-      <div className="container mx-auto px-4 py-8 md:py-12">
+      <div className="container mx-auto px-4 py-6 md:py-8">
         {selected && (
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-            <Button onClick={handleBackToAlbums} variant="ghost">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <Button onClick={handleBackToAlbums} variant="ghost" className="-ml-3">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar para Álbuns
+              <span className="sm:hidden">Álbuns</span>
+              <span className="hidden sm:inline">Voltar para Álbuns</span>
             </Button>
-            {totalPages > 1 && (
-              <span className="text-sm text-muted-foreground">
-                Página {page} de {totalPages}
-              </span>
-            )}
+            <div className="flex items-center gap-3">
+              {totalPages > 1 && (
+                <span className="hidden sm:inline text-sm text-muted-foreground">
+                  Página {page} de {totalPages}
+                </span>
+              )}
+              <ShareButton data={shareAlbum(selected)} label="Compartilhar álbum" />
+            </div>
           </div>
         )}
 
@@ -315,81 +367,12 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
           </div>
         )}
 
-        {/* ---------- Filtros dos álbuns (ano + tipo de evento) ---------- */}
-        {!selected && albums.length > 0 && (yearOptions.length > 1 || typeOptions.length > 1) && (
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
-            {yearOptions.length > 1 && (
-              <Select
-                value={yearFilter}
-                onValueChange={(v) => {
-                  setYearFilter(v);
-                  setTypeFilter("all");
-                }}
-              >
-                <SelectTrigger className="h-9 w-auto gap-1.5 rounded-full text-sm" aria-label="Filtrar por ano">
-                  <CalendarDays className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os anos</SelectItem>
-                  {yearOptions.map(([y, n]) => (
-                    <SelectItem key={y} value={y}>
-                      {y} ({n})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {typeOptions.length > 1 && (
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="h-9 w-auto max-w-[220px] gap-1.5 rounded-full text-sm" aria-label="Filtrar por tipo de evento">
-                  <SlidersHorizontal className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os eventos</SelectItem>
-                  {typeOptions.map(([t, n]) => (
-                    <SelectItem key={t} value={t}>
-                      {t} ({n})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {filtersActive && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-9 rounded-full text-muted-foreground"
-                onClick={() => {
-                  setYearFilter("all");
-                  setTypeFilter("all");
-                  setSearchQuery("");
-                }}
-              >
-                Limpar
-              </Button>
-            )}
-          </div>
-        )}
-
         {!selected && !albumsLoading && filteredAlbums.length === 0 && (
           <div className="text-center py-8 sm:py-12">
             <FolderOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">Nenhum álbum encontrado</p>
             {filtersActive && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={() => {
-                  setYearFilter("all");
-                  setTypeFilter("all");
-                  setSearchQuery("");
-                }}
-              >
+              <Button variant="outline" size="sm" className="mt-4" onClick={clearFilters}>
                 Limpar filtros
               </Button>
             )}
@@ -397,9 +380,9 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
         )}
 
         {!selected && filteredAlbums.length > 0 && (
-          <div className="mb-8 sm:mb-12">
-            <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
-              <FolderOpen className="w-8 h-8 text-primary" />
+          <div className="mb-8 sm:mb-10">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4 flex items-center gap-2">
+              <FolderOpen className="w-7 h-7 text-primary" />
               Álbuns
               {filtersActive && <span className="text-base font-normal text-muted-foreground">({filteredAlbums.length})</span>}
             </h2>
@@ -430,9 +413,18 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
                         </span>
                       ))}
                     </h3>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <ImageIcon className="w-4 h-4" />
-                      <span>{album.photoCount ? `${Math.max(0, album.photoCount - 1)} fotos` : "Ver fotos"}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <ImageIcon className="w-4 h-4" />
+                        <span>{album.photoCount ? `${albumPhotoTotal(album.photoCount)} fotos` : "Ver fotos"}</span>
+                      </div>
+                      <ShareButton
+                        data={shareAlbum(album)}
+                        size="icon"
+                        variant="ghost"
+                        label={`Compartilhar álbum ${album.name}`}
+                        className="h-8 w-8 -my-1 -mr-2"
+                      />
                     </div>
                   </CardContent>
                 </Card>
@@ -495,7 +487,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
         {selected && totalPages > 1 && <div className="mt-4">{pagination}</div>}
 
         {!selected && albums.length > 0 && (
-          <div className="mt-10 sm:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardContent className="p-6 text-center">
                 <FolderOpen className="w-12 h-12 mx-auto mb-3 text-primary" />
@@ -508,7 +500,7 @@ export function GalleryPage({ initialAlbums }: { initialAlbums?: GalleryAlbum[] 
                 <ImageIcon className="w-12 h-12 mx-auto mb-3 text-primary" />
                 <div className="text-3xl font-bold mb-1">
                   {albums.some((a) => a.photoCount)
-                    ? albums.reduce((sum, a) => sum + Math.max(0, (a.photoCount ?? 0) - 1), 0).toLocaleString("pt-BR")
+                    ? albums.reduce((sum, a) => sum + albumPhotoTotal(a.photoCount), 0).toLocaleString("pt-BR")
                     : "∞"}
                 </div>
                 <div className="text-sm text-muted-foreground">Fotos</div>

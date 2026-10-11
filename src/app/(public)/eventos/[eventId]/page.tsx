@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ShareButton } from "@/components/ShareButton";
 import { getSharedEvent, fmtEventDate } from "@/lib/share-pages";
 import { shareEvent } from "@/lib/share";
+import { PageHero } from "@/components/layout/PageHero";
 
 type Props = { params: Promise<{ eventId: string }> };
 
@@ -47,12 +48,7 @@ export default async function Page({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary mb-3">{past ? "Evento realizado" : "Evento"}</p>
-          <h1 className="text-3xl sm:text-5xl font-bold text-foreground">{event.title}</h1>
-        </div>
-      </section>
+      <PageHero eyebrow={past ? "Evento realizado" : "Evento"} title={event.title} />
 
       <section className="py-8 sm:py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">

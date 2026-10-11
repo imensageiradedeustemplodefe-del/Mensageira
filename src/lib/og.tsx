@@ -117,3 +117,47 @@ export function OgCard({
     </div>
   );
 }
+
+/** Baixa a miniatura de um arquivo do Drive como data URL (null se não for imagem ou falhar). */
+export async function drivePhotoDataUrl(fileId: string) {
+  try {
+    const res = await fetch(`https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`, { redirect: "follow" });
+    const type = res.headers.get("content-type") ?? "";
+    if (!res.ok || !type.startsWith("image/")) return null;
+    const buf = Buffer.from(await res.arrayBuffer());
+    return `data:${type};base64,${buf.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
+/** Foto ocupando o cartão todo, com faixa inferior com o logo, o nome da igreja e a legenda. */
+export function OgPhoto({ logo, photo, caption }: { logo: string; photo: string; caption?: string }) {
+  return (
+    <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: BLUE_TO, fontFamily: "Roboto" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={photo} width={1200} height={630} style={{ width: 1200, height: 630, objectFit: "cover", objectPosition: "50% 30%" }} alt="" />
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: 18,
+          padding: "26px 36px",
+          backgroundImage: "linear-gradient(to top, rgba(8,40,90,0.95), rgba(8,40,90,0.75) 60%, rgba(8,40,90,0))",
+          color: "#fff",
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logo} width={64} height={64} style={{ borderRadius: 999, background: "#fff", border: "3px solid #fff" }} alt="" />
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", fontSize: 28, fontWeight: 700 }}>Igreja Mensageira De Deus Templo De Fé</div>
+          {caption && <div style={{ display: "flex", fontSize: 24, color: GOLD }}>{caption}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}

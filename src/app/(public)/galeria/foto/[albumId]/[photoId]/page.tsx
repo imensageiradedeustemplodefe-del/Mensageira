@@ -5,8 +5,8 @@ import { ArrowLeft, Images } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShareButton } from "@/components/ShareButton";
 import { DownloadButton } from "@/components/gallery/DownloadButton";
-import { getSharedAlbum, isDriveId, albumLabel } from "@/lib/share-pages";
-import { sharePhoto } from "@/lib/share";
+import { getSharedAlbum, isDriveId } from "@/lib/share-pages";
+import { albumLabel, sharePhoto } from "@/lib/share";
 
 type Props = { params: Promise<{ albumId: string; photoId: string }> };
 
@@ -58,7 +58,7 @@ export default async function Page({ params }: Props) {
           <div className="flex flex-col sm:flex-row gap-3 justify-center mt-5">
             <ShareButton data={share} />
             <DownloadButton fileId={photoId} filename={`Mensageira - ${title}${date ? ` ${date.replace(/\//g, "-")}` : ""}.jpg`} className="w-full sm:w-auto" />
-            <Link href={`/galeria?album=${album.id}`}>
+            <Link href={`/galeria/album/${album.id}`}>
               <Button className="w-full">
                 <Images className="w-4 h-4 mr-2" />
                 Ver o álbum completo

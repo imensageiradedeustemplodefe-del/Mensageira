@@ -32,7 +32,9 @@ const Navigation = () => {
     { name: "Testemunhos", href: "/testemunhos", icon: MessageCircle },
   ];
 
-  const isActive = (href: string) => pathname === href;
+  // Seção do site ("/galeria/album/x" -> "/galeria"): páginas de detalhe contam como a seção delas
+  const section = `/${pathname.split("/")[1] ?? ""}`;
+  const isActive = (href: string) => section === href;
 
   // Mobile app-style header for specific pages
   const showMobileAppHeader = isMobile && pathname !== "/";
@@ -48,7 +50,7 @@ const Navigation = () => {
       "/notificacoes": "Notificações",
       "/menu": "Menu",
     };
-    return titles[pathname] || "Página";
+    return titles[section] || "Página";
   };
 
   if (showMobileAppHeader) {

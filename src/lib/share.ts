@@ -53,6 +53,29 @@ export function sharePhoto(p: { albumId: string; photoId: string; albumName?: st
   };
 }
 
+const DATE_RE = /(\d{2})[.\-](\d{2})[.\-](\d{4})/;
+/** "Culto Domingo 13-09-2026 Santa Ceia" -> { title: "Santa Ceia", date: "13/09/2026" } */
+export function albumLabel(name: string) {
+  const m = name.match(DATE_RE);
+  const after = name.split(DATE_RE).pop()?.trim();
+  return { title: after || name, date: m ? `${m[1]}/${m[2]}/${m[3]}` : null };
+}
+
+/** Quantidade de fotos mostrada no site: a contagem do Drive inclui a capa (CAPA_001). */
+export const albumPhotoTotal = (photoCount?: number | null) => (photoCount ? Math.max(0, photoCount - 1) : 0);
+
+export function shareAlbum(a: { id: string; name: string; photoCount?: number | null }): ShareData {
+  const { title, date } = albumLabel(a.name);
+  const total = albumPhotoTotal(a.photoCount);
+  const lines = [
+    `📸 *Álbum de fotos: ${title}*`,
+    date ? `🗓️ ${date}` : null,
+    total ? `🖼️ ${total} fotos` : null,
+    `\nConfira as fotos desse momento! 🙏`,
+  ].filter(Boolean);
+  return { title: `Álbum — ${title}`, text: lines.join("\n"), url: abs(`/galeria/album/${a.id}`) };
+}
+
 export function shareTestimony(t: { id: string; name: string; content: string; title?: string | null }): ShareData {
   return {
     title: `Testemunho de ${t.name}`,

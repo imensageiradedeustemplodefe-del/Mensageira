@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import PrayerRequestForm from "@/components/PrayerRequestForm";
 import { api } from "@/lib/fetcher";
 import type { PublicPrayerRequest } from "@/types/database";
+import { PageHero } from "@/components/layout/PageHero";
 
 const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
@@ -30,18 +31,11 @@ export function PrayerPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">Casa de Oração</h1>
-          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
-            &quot;A minha casa será chamada casa de oração para todos os povos&quot; - Isaías 56:7
-          </p>
-        </div>
-      </section>
+      <PageHero title="Casa de Oração" subtitle={'"A minha casa será chamada casa de oração para todos os povos" - Isaías 56:7'} />
 
-      <section className="py-10 sm:py-16">
+      <section className="py-8 sm:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
+          <div className="text-center mb-6 sm:mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-4">Compartilhe Sua Necessidade</h2>
             <p className="text-lg text-muted-foreground">Nossa equipe pastoral estará intercedendo por você em oração.</p>
           </div>
@@ -49,9 +43,9 @@ export function PrayerPage() {
         </div>
       </section>
 
-      <section className="py-10 sm:py-16 bg-accent/30">
+      <section className="py-8 sm:py-12 bg-accent/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
+          <div className="text-center mb-6 sm:mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-4">Pedidos da Comunidade</h2>
             <p className="text-lg text-muted-foreground">Vamos interceder uns pelos outros em comunhão.</p>
           </div>

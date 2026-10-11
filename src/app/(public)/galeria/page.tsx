@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
-import { snake } from "@/lib/case";
 import { GalleryPage } from "@/components/pages/GalleryPage";
-import type { GalleryAlbum } from "@/types/database";
+import { loadPublishedAlbums } from "@/lib/gallery";
 
 export const metadata: Metadata = { title: "Galeria", description: "Fotos e vídeos dos cultos, Santa Ceia e eventos da Igreja Mensageira de Deus Templo de Fé em Caçador - SC." };
 
@@ -10,16 +8,5 @@ export const metadata: Metadata = { title: "Galeria", description: "Fotos e víd
 export const revalidate = 60;
 
 export default async function Page() {
-  let initialAlbums: GalleryAlbum[] | undefined;
-  try {
-    const albums = await prisma.galleryAlbum.findMany({
-      where: { isPublished: true },
-      orderBy: { createdAt: "desc" },
-      include: { photos: { select: { id: true, title: true, imageUrl: true, isPublished: true } } },
-    });
-    initialAlbums = snake<GalleryAlbum[]>(albums);
-  } catch (err) {
-    console.error("[galeria] falha ao carregar álbuns no servidor:", err);
-  }
-  return <GalleryPage initialAlbums={initialAlbums} />;
+  return <GalleryPage initialAlbums={await loadPublishedAlbums()} />;
 }

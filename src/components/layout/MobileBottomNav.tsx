@@ -16,10 +16,11 @@ const MobileBottomNav = () => {
   ];
 
   const isActive = (href: string) => {
+    const section = `/${pathname.split("/")[1] ?? ""}`; // "/galeria/album/x" -> "/galeria"
     if (href === "/menu") {
-      return ["/menu", "/sobre", "/contato", "/live", "/testemunhos"].includes(pathname);
+      return ["/menu", "/sobre", "/contato", "/live", "/testemunhos"].includes(section);
     }
-    return pathname === href;
+    return section === href;
   };
 
   return (

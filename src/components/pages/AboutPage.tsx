@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Heart, Target, Eye, Users2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { PageHero } from "@/components/layout/PageHero";
 
 export function AboutPage() {
   const { settings } = useSiteSettings();
@@ -82,19 +83,17 @@ export function AboutPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">Nossa História</h1>
-          <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
-            {settings.church_description ||
-              "A Mensageira de Deus Templo de Fé é uma comunidade de fé comprometida com a pregação da Palavra de Deus e o cuidado pastoral das famílias."}
-          </p>
-        </div>
-      </section>
+      <PageHero
+        title="Nossa História"
+        subtitle={
+          settings.church_description ||
+          "A Mensageira de Deus Templo de Fé é uma comunidade de fé comprometida com a pregação da Palavra de Deus e o cuidado pastoral das famílias."
+        }
+      />
 
-      <section className="py-10 sm:py-16">
+      <section className="py-8 sm:py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center text-foreground mb-8 sm:mb-12">Nossos Valores</h2>
+          <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">Nossos Valores</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {values.map((value, index) => {
               const Icon = value.icon;
@@ -116,9 +115,9 @@ export function AboutPage() {
         </div>
       </section>
 
-      <section className="py-10 sm:py-16 bg-accent/30">
+      <section className="py-8 sm:py-12 bg-accent/30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
+          <div className="text-center mb-6 sm:mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-4">Liderança Pastoral</h2>
             <p className="text-lg text-muted-foreground">Conheça nossa equipe pastoral dedicada ao serviço do Reino de Deus.</p>
           </div>
@@ -142,9 +141,9 @@ export function AboutPage() {
         </div>
       </section>
 
-      <section className="py-10 sm:py-16">
+      <section className="py-8 sm:py-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
+          <div className="text-center mb-6 sm:mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-4">Ministérios</h2>
             <p className="text-lg text-muted-foreground">Conheça os diferentes ministérios que servem nossa comunidade.</p>
           </div>

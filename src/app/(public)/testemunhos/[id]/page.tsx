@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ShareButton } from "@/components/ShareButton";
 import { getSharedTestimony } from "@/lib/share-pages";
 import { shareTestimony } from "@/lib/share";
+import { PageHero } from "@/components/layout/PageHero";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -35,13 +36,7 @@ export default async function Page({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="bg-gradient-to-br from-primary/10 to-peaceful-blue/20 py-10 sm:py-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <Sparkles className="w-10 h-10 text-primary mx-auto mb-3" />
-          <h1 className="text-3xl sm:text-5xl font-bold text-foreground">Testemunho</h1>
-          <p className="text-muted-foreground mt-2">O que Deus fez na vida de {t.name}</p>
-        </div>
-      </section>
+      <PageHero icon={Sparkles} title="Testemunho" subtitle={`O que Deus fez na vida de ${t.name}`} />
 
       <section className="py-8 sm:py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
