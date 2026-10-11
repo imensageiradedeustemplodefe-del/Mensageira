@@ -10,6 +10,7 @@ import { api } from '@/lib/fetcher';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { prayerCategoryLabel } from '@/lib/prayers';
 
 // Updated PrayerRequest type without sensitive fields (they're now encrypted separately)
 interface SecurePrayerRequest {
@@ -150,16 +151,6 @@ export default function PrayerRequestsManager() {
     }
   };
 
-  const getCategoryName = (category: string) => {
-    switch (category) {
-      case 'saude': return 'Saúde';
-      case 'familia': return 'Família';
-      case 'trabalho': return 'Trabalho';
-      case 'espiritual': return 'Espiritual';
-      case 'financeiro': return 'Financeiro';
-      default: return 'Geral';
-    }
-  };
 
   const RequestCard = ({ request, isExpanded, onToggle }: { 
     request: SecurePrayerRequest; 
@@ -183,7 +174,7 @@ export default function PrayerRequestsManager() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center flex-wrap gap-2">
                 <Badge variant={getCategoryColor(request.category || 'geral')} className="text-xs">
-                  {getCategoryName(request.category || 'geral')}
+                  {prayerCategoryLabel(request.category)}
                 </Badge>
                 {request.is_urgent && (
                   <Badge variant="destructive" className="text-xs">

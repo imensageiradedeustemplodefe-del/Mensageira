@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import PrayerRequestForm from "@/components/PrayerRequestForm";
 import { api } from "@/lib/fetcher";
+import { prayerCategoryLabel } from "@/lib/prayers";
 import type { PublicPrayerRequest } from "@/types/database";
 import { PageHero } from "@/components/layout/PageHero";
 
@@ -87,7 +88,7 @@ export function PrayerPage() {
 
                     <div className="flex items-center justify-between">
                       <Badge className={getCategoryColor(request.category)}>
-                        {request.category.charAt(0).toUpperCase() + request.category.slice(1)}
+                        {prayerCategoryLabel(request.category)}
                       </Badge>
                       <div className="flex items-center text-xs text-muted-foreground">
                         <Clock className="w-3 h-3 mr-1" />

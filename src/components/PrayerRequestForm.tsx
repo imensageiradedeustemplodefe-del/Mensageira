@@ -16,6 +16,7 @@ import { Heart, Send, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { api } from "@/lib/fetcher";
+import { PRAYER_CATEGORIES, PRAYER_CATEGORY_LABELS } from "@/lib/prayers";
 
 const prayerRequestSchema = z.object({
   name: z
@@ -24,7 +25,6 @@ const prayerRequestSchema = z.object({
     .min(2, "Nome deve ter pelo menos 2 caracteres")
     .max(100, "Nome deve ter no máximo 100 caracteres")
     .regex(/^[a-zA-ZÀ-ÿ\s]+$/, "Nome deve conter apenas letras"),
-  email: z.string().trim().email("E-mail inválido").max(255, "E-mail muito longo").optional().or(z.literal("")),
   phone: z
     .string()
     .trim()
@@ -39,7 +39,7 @@ const prayerRequestSchema = z.object({
     .max(2000, "Pedido deve ter no máximo 2000 caracteres")
     .refine((val) => !/<[^>]+>/.test(val), "HTML não é permitido")
     .refine((val) => !/https?:\/\/|www\./i.test(val), "URLs não são permitidas no pedido"),
-  category: z.enum(["geral", "saude", "familia", "trabalho", "financeiro", "espiritual", "relacionamentos"]),
+  category: z.enum(PRAYER_CATEGORIES),
   is_urgent: z.boolean(),
   allow_public_share: z.boolean(),
 });
@@ -54,7 +54,6 @@ export default function PrayerRequestForm() {
     resolver: zodResolver(prayerRequestSchema),
     defaultValues: {
       name: "",
-      email: "",
       phone: "",
       request_text: "",
       category: "geral",
@@ -132,53 +131,10 @@ export default function PrayerRequestForm() {
 
               <FormField
                 control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger aria-label="Selecione a categoria">
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="geral">Geral</SelectItem>
-                        <SelectItem value="saude">Saúde</SelectItem>
-                        <SelectItem value="familia">Família</SelectItem>
-                        <SelectItem value="trabalho">Trabalho</SelectItem>
-                        <SelectItem value="financeiro">Financeiro</SelectItem>
-                        <SelectItem value="espiritual">Espiritual</SelectItem>
-                        <SelectItem value="relacionamentos">Relacionamentos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>E-mail (Opcional)</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="seu@email.com" autoComplete="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telefone (Opcional)</FormLabel>
+                    <FormLabel>Telefone / WhatsApp (Opcional)</FormLabel>
                     <FormControl>
                       <Input
                         type="tel"
@@ -194,6 +150,31 @@ export default function PrayerRequestForm() {
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categoria</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger aria-label="Selecione a categoria" className="md:w-1/2">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PRAYER_CATEGORIES.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {PRAYER_CATEGORY_LABELS[c]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
