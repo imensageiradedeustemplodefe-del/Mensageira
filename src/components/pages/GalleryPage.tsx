@@ -13,8 +13,9 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import { ShareButton } from "@/components/ShareButton";
 import { PageHero } from "@/components/layout/PageHero";
 import { GalleryLoading, PhotoThumb } from "@/components/gallery/GalleryLoading";
+import { NotifyNewPhotos } from "@/components/gallery/NotifyNewPhotos";
 import { api } from "@/lib/fetcher";
-import { albumPhotoTotal, shareAlbum } from "@/lib/share";
+import { albumLabel, albumPhotoTotal, shareAlbum } from "@/lib/share";
 import type { GalleryAlbum } from "@/types/database";
 
 const DATE_RE = /(\d{2})[.\-](\d{2})[.\-](\d{4})/;
@@ -223,7 +224,7 @@ export function GalleryPage({ initialAlbums, initialAlbumId }: { initialAlbums?:
   };
 
   const pagination = selected && totalPages > 1 ? (
-          <nav className="flex flex-wrap items-center justify-center gap-1.5" aria-label="Paginação de fotos">
+          <nav className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5" aria-label="Paginação de fotos">
             <Button variant="outline" size="sm" onClick={() => goToPage(page - 1)} disabled={page <= 1 || photosLoading}>
               <ChevronLeft className="w-4 h-4 sm:mr-1" />
               <span className="hidden sm:inline">Anterior</span>
@@ -238,7 +239,7 @@ export function GalleryPage({ initialAlbums, initialAlbumId }: { initialAlbums?:
                   key={p}
                   variant={p === page ? "default" : "outline"}
                   size="sm"
-                  className="min-w-[44px]"
+                  className="min-w-9 px-2 sm:min-w-[44px]"
                   onClick={() => goToPage(p)}
                   disabled={photosLoading}
                   aria-current={p === page ? "page" : undefined}
@@ -312,7 +313,7 @@ export function GalleryPage({ initialAlbums, initialAlbumId }: { initialAlbums?:
       {selected ? (
         <PageHero
           eyebrow={[extractCategoryFromAlbumName(selected.name), selected.date].filter(Boolean).join(" · ")}
-          title={albumType(selected.name) === "Outros" ? selected.name : albumType(selected.name)}
+          title={albumLabel(selected.name).title}
           subtitle={selected.photoCount ? `${albumPhotoTotal(selected.photoCount)} fotos` : "Explore as fotos deste momento especial"}
         />
       ) : (
@@ -485,6 +486,9 @@ export function GalleryPage({ initialAlbums, initialAlbumId }: { initialAlbums?:
         )}
 
         {selected && totalPages > 1 && <div className="mt-4">{pagination}</div>}
+
+        {/* Convite para ser avisado dos próximos álbuns (no fim do álbum e da lista) */}
+        {(selected || albums.length > 0) && <NotifyNewPhotos className={selected ? "mt-8" : ""} />}
 
         {!selected && albums.length > 0 && (
           <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">

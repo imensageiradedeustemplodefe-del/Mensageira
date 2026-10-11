@@ -48,7 +48,7 @@ export const POST = handler(async () => {
 
   let created = 0;
   let updated = 0;
-  const newAlbumNames: string[] = [];
+  const newAlbums: { id: string; name: string }[] = [];
 
   for (const album of albums) {
     const dateMatch = album.name.match(/(\d{2})[.\-](\d{2})[.\-](\d{4})/);
@@ -82,9 +82,9 @@ export const POST = handler(async () => {
         updated++;
       }
     } else {
-      await prisma.galleryAlbum.create({ data: albumData });
+      const { id } = await prisma.galleryAlbum.create({ data: albumData, select: { id: true } });
       created++;
-      newAlbumNames.push(album.name);
+      newAlbums.push({ id, name: album.name });
     }
   }
 
@@ -108,11 +108,13 @@ export const POST = handler(async () => {
     : { count: 0 };
   const hidden = { count: orphans.count + duplicates.count };
 
-  if (newAlbumNames.length > 0) {
+  if (newAlbums.length > 0) {
+    // Um álbum só: a notificação já abre o álbum
+    const single = newAlbums.length === 1 ? newAlbums[0] : null;
     await sendPushToAll({
       title: "📸 Novas Fotos",
-      body: newAlbumNames.length === 1 ? `Novo álbum: ${newAlbumNames[0]}` : `${newAlbumNames.length} novos álbuns na galeria!`,
-      url: "/galeria",
+      body: single ? `Novo álbum: ${single.name}` : `${newAlbums.length} novos álbuns na galeria!`,
+      url: single ? `/galeria/album/${single.id}` : "/galeria",
     }, "galeria");
   }
 

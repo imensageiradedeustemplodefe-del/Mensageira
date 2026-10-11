@@ -72,6 +72,7 @@ export function shareAlbum(a: { id: string; name: string; photoCount?: number | 
     date ? `🗓️ ${date}` : null,
     total ? `🖼️ ${total} fotos` : null,
     `\nConfira as fotos desse momento! 🙏`,
+    `🔔 Ative as notificações no site e seja avisado quando sair fotos novas.`,
   ].filter(Boolean);
   return { title: `Álbum — ${title}`, text: lines.join("\n"), url: abs(`/galeria/album/${a.id}`) };
 }
