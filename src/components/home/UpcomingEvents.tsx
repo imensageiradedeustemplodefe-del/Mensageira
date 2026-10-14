@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShareButton } from "@/components/ShareButton";
 import { shareSchedule } from "@/lib/share";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
-import { LAVACAR_DESCRIPTION } from "@/lib/recurring-events";
+import { LAVACAR_HOURS, LAVACAR_SUMMARY } from "@/lib/recurring-events";
 
 interface UpcomingEventsProps {
   loading?: boolean;
@@ -68,8 +68,8 @@ export const UpcomingEvents = ({ loading = false }: UpcomingEventsProps) => {
     {
       title: "Lavacar",
       date: "3º Sábado do Mês",
-      time: "08:00",
-      description: LAVACAR_DESCRIPTION,
+      time: LAVACAR_HOURS,
+      description: LAVACAR_SUMMARY,
     },
   ];
 

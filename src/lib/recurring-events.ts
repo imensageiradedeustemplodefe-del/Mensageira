@@ -16,16 +16,21 @@ export interface RecurringRule {
   description: string;
 }
 
-/** Descrição do Lavacar com os valores (página do evento, página inicial e compartilhamento). */
-export const LAVACAR_DESCRIPTION = [
-  "Evento de lavagem de carros em prol da igreja. Venha apoiar e participar desse momento de comunhão!",
-  "",
+// Lavacar: horário com pausa para o almoço e valores por tipo de veículo
+const LAVACAR_INTRO = "Evento de lavagem de carros em prol da igreja. Venha apoiar e participar desse momento de comunhão!";
+const LAVACAR_PRICES = [
   "💰 Valores:",
   "🏍️ Motocicleta: R$ 25,00",
   "🚘 Carro: R$ 50,00",
   "🚙 Caminhonete: R$ 70,00",
   "🚐 Van: R$ 90,00",
 ].join("\n");
+/** Horário curto, para o lado do relógio na página inicial. */
+export const LAVACAR_HOURS = "08:00–12:00 e 13:00–16:00";
+/** Descrição completa do evento (página do evento e compartilhamento). */
+export const LAVACAR_DESCRIPTION = [LAVACAR_INTRO, "🕗 Horário: das 08h00 às 12h00 e das 13h00 às 16h00", LAVACAR_PRICES].join("\n\n");
+/** Página inicial: o horário já aparece ao lado do relógio. */
+export const LAVACAR_SUMMARY = [LAVACAR_INTRO, LAVACAR_PRICES].join("\n\n");
 
 export const RECURRING_RULES: RecurringRule[] = [
   {
