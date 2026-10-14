@@ -24,7 +24,7 @@ export function shareEvent(e: { id: string; title: string; event_date: string; l
     `📅 *${e.title}*`,
     `🗓️ ${when.charAt(0).toUpperCase()}${when.slice(1)}`,
     e.location ? `📍 ${e.location}` : null,
-    e.description ? `\n${clip(e.description, 220)}` : null,
+    e.description ? `\n${clip(e.description, 400)}` : null,
     `\nVenha participar! 🙏`,
   ].filter(Boolean);
   return { title: e.title, text: lines.join("\n"), url: abs(`/eventos/${e.id}`) };
@@ -32,7 +32,7 @@ export function shareEvent(e: { id: string; title: string; event_date: string; l
 
 /** Programação fixa (ex.: "Culto de Cura e Libertação — toda sexta às 20:00"). */
 export function shareSchedule(s: { title: string; date: string; time: string; description?: string | null }): ShareData {
-  const lines = [`📅 *${s.title}*`, `🗓️ ${s.date} às ${s.time}`, s.description ? `\n${clip(s.description, 220)}` : null, `\nVenha participar! 🙏`].filter(Boolean);
+  const lines = [`📅 *${s.title}*`, `🗓️ ${s.date} às ${s.time}`, s.description ? `\n${clip(s.description, 400)}` : null, `\nVenha participar! 🙏`].filter(Boolean);
   return { title: s.title, text: lines.join("\n"), url: abs("/eventos") };
 }
 

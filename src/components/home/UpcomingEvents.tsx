@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShareButton } from "@/components/ShareButton";
 import { shareSchedule } from "@/lib/share";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { LAVACAR_DESCRIPTION } from "@/lib/recurring-events";
 
 interface UpcomingEventsProps {
   loading?: boolean;
@@ -68,7 +69,7 @@ export const UpcomingEvents = ({ loading = false }: UpcomingEventsProps) => {
       title: "Lavacar",
       date: "3º Sábado do Mês",
       time: "08:00",
-      description: "Evento de lavagem de carros em prol da igreja. Venha apoiar e participar desse momento de comunhão!",
+      description: LAVACAR_DESCRIPTION,
     },
   ];
 
@@ -102,7 +103,7 @@ export const UpcomingEvents = ({ loading = false }: UpcomingEventsProps) => {
                       <Clock className="w-4 h-4 mr-2 flex-shrink-0" />
                       <span className="text-sm">{event.time}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{event.description}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{event.description}</p>
                   </CardContent>
                 </Card>
               ))}

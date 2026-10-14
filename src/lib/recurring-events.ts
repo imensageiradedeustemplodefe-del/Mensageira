@@ -16,6 +16,17 @@ export interface RecurringRule {
   description: string;
 }
 
+/** Descrição do Lavacar com os valores (página do evento, página inicial e compartilhamento). */
+export const LAVACAR_DESCRIPTION = [
+  "Evento de lavagem de carros em prol da igreja. Venha apoiar e participar desse momento de comunhão!",
+  "",
+  "💰 Valores:",
+  "🏍️ Motocicleta: R$ 25,00",
+  "🚘 Carro: R$ 50,00",
+  "🚙 Caminhonete: R$ 70,00",
+  "🚐 Van: R$ 90,00",
+].join("\n");
+
 export const RECURRING_RULES: RecurringRule[] = [
   {
     title: "Culto de Cura e Libertação",
@@ -64,7 +75,7 @@ export const RECURRING_RULES: RecurringRule[] = [
     nth: 3,
     time: "08:00",
     category: "lavacar",
-    description: "Evento de lavagem de carros em prol da igreja. Venha apoiar e participar desse momento de comunhão!",
+    description: LAVACAR_DESCRIPTION,
   },
 ];
 
