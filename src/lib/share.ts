@@ -2,6 +2,7 @@
 // próprio no WhatsApp/Facebook), e a mensagem já vem formatada para o WhatsApp (*negrito*).
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { formatBRL } from "@/lib/pix";
 
 export interface ShareData {
   /** Título curto (usado pelo compartilhamento nativo do celular) */
@@ -17,13 +18,32 @@ const abs = (path: string) => `${ORIGIN}${path}`;
 const clip = (s: string, max: number) => (s.length > max ? `${s.slice(0, max - 1).trimEnd()}…` : s);
 const SIGNATURE = "Igreja Mensageira De Deus Templo De Fé";
 
-export function shareEvent(e: { id: string; title: string; event_date: string; location?: string | null; description?: string | null }): ShareData {
+interface SignupInfo {
+  event_date: string;
+  registration_required?: boolean | null;
+  contribution_cents?: number | null;
+  contribution_note?: string | null;
+}
+
+/** Evento com inscrição que ainda não aconteceu: precisa confirmar presença (e contribuir, se tiver valor). */
+export const eventSignupOpen = (e: SignupInfo) => !!e.registration_required && new Date(e.event_date).getTime() > Date.now();
+
+/** "R$ 50,00 (inclui almoço)" */
+export const eventContribution = (e: SignupInfo) =>
+  e.contribution_cents ? `${formatBRL(e.contribution_cents)}${e.contribution_note ? ` (${e.contribution_note})` : ""}` : null;
+
+export function shareEvent(e: SignupInfo & { id: string; title: string; location?: string | null; description?: string | null }): ShareData {
   const d = new Date(e.event_date);
   const when = format(d, "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR });
+  const signup = eventSignupOpen(e);
+  const contribution = signup ? eventContribution(e) : null;
   const lines = [
     `📅 *${e.title}*`,
     `🗓️ ${when.charAt(0).toUpperCase()}${when.slice(1)}`,
     e.location ? `📍 ${e.location}` : null,
+    // inscrição antes da descrição, para não passar despercebida
+    signup ? `\n✅ *Confirme sua presença:* faça sua inscrição pelo link abaixo.` : null,
+    contribution ? `💰 *Contribuição:* ${contribution} — PIX ou dinheiro` : null,
     e.description ? `\n${clip(e.description, 400)}` : null,
     `\nVenha participar! 🙏`,
   ].filter(Boolean);

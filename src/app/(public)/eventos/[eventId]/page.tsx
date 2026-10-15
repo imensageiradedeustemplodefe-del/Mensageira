@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShareButton } from "@/components/ShareButton";
 import { getSharedEvent, fmtEventDate } from "@/lib/share-pages";
-import { shareEvent } from "@/lib/share";
+import { eventContribution, eventSignupOpen, shareEvent } from "@/lib/share";
 import { PageHero } from "@/components/layout/PageHero";
 
 type Props = { params: Promise<{ eventId: string }> };
@@ -18,7 +18,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const event = await getSharedEvent(eventId);
   if (!event) return { title: "Evento não encontrado", robots: { index: false } };
   const when = fmtEventDate(event.eventDate);
-  const description = `${when.charAt(0).toUpperCase()}${when.slice(1)}${event.location ? ` • ${event.location}` : ""}${
+  // Prévia do link (WhatsApp/Facebook): se precisa se inscrever, isso aparece primeiro
+  const signup = {
+    event_date: event.eventDate.toISOString(),
+    registration_required: event.registrationRequired,
+    contribution_cents: event.contributionCents,
+    contribution_note: event.contributionNote,
+  };
+  const contribution = eventContribution(signup);
+  const signupText = eventSignupOpen(signup) ? `Inscrições abertas${contribution ? ` • Contribuição ${contribution}` : ""} — ` : "";
+  const description = `${signupText}${when.charAt(0).toUpperCase()}${when.slice(1)}${event.location ? ` • ${event.location}` : ""}${
     event.description ? ` — ${event.description}` : ""
   }`;
   return {
@@ -44,6 +53,9 @@ export default async function Page({ params }: Props) {
     event_date: event.eventDate.toISOString(),
     location: event.location,
     description: event.description,
+    registration_required: event.registrationRequired,
+    contribution_cents: event.contributionCents,
+    contribution_note: event.contributionNote,
   });
 
   return (
