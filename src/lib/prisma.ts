@@ -3,7 +3,7 @@ import { attachDatabasePool } from "@vercel/functions";
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+const globalForPrisma = globalThis as unknown as { prisma?: ReturnType<typeof createClient> };
 
 /**
  * URL usada pelo app em tempo de execução.
@@ -38,7 +38,12 @@ function createClient() {
     connectionTimeoutMillis: 10_000,
   });
   attachDatabasePool(pool);
-  return new PrismaClient({ adapter: new PrismaPg(pool) });
+  return new PrismaClient({
+    adapter: new PrismaPg(pool),
+    // o código do link das organizadoras nunca sai em consultas comuns (ex.: API pública de eventos);
+    // só quem pede explicitamente (select) recebe
+    omit: { event: { organizerToken: true } },
+  });
 }
 
 // Uma única instância por processo (também em produção: evita abrir pools duplicados)

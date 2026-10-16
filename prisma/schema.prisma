@@ -97,6 +97,8 @@ model Event {
   pixKey               String?  @map("pix_key")
   pixName              String?  @map("pix_name")
   pixCity              String?  @map("pix_city")
+  /// código secreto do link das organizadoras (lista de inscritos sem acesso ao painel); null = sem link
+  organizerToken       String?  @unique @map("organizer_token")
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
 

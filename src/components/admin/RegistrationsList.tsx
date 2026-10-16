@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { RATING_STYLES, ratingStyleOf } from "@/components/forms/RatingInput";
 import { formatBRL, registrationCode } from "@/lib/pix";
 import { formatPhoneBR, isPhoneFieldType } from "@/lib/phone";
+import { OrganizerLinkButton } from "@/components/admin/OrganizerLinkButton";
 
 interface Field {
   id: string;
@@ -201,6 +202,7 @@ export function RegistrationsList({
           )}
         </div>
         <div className="flex flex-wrap gap-2">
+          <OrganizerLinkButton eventId={eventId} eventTitle={eventTitle} />
           <a href={`/api/admin/events/${eventId}/registrations/export`} download>
             <Button variant="outline" className="gap-2" disabled={rows.length === 0}>
               <Download className="w-4 h-4" /> Excel (CSV)
