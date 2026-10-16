@@ -74,6 +74,7 @@ export default async function Page({ params }: { params: Promise<{ token: string
       }}
       rows={rows}
       updatedAt={new Date().toLocaleTimeString("pt-BR", { ...tz, hour: "2-digit", minute: "2-digit" })}
+      printHref={`/organizadores/${token}/imprimir`}
     />
   );
 }

@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, MapPin, RefreshCw, Search, Users, MessageCircle, Eye } from "lucide-react";
+import { Calendar, MapPin, RefreshCw, Search, Users, MessageCircle, Eye, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatBRL } from "@/lib/pix";
@@ -49,7 +49,7 @@ const whatsapp = (phone: string) => {
 };
 
 /** Página das organizadoras: inscritos e situação dos pagamentos (só leitura, atualiza ao tocar no botão). */
-export function OrganizerList({ event, rows, updatedAt }: { event: EventInfo; rows: OrganizerRow[]; updatedAt: string }) {
+export function OrganizerList({ event, rows, updatedAt, printHref }: { event: EventInfo; rows: OrganizerRow[]; updatedAt: string; printHref: string }) {
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
   const [filter, setFilter] = useState<PaymentStatus | "all">("all");
@@ -135,6 +135,11 @@ export function OrganizerList({ event, rows, updatedAt }: { event: EventInfo; ro
             <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">Atualizar</span>
           </Button>
+          <a href={printHref} target="_blank" rel="noopener noreferrer" className="shrink-0">
+            <Button variant="outline" className="gap-2" disabled={rows.length === 0}>
+              <FileText className="w-4 h-4" /> PDF
+            </Button>
+          </a>
         </div>
         {hasContribution && (
           <div className="flex flex-wrap gap-2">
