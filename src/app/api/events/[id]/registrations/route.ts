@@ -5,6 +5,7 @@ import { handler, json, error, param, parseBody } from "@/lib/api";
 import { formatPhoneBR, isPhoneFieldType } from "@/lib/phone";
 import { alertAdminsAboutRegistration } from "@/lib/registration-alerts";
 import { limitOrThrow } from "@/lib/rate-limit";
+import { refreshPublicData } from "@/lib/public-cache";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -55,5 +56,6 @@ export const POST = handler(async (req, ctx: Ctx) => {
   });
 
   after(() => alertAdminsAboutRegistration(registration.id, "new"));
+  refreshPublicData(); // vagas restantes do evento mudaram
   return json({ id: registration.id, created_at: registration.createdAt }, { status: 201 });
 });

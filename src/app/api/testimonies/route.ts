@@ -3,14 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { handler, json, parseBody } from "@/lib/api";
 import { snake } from "@/lib/case";
 import { limitOrThrow } from "@/lib/rate-limit";
+import { publicCache } from "@/lib/public-cache";
 
-export const GET = handler(async () => {
-  const testimonies = await prisma.testimony.findMany({
-    where: { isApproved: true },
-    orderBy: { createdAt: "desc" },
-  });
-  return json(snake(testimonies));
-});
+const getTestimonies = publicCache("testimonies", 600, async () =>
+  snake(await prisma.testimony.findMany({ where: { isApproved: true }, orderBy: { createdAt: "desc" } }))
+);
+
+export const GET = handler(async () => json(await getTestimonies()));
 
 const schema = z.object({
   name: z.string().trim().min(2).max(100),

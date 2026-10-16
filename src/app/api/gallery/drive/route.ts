@@ -1,15 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import { handler, json, error } from "@/lib/api";
 import { fetchAppsScript } from "@/lib/apps-script";
+import { publicCache } from "@/lib/public-cache";
 
 // O Apps Script pode levar dezenas de segundos para listar pastas grandes
 export const maxDuration = 60;
 
+// Endereço do Apps Script: lido a cada página de fotos, fica 1 h em cache (fica só no servidor, nunca vai ao público)
+const getScriptUrl = publicCache("drive-script-url", 3600, async () => {
+  const setting = await prisma.siteSetting.findUnique({ where: { settingKey: "google_drive_script_url" } });
+  return setting?.settingValue?.trim() || null;
+});
+
 // Proxies the Google Apps Script gallery endpoint so the script URL stays server-side.
 // Query: action=albums | album=<folderId>&pageSize=&order=&pageToken=
 export const GET = handler(async (req) => {
-  const setting = await prisma.siteSetting.findUnique({ where: { settingKey: "google_drive_script_url" } });
-  const scriptUrl = setting?.settingValue?.trim();
+  const scriptUrl = await getScriptUrl();
   if (!scriptUrl) return json({ configured: false, albums: [], items: [], nextPageToken: null });
 
   const incoming = new URL(req.url).searchParams;

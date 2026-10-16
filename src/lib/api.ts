@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ZodError, type ZodType } from "zod";
 import { getAdminSession } from "@/lib/auth";
 import { HttpError } from "@/lib/http-error";
+import { refreshPublicData } from "@/lib/public-cache";
 
 export { HttpError };
 
@@ -35,11 +36,18 @@ export async function parseBody<T>(request: Request, schema: ZodType<T>): Promis
   return parsed.data;
 }
 
+const MUTATIONS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
 /** Wraps a route handler, converting thrown HttpError/ZodError into JSON responses. */
 export function handler<Ctx>(fn: (request: Request, ctx: Ctx) => Promise<Response>) {
   return async (request: Request, ctx: Ctx) => {
     try {
-      return await fn(request, ctx);
+      const response = await fn(request, ctx);
+      // Alteração feita no painel: o site público passa a mostrar os dados novos na hora
+      if (response.ok && MUTATIONS.has(request.method) && new URL(request.url).pathname.startsWith("/api/admin/")) {
+        refreshPublicData();
+      }
+      return response;
     } catch (err) {
       if (err instanceof HttpError) return error(err.message, err.status);
       if (err instanceof ZodError) return error(err.issues[0]?.message ?? "Dados inválidos", 400);

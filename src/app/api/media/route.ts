@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { handler, json } from "@/lib/api";
 import { snake } from "@/lib/case";
+import { publicCache } from "@/lib/public-cache";
 
-export const GET = handler(async () => {
+const getMedia = publicCache("media", 600, async () => {
   const [items, categories] = await Promise.all([
     prisma.mediaItem.findMany({
       where: { isPublished: true },
@@ -11,5 +12,7 @@ export const GET = handler(async () => {
     }),
     prisma.mediaCategory.findMany({ orderBy: { name: "asc" } }),
   ]);
-  return json(snake({ items, categories }));
+  return snake({ items, categories });
 });
+
+export const GET = handler(async () => json(await getMedia()));

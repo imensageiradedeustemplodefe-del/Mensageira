@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { handler, json } from "@/lib/api";
 import { sanitizeName } from "@/lib/prayers";
+import { publicCache } from "@/lib/public-cache";
 
 export type NotificationType =
   | "daily_verse"
@@ -37,7 +38,8 @@ const config: Record<Exclude<NotificationType, "custom">, { title: string; icon:
 const timeBR = (d: Date) => d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
 // Builds the in-app notification feed (same rules as the original NotificationContext, now server-side).
-export const GET = handler(async () => {
+// Todos os aparelhos com o site aberto consultam este feed (7 consultas ao banco): fica 5 min em cache.
+const buildNotifications = publicCache("notifications", 300, async (): Promise<InAppNotificationDTO[]> => {
   const now = new Date();
   // "Hoje" no fuso de Brasília (00:00 BRT = 03:00Z), igual ao envio diário de push
   const today = now.toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
@@ -206,5 +208,7 @@ export const GET = handler(async () => {
   const unique = Array.from(new Map(all.map((n) => [n.id, n])).values());
   unique.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-  return json(unique.slice(0, NOTIFICATION_LIMIT));
+  return unique.slice(0, NOTIFICATION_LIMIT);
 });
+
+export const GET = handler(async () => json(await buildNotifications()));

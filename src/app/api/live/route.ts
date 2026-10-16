@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { handler, json } from "@/lib/api";
 import { snake } from "@/lib/case";
 import { getChannelId, getChannelLive } from "@/lib/youtube-live";
+import { publicCache } from "@/lib/public-cache";
 
-export const GET = handler(async () => {
+const getLive = publicCache("live", 60, async () => {
   const streams = snake(
     await prisma.liveStream.findMany({
       where: { isActive: true },
@@ -39,5 +40,7 @@ export const GET = handler(async () => {
     }
   }
 
-  return json(streams);
+  return streams;
 });
+
+export const GET = handler(async () => json(await getLive()));

@@ -6,7 +6,9 @@ import { api } from "@/lib/fetcher";
 import type { InAppNotification } from "@/types/notifications";
 
 const STORAGE_KEY = "read_notifications";
-const POLL_INTERVAL = 60 * 1000; // 1 minuto (substitui o realtime do Supabase)
+// A cada 5 min e só com a tela visível: cada verificação de cada aparelho custava 7 consultas ao banco
+const POLL_INTERVAL = 5 * 60 * 1000;
+const FOCUS_MIN_GAP = 60 * 1000; // ao voltar para o app, atualiza se faz mais de 1 min
 
 interface NotificationContextType {
   notifications: InAppNotification[];
@@ -94,13 +96,22 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, POLL_INTERVAL);
-    const onFocus = () => fetchNotifications();
+    let last = 0;
+    const refresh = (minGap: number) => {
+      if (document.visibilityState !== "visible" || Date.now() - last < minGap) return;
+      last = Date.now();
+      fetchNotifications();
+    };
+    refresh(0);
+    // aba em segundo plano não verifica; ao voltar, atualiza se já faz um tempo
+    const interval = setInterval(() => refresh(POLL_INTERVAL - 5000), POLL_INTERVAL);
+    const onFocus = () => refresh(FOCUS_MIN_GAP);
     window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
     return () => {
       clearInterval(interval);
       window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
     };
   }, [fetchNotifications]);
 

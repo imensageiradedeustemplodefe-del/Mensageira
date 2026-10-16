@@ -2,6 +2,7 @@
 // Quando há transmissão, o endereço /channel/<id>/live aponta (canonical) para o vídeo ao vivo e a
 // página contém "isLiveNow":true. Não precisa de chave de API. Resultado em cache por 60 s.
 import { prisma } from "@/lib/prisma";
+import { publicCache } from "@/lib/public-cache";
 
 export const DEFAULT_CHANNEL_ID = "UCqZ48-AJ0FipFnAcBlJ2FJw"; // @imensageiradedeustemlodefe
 
@@ -11,11 +12,12 @@ export interface ChannelLive {
   title?: string;
 }
 
-export async function getChannelId() {
+// O verificador de live (cron) chama a cada poucos minutos: o id do canal fica 1 h em cache
+export const getChannelId = publicCache("youtube-channel-id", 3600, async () => {
   const setting = await prisma.siteSetting.findUnique({ where: { settingKey: "youtube_channel_id" } });
   const id = setting?.settingValue?.trim();
   return id && /^UC[\w-]{20,}$/.test(id) ? id : DEFAULT_CHANNEL_ID;
-}
+});
 
 export async function getChannelLive(channelId: string): Promise<ChannelLive> {
   try {

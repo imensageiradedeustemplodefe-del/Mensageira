@@ -5,23 +5,24 @@ import { snake } from "@/lib/case";
 import { encryptContact, encryptionKeyHash } from "@/lib/crypto";
 import { PRAYER_CATEGORIES, sanitizeName } from "@/lib/prayers";
 import { limitOrThrow } from "@/lib/rate-limit";
+import { publicCache } from "@/lib/public-cache";
 
 // Public, sanitized list (mirrors the `public_prayer_requests` view)
-export const GET = handler(async () => {
+const getPublicPrayers = publicCache("prayers", 600, async () => {
   const requests = await prisma.prayerRequest.findMany({
     where: { isApproved: true, allowPublicShare: true },
     orderBy: { createdAt: "desc" },
     select: { id: true, name: true, requestText: true, category: true, isUrgent: true, createdAt: true },
   });
-  return json(
-    snake(
-      requests.map(({ name, ...r }) => ({
-        ...r,
-        displayName: sanitizeName(name),
-      }))
-    )
+  return snake(
+    requests.map(({ name, ...r }) => ({
+      ...r,
+      displayName: sanitizeName(name),
+    }))
   );
 });
+
+export const GET = handler(async () => json(await getPublicPrayers()));
 
 const schema = z.object({
   name: z.string().trim().min(2).max(100),
