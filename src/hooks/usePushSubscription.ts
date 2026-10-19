@@ -20,6 +20,17 @@ const getPushUserId = () => {
   return id;
 };
 
+/** Endereço de push deste aparelho (null se as notificações não estiverem ativas aqui). */
+export async function currentPushEndpoint() {
+  try {
+    if (!("serviceWorker" in navigator) || Notification.permission !== "granted") return null;
+    const reg = await Promise.race([navigator.serviceWorker.ready, new Promise<null>((r) => setTimeout(() => r(null), 3000))]);
+    return reg ? ((await reg.pushManager.getSubscription())?.endpoint ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
 // Web Push subscription state + actions (shared by the notification center and the opt-in banner).
 export function usePushSubscription() {
   const [isSupported, setIsSupported] = useState(false);

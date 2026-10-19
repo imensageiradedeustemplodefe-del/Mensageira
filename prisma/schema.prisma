@@ -105,6 +105,7 @@ model Event {
   contacts           EventContact[]
   registrationFields EventRegistrationField[]
   registrations      EventRegistration[]
+  organizerAlerts    OrganizerAlert[]
 
   @@index([eventDate])
   @@map("events")
@@ -390,7 +391,23 @@ model PushSubscription {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  organizerAlerts OrganizerAlert[]
+
   @@map("push_subscriptions")
+}
+
+// Celular de organizadora: recebe os avisos (nova inscrição, PIX informado) de um evento, pelo link das organizadoras
+model OrganizerAlert {
+  id             String   @id @default(uuid()) @db.Uuid
+  eventId        String   @map("event_id") @db.Uuid
+  subscriptionId String   @map("subscription_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  event        Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  subscription PushSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, subscriptionId])
+  @@map("organizer_alerts")
 }
 
 // ---------- Segurança ----------

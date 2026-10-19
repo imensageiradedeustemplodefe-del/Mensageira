@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { api } from "@/lib/fetcher";
 import { useToast } from "@/hooks/use-toast";
 
-/** Botão "Link das organizadoras": gera/mostra o link só de leitura com os inscritos e pagamentos do evento. */
+/** Botão "Link das organizadoras": gera/mostra o link com os inscritos e pagamentos do evento (elas podem marcar quem pagou). */
 export function OrganizerLinkButton({ eventId, eventTitle }: { eventId: string; eventTitle?: string }) {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState<string | null | undefined>(undefined); // undefined = carregando
@@ -51,7 +51,7 @@ export function OrganizerLinkButton({ eventId, eventTitle }: { eventId: string; 
   };
 
   const message = url
-    ? `Olá! Aqui está o link para acompanhar as inscrições e os pagamentos${eventTitle ? ` do ${eventTitle}` : ""}:\n${url}\n\nÉ só abrir e tocar em "Atualizar" para ver as novidades. Por favor, não repasse este link: ele mostra os dados de quem se inscreveu.`
+    ? `Olá! Aqui está o link para acompanhar as inscrições e os pagamentos${eventTitle ? ` do ${eventTitle}` : ""}:\n${url}\n\nÉ só abrir e tocar em "Atualizar" para ver as novidades. Quando alguém pagar, toque em "Marcar como pago". Por favor, não repasse este link: ele mostra os dados de quem se inscreveu.`
     : "";
 
   return (
@@ -64,8 +64,8 @@ export function OrganizerLinkButton({ eventId, eventTitle }: { eventId: string; 
           <DialogHeader>
             <DialogTitle>Link para as organizadoras</DialogTitle>
             <DialogDescription>
-              Quem tiver este link vê a lista de inscritos e a situação dos pagamentos deste evento, sem entrar no painel e sem poder
-              alterar nada.
+              Quem tiver este link vê a lista de inscritos e a situação dos pagamentos deste evento, sem entrar no painel. Pode marcar
+              quem pagou, mas não altera mais nada.
             </DialogDescription>
           </DialogHeader>
 

@@ -2,11 +2,14 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, MapPin, RefreshCw, Search, Users, MessageCircle, Eye, FileText } from "lucide-react";
+import { Calendar, MapPin, RefreshCw, Search, Users, MessageCircle, Eye, FileText, Check, Loader2, Undo2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { api } from "@/lib/fetcher";
 import { formatBRL } from "@/lib/pix";
 import type { PaymentStatus } from "@/lib/organizer-link";
+import { OrganizerAlertsToggle } from "@/components/organizers/OrganizerAlertsToggle";
 
 export interface OrganizerRow {
   id: string;
@@ -30,7 +33,7 @@ interface EventInfo {
 
 const STATUS: Record<PaymentStatus, { label: string; hint?: string; className: string }> = {
   paid: { label: "Pago", className: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300" },
-  reported: { label: "Avisou que pagou o PIX", hint: "a igreja vai conferir", className: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300" },
+  reported: { label: "Avisou que pagou o PIX", hint: "confira e marque como pago", className: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300" },
   cash: { label: "Vai pagar em dinheiro", hint: "no dia do evento", className: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" },
   pending: { label: "Aguardando pagamento", className: "bg-muted text-muted-foreground" },
 };
@@ -48,15 +51,46 @@ const whatsapp = (phone: string) => {
   return d.length >= 10 ? `https://wa.me/${d.startsWith("55") && d.length > 11 ? d : `55${d}`}` : null;
 };
 
-/** Página das organizadoras: inscritos e situação dos pagamentos (só leitura, atualiza ao tocar no botão). */
-export function OrganizerList({ event, rows, updatedAt, printHref }: { event: EventInfo; rows: OrganizerRow[]; updatedAt: string; printHref: string }) {
+/** Página das organizadoras: inscritos e situação dos pagamentos; dá para marcar quem pagou. */
+export function OrganizerList({
+  event,
+  rows,
+  updatedAt,
+  printHref,
+  apiBase,
+}: {
+  event: EventInfo;
+  rows: OrganizerRow[];
+  updatedAt: string;
+  printHref: string;
+  /** /api/organizadores/<código> */
+  apiBase: string;
+}) {
   const router = useRouter();
   const [refreshing, startRefresh] = useTransition();
+  const [marking, setMarking] = useState<{ id: string; saving: boolean } | null>(null);
   const [filter, setFilter] = useState<PaymentStatus | "all">("all");
   const [query, setQuery] = useState("");
   const hasContribution = !!event.contributionCents;
 
   const count = (s: PaymentStatus) => rows.filter((r) => r.status === s).length;
+
+  // Marcar como pago (ou desfazer) e recarregar a lista com a situação atualizada
+  const setPaid = async (r: OrganizerRow, paid: boolean) => {
+    const who = r.name || `inscrição ${r.n}`;
+    if (!confirm(paid ? `Confirmar o pagamento de ${who}?` : `Desfazer o pagamento de ${who}? Volta para "aguardando".`)) return;
+    setMarking({ id: r.id, saving: true });
+    try {
+      const res = await api<{ notified: boolean }>(`${apiBase}/registrations/${r.id}`, { method: "PATCH", json: { paid } });
+      toast.success(paid ? `Pagamento de ${who} confirmado${res.notified ? " — avisamos a pessoa no celular" : ""}` : `Pagamento de ${who} desfeito`);
+      startRefresh(() => router.refresh());
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível salvar. Tente de novo.");
+    } finally {
+      setMarking((m) => (m ? { ...m, saving: false } : m));
+    }
+  };
+  const isMarking = (r: OrganizerRow) => marking?.id === r.id && (marking.saving || refreshing);
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows.filter(
@@ -109,7 +143,7 @@ export function OrganizerList({ event, rows, updatedAt, printHref }: { event: Ev
               <div className="rounded-xl border p-3">
                 <p className="text-xs text-muted-foreground">Avisaram que pagaram o PIX</p>
                 <p className="text-2xl font-bold text-sky-600">{count("reported")}</p>
-                <p className="text-xs text-muted-foreground">a igreja confere no extrato</p>
+                <p className="text-xs text-muted-foreground">confira no extrato e marque como pago</p>
               </div>
               <div className="rounded-xl border p-3">
                 <p className="text-xs text-muted-foreground">Dinheiro no dia</p>
@@ -124,6 +158,8 @@ export function OrganizerList({ event, rows, updatedAt, printHref }: { event: Ev
           )}
         </div>
         {event.contribution && <p className="text-sm text-muted-foreground">Contribuição: {event.contribution}</p>}
+
+        <OrganizerAlertsToggle apiBase={apiBase} />
 
         {/* Busca, filtros e atualizar */}
         <div className="flex gap-2">
@@ -206,6 +242,19 @@ export function OrganizerList({ event, rows, updatedAt, printHref }: { event: Ev
                   {hasContribution && <>Código do PIX {r.code} • </>}Inscrição em {r.createdAt}
                   {hasContribution && s.hint ? ` • ${s.hint}` : ""}
                 </p>
+                {hasContribution && (
+                  <div className="mt-2 flex justify-end">
+                    {r.status === "paid" ? (
+                      <Button size="sm" variant="ghost" className="h-8 gap-1.5 text-muted-foreground" disabled={!!marking && isMarking(r)} onClick={() => setPaid(r, false)}>
+                        {isMarking(r) ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Undo2 className="w-3.5 h-3.5" />} Desfazer
+                      </Button>
+                    ) : (
+                      <Button size="sm" className="h-8 gap-1.5 bg-green-600 hover:bg-green-700 text-white" disabled={!!marking && isMarking(r)} onClick={() => setPaid(r, true)}>
+                        {isMarking(r) ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />} Marcar como pago
+                      </Button>
+                    )}
+                  </div>
+                )}
               </li>
             );
           })}
@@ -219,8 +268,10 @@ export function OrganizerList({ event, rows, updatedAt, printHref }: { event: Ev
 
         <p className="flex items-start gap-2 text-xs text-muted-foreground border-t pt-4">
           <Eye className="w-4 h-4 shrink-0" />
-          Página só para acompanhar: os pagamentos são confirmados pela equipe da igreja. Não compartilhe este link — ele mostra os dados de
-          quem se inscreveu.
+          {hasContribution
+            ? "Marque como pago quem pagou em dinheiro ou o PIX que você conferiu: a lista do painel da igreja é atualizada junto. "
+            : ""}
+          Não compartilhe este link — ele mostra os dados de quem se inscreveu.
         </p>
       </main>
     </div>

@@ -4,18 +4,8 @@ import { useEffect, useState } from "react";
 import { BellRing, Loader2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { api } from "@/lib/fetcher";
-import { usePushSubscription } from "@/hooks/usePushSubscription";
+import { currentPushEndpoint as deviceEndpoint, usePushSubscription } from "@/hooks/usePushSubscription";
 import { useToast } from "@/hooks/use-toast";
-
-async function deviceEndpoint() {
-  try {
-    if (!("serviceWorker" in navigator) || Notification.permission !== "granted") return null;
-    const reg = await Promise.race([navigator.serviceWorker.ready, new Promise<null>((r) => setTimeout(() => r(null), 3000))]);
-    return reg ? ((await reg.pushManager.getSubscription())?.endpoint ?? null) : null;
-  } catch {
-    return null;
-  }
-}
 
 /** "Avisar este celular": notificação para a equipe quando alguém se inscreve ou informa um PIX. */
 export function AdminAlertsToggle() {

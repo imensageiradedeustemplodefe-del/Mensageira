@@ -22,7 +22,11 @@ export const POST = handler(async (_req, ctx: Ctx) => {
   const id = await param(ctx, "id");
   if (!(await current(id))) return error("Evento não encontrado", 404);
   const token = randomBytes(24).toString("base64url"); // 32 caracteres, impossível de adivinhar
-  await prisma.event.update({ where: { id }, data: { organizerToken: token } });
+  await prisma.$transaction([
+    prisma.event.update({ where: { id }, data: { organizerToken: token } }),
+    // quem ativou avisos pelo link antigo deixa de receber (a notificação levaria ao link novo)
+    prisma.organizerAlert.deleteMany({ where: { eventId: id } }),
+  ]);
   return json({ url: organizerUrl(token) });
 });
 
@@ -30,6 +34,9 @@ export const DELETE = handler(async (_req, ctx: Ctx) => {
   await requireAdmin();
   const id = await param(ctx, "id");
   if (!(await current(id))) return error("Evento não encontrado", 404);
-  await prisma.event.update({ where: { id }, data: { organizerToken: null } });
+  await prisma.$transaction([
+    prisma.event.update({ where: { id }, data: { organizerToken: null } }),
+    prisma.organizerAlert.deleteMany({ where: { eventId: id } }),
+  ]);
   return json({ url: null });
 });

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 const show = (v: unknown) =>
   v === null || v === undefined || v === "" ? "" : Array.isArray(v) ? v.join(", ") : typeof v === "boolean" ? (v ? "Sim" : "Não") : String(v);
 
-// Link das organizadoras (gerado no painel, em Inscrições): lista de inscritos e pagamentos, só leitura.
+// Link das organizadoras (gerado no painel, em Inscrições): lista de inscritos e pagamentos; dá para marcar quem pagou.
 export default async function Page({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   if (!isOrganizerToken(token)) notFound();
@@ -75,6 +75,7 @@ export default async function Page({ params }: { params: Promise<{ token: string
       rows={rows}
       updatedAt={new Date().toLocaleTimeString("pt-BR", { ...tz, hour: "2-digit", minute: "2-digit" })}
       printHref={`/organizadores/${token}/imprimir`}
+      apiBase={`/api/organizadores/${token}`}
     />
   );
 }
