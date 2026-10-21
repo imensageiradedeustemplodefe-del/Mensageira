@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Loader2, CheckCircle2 } from "lucide-react";
+import { Calendar, Loader2, CheckCircle2, QrCode, Banknote, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/fetcher";
 import type { Event, EventRegistrationField } from "@/types/database";
@@ -31,6 +31,9 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
   const [regId, setRegId] = useState<string | null>(null);
   // inscrições já feitas neste aparelho (para acompanhar o pagamento)
   const [saved, setSaved] = useState<SavedRegistration[]>([]);
+  // já inscrito neste aparelho: o formulário só aparece se a pessoa quiser inscrever outra pessoa
+  const [showForm, setShowForm] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"pix" | "cash" | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -64,6 +67,8 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
       )
       .map((field) => field.field_label);
 
+    if (event?.contribution_cents && !paymentMethod) missingFields.push("Forma de pagamento");
+
     if (missingFields.length > 0) {
       toast({
         title: "Campos obrigatórios",
@@ -75,7 +80,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
 
     setSubmitting(true);
     try {
-      const reg = await api<{ id: string }>(`/api/events/${eventId}/registrations`, { method: "POST", json: { registration_data: formData } });
+      const reg = await api<{ id: string }>(`/api/events/${eventId}/registrations`, { method: "POST", json: { registration_data: formData, ...(event?.contribution_cents ? { payment_method: paymentMethod } : {}) } });
       if (reg?.id) {
         // nome (primeiro campo de texto preenchido) só para a pessoa reconhecer a inscrição depois
         const first = fields.find((f) => !["rating", "checkbox", "select", "date", "number"].includes(f.field_type) && formData[f.field_name]);
@@ -262,9 +267,14 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                 ) : (
                   <p className="text-sm text-muted-foreground">{saved.map((r) => r.label).filter(Boolean).join(", ") || "Sua inscrição foi registrada."}</p>
                 )}
-                <p className="text-sm text-muted-foreground pt-2">Quer inscrever outra pessoa? É só preencher o formulário abaixo.</p>
+                {!showForm && (
+                  <Button variant="outline" className="w-full gap-2 mt-2" onClick={() => setShowForm(true)}>
+                    <UserPlus className="w-4 h-4" /> Inscrever outra pessoa
+                  </Button>
+                )}
               </div>
             )}
+            {(saved.length === 0 || showForm) && (
             <form onSubmit={handleSubmit} className="space-y-6">
               <h2 className="text-xl font-semibold">Formulário de Inscrição</h2>
               {fields.map((field) => (
@@ -280,7 +290,31 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                 <div className="rounded-lg border border-[#32BCAD]/40 bg-[#32BCAD]/10 p-4 text-sm">
                   <p className="font-semibold">Contribuição: {formatBRL(event.contribution_cents)}</p>
                   {event.contribution_note && <p className="text-muted-foreground mt-0.5">{event.contribution_note}</p>}
-                  <p className="text-muted-foreground mt-1">Depois de confirmar a inscrição, você escolhe: PIX (com QR Code) ou dinheiro no dia.</p>
+                  <p className="font-medium mt-3 mb-2">
+                    Como você vai pagar? <span className="text-red-500">*</span>
+                  </p>
+                  <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Forma de pagamento">
+                    {([
+                      { v: "pix", icon: QrCode, title: "PIX", sub: "pagar agora" },
+                      { v: "cash", icon: Banknote, title: "Dinheiro", sub: "no dia do evento" },
+                    ] as const).map((o) => (
+                      <button
+                        key={o.v}
+                        type="button"
+                        role="radio"
+                        aria-checked={paymentMethod === o.v}
+                        onClick={() => setPaymentMethod(o.v)}
+                        className={`flex flex-col items-center gap-0.5 rounded-lg border-2 p-3 transition ${
+                          paymentMethod === o.v ? "border-primary bg-primary/10" : "border-border bg-background hover:border-primary/50"
+                        }`}
+                      >
+                        <o.icon className="w-5 h-5 text-primary" />
+                        <span className="font-semibold">{o.title}</span>
+                        <span className="text-[11px] text-muted-foreground">{o.sub}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {paymentMethod === "pix" && <p className="text-muted-foreground mt-2">Depois de confirmar, aparecem o QR Code e o código copia e cola.</p>}
                 </div>
               ) : null}
               <Button type="submit" className="w-full" disabled={submitting}>
@@ -294,6 +328,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                 )}
               </Button>
             </form>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -12,6 +12,7 @@ type Ctx = { params: Promise<{ id: string }> };
 const value = z.union([z.string().max(2000), z.number(), z.boolean(), z.array(z.string().max(200)).max(50), z.null()]);
 const schema = z.object({
   registration_data: z.record(z.string().max(100), value),
+  payment_method: z.enum(["pix", "cash"]).optional(), // forma de pagamento escolhida no formulário
 });
 
 export const POST = handler(async (req, ctx: Ctx) => {
@@ -50,8 +51,11 @@ export const POST = handler(async (req, ctx: Ctx) => {
     data[f.fieldName] = isPhoneFieldType(f.fieldType) && typeof v === "string" ? formatPhoneBR(v) : v;
   }
 
+  // Evento com contribuição: a forma de pagamento é escolhida junto com a inscrição
+  if (event.contributionCents && !body.payment_method) return error("Escolha a forma de pagamento: PIX ou dinheiro no dia");
+
   const registration = await prisma.eventRegistration.create({
-    data: { eventId: id, registrationData: data as object },
+    data: { eventId: id, registrationData: data as object, paymentMethod: event.contributionCents ? body.payment_method : null },
     select: { id: true, createdAt: true },
   });
 
