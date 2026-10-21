@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendPushToAll } from "@/lib/push";
+import { publishTodayEventsToSocial } from "@/lib/social";
 
 /**
  * Envio diário: versículo do dia + eventos de hoje.
@@ -61,6 +62,16 @@ export async function runDailyNotifications(source = "cron") {
     );
   }
   results.events = eventResults;
+
+  // Publicação dos eventos de hoje no Facebook/Instagram: só no envio automático das 7h
+  if (source === "cron") {
+    try {
+      results.social = await publishTodayEventsToSocial(events);
+    } catch (err) {
+      console.error("[redes sociais]", err);
+      results.social = { error: err instanceof Error ? err.message : String(err) };
+    }
+  }
 
   // Aniversário da igreja (fundada em 21/09/2013): todo ano, no dia 21/09
   if (today.slice(5) === ANNIVERSARY_MM_DD) {

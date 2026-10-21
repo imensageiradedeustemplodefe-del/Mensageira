@@ -31,6 +31,8 @@ Painel administrativo: `/admin/login` (usuário/senha do seed: `SEED_ADMIN_EMAIL
 | `CRON_SECRET` | Protege `/api/cron/daily` (a Vercel envia `Authorization: Bearer <CRON_SECRET>`). |
 | `NEXT_PUBLIC_SITE_URL` | URL pública (para metadata/OG). |
 | `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | Admin criado pelo seed. |
+| `META_PAGE_ID` / `META_PAGE_TOKEN` | (Opcional) Publicação automática dos eventos do dia, às 7h, na página do Facebook e no Instagram ligado a ela. Token da página com `pages_manage_posts`, `pages_read_engagement`, `instagram_basic` e `instagram_content_publish`. |
+| `META_IG_USER_ID` | (Opcional) Id da conta profissional do Instagram; se vazio, é descoberto pela página. |
 
 ## Deploy na Vercel
 

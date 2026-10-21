@@ -24,10 +24,10 @@ function loadAssets() {
   return assets;
 }
 
-export async function ogResponse(node: (logo: string) => React.ReactElement) {
+export async function ogResponse(node: (logo: string) => React.ReactElement, size: { width: number; height: number } = OG_SIZE) {
   const { regular, bold, logo } = await loadAssets();
   return new ImageResponse(node(logo), {
-    ...OG_SIZE,
+    ...size,
     fonts: [
       { name: "Roboto", data: regular, weight: 400, style: "normal" },
       { name: "Roboto", data: bold, weight: 700, style: "normal" },
