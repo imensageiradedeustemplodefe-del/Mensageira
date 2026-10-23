@@ -142,7 +142,7 @@ export function AdminPanel({ user }: { user: PanelUser }) {
               <div className="animate-fade-in" key={activeTab}>
                 {show("dashboard") && <DashboardStats />}
                 {show("testimonies") && <TestimoniesManager />}
-                {show("drive") && <GoogleDriveManager />}
+                {show("drive") && <GoogleDriveManager canConfigure={user.role === "admin"} />}
                 {show("media") && <MediaManager />}
                 {show("events") && <EventsManager />}
                 {show("registrations") && <RegistrationsOverview />}

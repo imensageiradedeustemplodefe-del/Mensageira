@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getAdminSession } from "@/lib/auth";
+import { getStaffSession } from "@/lib/auth";
 import { RegistrationsPrintSheet } from "@/components/print/RegistrationsPrintSheet";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ const UUID = /^[0-9a-f-]{36}$/i;
 
 // Lista de inscritos pronta para imprimir ou salvar em PDF (pelo próprio navegador).
 export default async function Page({ params }: { params: Promise<{ eventId: string }> }) {
-  if (!(await getAdminSession())) redirect("/admin/login");
+  if (!(await getStaffSession(["midia"]))) redirect("/admin");
   const { eventId } = await params;
   if (!UUID.test(eventId)) notFound();
 

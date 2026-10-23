@@ -12,21 +12,26 @@ import { useGoogleDriveAlbums, useGoogleDrivePhotos } from '@/hooks/useGoogleDri
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 
-export function GoogleDriveManager() {
+/**
+ * Galeria do Google Drive. Quem pode configurar (admin) vê e muda o Apps Script e a pasta;
+ * a equipe de mídia só sincroniza as pastas para atualizar os álbuns do site.
+ */
+export function GoogleDriveManager({ canConfigure }: { canConfigure: boolean }) {
   const [scriptUrl, setScriptUrl] = useState('');
   const [folderId, setFolderId] = useState('');
   const [loading, setLoading] = useState(false);
-  const isAdmin = true;
-  const [isSaved, setIsSaved] = useState(false);
+  // sem acesso à configuração: considera configurado (se não estiver, a lista de álbuns avisa)
+  const [isSaved, setIsSaved] = useState(!canConfigure);
   const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
 
-  // Fetch albums and photos using existing hooks
-  const { albums, loading: albumsLoading, error: albumsError, refetch: refetchAlbums } = useGoogleDriveAlbums(scriptUrl);
-  const { photos, loading: photosLoading, error: photosError, hasMore, loadMore, refetch: refetchPhotos } = useGoogleDrivePhotos(scriptUrl, selectedAlbumId || undefined);
+  // Os hooks buscam pelo servidor; o argumento só liga/desliga a busca
+  const enabled = isSaved ? 'on' : '';
+  const { albums, loading: albumsLoading, error: albumsError, refetch: refetchAlbums } = useGoogleDriveAlbums(enabled);
+  const { photos, loading: photosLoading, error: photosError, hasMore, loadMore, refetch: refetchPhotos } = useGoogleDrivePhotos(enabled, selectedAlbumId || undefined);
 
   useEffect(() => {
-    loadSettings();
+    if (canConfigure) loadSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -103,30 +108,49 @@ export function GoogleDriveManager() {
   };
 
 
-  if (!isAdmin) {
-    return (
-      <div className="p-6">
+  return (
+    <div className="space-y-6">
+      {isSaved && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Cloud className="w-5 h-5" />
-              Integração com Google Drive
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-center py-8">
-            <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Acesso Negado</h3>
-            <p className="text-muted-foreground mb-6">
-              Apenas administradores podem acessar a integração com Google Drive.
-            </p>
+          <CardContent className="pt-6">
+            <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
+              <div className="flex items-start gap-2">
+                <Database className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                    Atualizar a galeria do site
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Busca as pastas do Google Drive e atualiza os álbuns da galeria (nome, capa e quantidade de fotos).
+                    Rode sempre que criar uma pasta nova ou adicionar fotos. Álbuns novos geram notificação para todos.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={syncAlbums}
+                disabled={syncing}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                {syncing ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Sincronizando...
+                  </>
+                ) : (
+                  <>
+                    <Database className="mr-2 h-4 w-4" />
+                    Sincronizar pastas agora
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <div className="p-6 space-y-6">
+      {canConfigure && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -228,46 +252,14 @@ export function GoogleDriveManager() {
                 </p>
               </div>
               
-              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg space-y-3">
-                <div className="flex items-start gap-2">
-                  <Database className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                      Sincronizar Álbuns com Banco de Dados
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Busca as pastas do Google Drive e atualiza os álbuns da galeria (nome, capa e quantidade de fotos).
-                      Rode sempre que criar uma pasta nova ou adicionar fotos. Álbuns novos geram notificação para todos.
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  onClick={syncAlbums}
-                  disabled={syncing}
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                >
-                  {syncing ? (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Sincronizando...
-                    </>
-                  ) : (
-                    <>
-                      <Database className="mr-2 h-4 w-4" />
-                      Sincronizar Álbuns Agora
-                    </>
-                  )}
-                </Button>
-              </div>
             </div>
           )}
         </CardContent>
       </Card>
+      )}
 
-      {/* Albums and Photos Viewer */}
-      {isSaved && scriptUrl && (
+      {/* Álbuns e fotos do Drive */}
+      {isSaved && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">

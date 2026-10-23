@@ -12,7 +12,7 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
 
 export const ROLE_DESCRIPTIONS: Record<StaffRole, string> = {
   admin: "Acesso a tudo, inclusive usuários e configurações",
-  midia: "Galeria, mídia e rádios, transmissões ao vivo",
+  midia: "Eventos e inscrições, comunidade (orações, mensagens, testemunhos, notificações), mídia, transmissões e sincronizar a galeria",
   secretaria: "Membros, carteirinhas e certificados",
 };
 
@@ -22,7 +22,11 @@ export function isStaffRole(role: unknown): role is StaffRole {
 
 /** Abas do painel liberadas para cada papel (admin vê todas). */
 const TABS: Record<Exclude<StaffRole, "admin">, string[]> = {
-  midia: ["drive", "media", "live"],
+  midia: [
+    "events", "registrations", "templates",
+    "prayers", "contact", "testimonies", "notifications",
+    "drive", "media", "live",
+  ],
   secretaria: ["members", "certificates"],
 };
 
@@ -37,8 +41,15 @@ export function homeTab(role: StaffRole) {
 
 /** Rotas /api/admin/... liberadas para cada papel. O que não está aqui é só do admin. */
 const API: Record<Exclude<StaffRole, "admin">, string[]> = {
-  // settings: a galeria lê e grava só a ligação com o Google Drive (filtrado na própria rota)
-  midia: ["/api/admin/albums", "/api/admin/media", "/api/admin/live", "/api/admin/settings"],
+  midia: [
+    // eventos e inscrições
+    "/api/admin/events", "/api/admin/registrations", "/api/admin/templates",
+    // comunidade (badges = contadores do menu; push = notificações e avisos no celular)
+    "/api/admin/prayers", "/api/admin/contact-messages", "/api/admin/testimonies",
+    "/api/admin/custom-notifications", "/api/admin/push", "/api/admin/push-alerts", "/api/admin/badges",
+    // conteúdo: na galeria, só sincronizar (a configuração do Drive é do admin)
+    "/api/admin/albums/sync", "/api/admin/media", "/api/admin/live",
+  ],
   secretaria: ["/api/admin/members", "/api/admin/certificates"],
 };
 // rotas de qualquer pessoa da equipe (ex.: trocar a própria senha)

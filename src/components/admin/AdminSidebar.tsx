@@ -48,7 +48,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { canSeeTab, type StaffRole } from "@/lib/roles";
+import { canSeeTab, canUseApi, type StaffRole } from "@/lib/roles";
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -127,8 +127,8 @@ export function AdminSidebar({ activeTab, onTabChange, role }: AdminSidebarProps
   const [searchQuery, setSearchQuery] = useState("");
   const [badges, setBadges] = useState<{ contact: number; prayers: number; testimonies: number; live: boolean; registrations?: number } | null>(null);
   useEffect(() => {
-    // contadores (orações, mensagens...) são da área do administrador
-    if (role !== "admin") return;
+    // contadores (orações, mensagens...) só para quem cuida dessas áreas
+    if (!canUseApi(role, "/api/admin/badges")) return;
     const load = () => api<typeof badges>("/api/admin/badges").then(setBadges).catch(() => {});
     load();
     const t = setInterval(load, 60_000);
