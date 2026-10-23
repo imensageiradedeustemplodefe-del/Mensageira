@@ -31,13 +31,13 @@ interface CertificateRow {
   created_at: string;
 }
 
-type Editor = { id: string | null; number?: string; template: CertificateTemplate; memberId: string | null; data: CertificateData };
+type Editor = { id: string | null; template: CertificateTemplate; memberId: string | null; data: CertificateData };
 
 const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
 const NO_MEMBER = "_none";
 
 /** Prévia do certificado reduzida para caber na largura disponível. */
-function ScaledPreview({ template, data, number }: { template: CertificateTemplate; data: CertificateData; number?: string }) {
+function ScaledPreview({ template, data }: { template: CertificateTemplate; data: CertificateData }) {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.5);
   useLayoutEffect(() => {
@@ -52,7 +52,7 @@ function ScaledPreview({ template, data, number }: { template: CertificateTempla
   return (
     <div ref={ref} className="w-full rounded-md border shadow-sm overflow-hidden" style={{ height: SHEET_H * scale }}>
       <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width: SHEET_W, height: SHEET_H }}>
-        <CertificateSheet type={template.id} data={data} number={number} />
+        <CertificateSheet type={template.id} data={data} />
       </div>
     </div>
   );
@@ -80,14 +80,14 @@ export function CertificatesManager() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return (rows ?? []).filter((r) => !q || r.recipient_name.toLowerCase().includes(q) || `${r.number}/${r.year}`.includes(q));
+    return (rows ?? []).filter((r) => !q || r.recipient_name.toLowerCase().includes(q));
   }, [rows, search]);
 
   const openNew = (template: CertificateTemplate) => setEditor({ id: null, template, memberId: null, data: initialCertificateData(template) });
   const openEdit = (r: CertificateRow) => {
     const template = certificateTemplate(r.type);
     if (!template) return;
-    setEditor({ id: r.id, number: `${r.number}/${r.year}`, template, memberId: r.member_id, data: { ...initialCertificateData(template), ...r.data } });
+    setEditor({ id: r.id, template, memberId: r.member_id, data: { ...initialCertificateData(template), ...r.data } });
   };
   const setField = (k: string, v: string) => setEditor((e) => (e ? { ...e, data: { ...e.data, [k]: v } } : e));
 
@@ -129,7 +129,7 @@ export function CertificatesManager() {
       const saved = editor.id
         ? await api<CertificateRow>(`/api/admin/certificates/${editor.id}`, { method: "PATCH", json: body })
         : await api<CertificateRow>("/api/admin/certificates", { method: "POST", json: body });
-      toast({ title: editor.id ? "Certificado atualizado" : `Certificado nº ${saved.number}/${saved.year} emitido` });
+      toast({ title: editor.id ? "Certificado atualizado" : "Certificado salvo" });
       if (win) win.location.href = `/admin/secretaria/certificados/${saved.id}`;
       setEditor(null);
       load();
@@ -142,7 +142,7 @@ export function CertificatesManager() {
   };
 
   const remove = async (r: CertificateRow) => {
-    if (!confirm(`Excluir o certificado nº ${r.number}/${r.year} de ${r.recipient_name}? O número não volta a ser usado.`)) return;
+    if (!confirm(`Excluir o certificado de ${r.recipient_name}?`)) return;
     try {
       await api(`/api/admin/certificates/${r.id}`, { method: "DELETE" });
       load();
@@ -161,7 +161,6 @@ export function CertificatesManager() {
           </Button>
           <h2 className="font-semibold truncate">
             {t.name}
-            {editor.number && <span className="text-muted-foreground font-normal"> · nº {editor.number}</span>}
           </h2>
         </div>
         <div className="grid lg:grid-cols-[minmax(280px,360px)_1fr] gap-4 items-start">
@@ -236,7 +235,7 @@ export function CertificatesManager() {
             </CardContent>
           </Card>
           <div className="min-w-0 space-y-2 lg:sticky lg:top-20">
-            <ScaledPreview template={t} data={editor.data} number={editor.number} />
+            <ScaledPreview template={t} data={editor.data} />
             <p className="text-xs text-muted-foreground">
               Prévia. O texto se ajusta ao tamanho dos nomes. Na impressão escolha papel A4, orientação paisagem e margens “nenhuma”.
             </p>
@@ -250,21 +249,11 @@ export function CertificatesManager() {
     <div className="space-y-4">
       <div>
         <h3 className="text-sm font-medium text-muted-foreground mb-2">Emitir novo certificado</h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="flex flex-wrap gap-2">
           {CERTIFICATES.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => openNew(t)}
-              className="group text-left rounded-lg border bg-card overflow-hidden hover:border-primary transition-colors"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={t.background} alt="" className="w-full aspect-[297/210] object-cover" />
-              <div className="p-3 flex items-center justify-between gap-2">
-                <span className="font-medium text-sm">{t.name}</span>
-                <Plus className="w-4 h-4 text-primary shrink-0" />
-              </div>
-            </button>
+            <Button key={t.id} variant="outline" className="gap-2" onClick={() => openNew(t)}>
+              <Plus className="w-4 h-4 text-primary" /> {t.name}
+            </Button>
           ))}
         </div>
       </div>
@@ -275,7 +264,7 @@ export function CertificatesManager() {
         </h3>
         <div className="relative sm:w-72">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Buscar por nome ou número" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar por nome" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
       </div>
 
@@ -294,10 +283,7 @@ export function CertificatesManager() {
           {filtered.map((r) => (
             <Card key={r.id}>
               <CardContent className="p-3 flex items-center gap-3">
-                <div className="text-center shrink-0 w-14">
-                  <div className="text-lg font-bold leading-none">{r.number}</div>
-                  <div className="text-xs text-muted-foreground">{r.year}</div>
-                </div>
+                <Award className="w-5 h-5 text-primary shrink-0" />
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold truncate">{r.recipient_name}</div>
                   <div className="text-xs text-muted-foreground truncate">

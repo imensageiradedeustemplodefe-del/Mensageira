@@ -23,7 +23,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   return (
     <div className="certificate-print">
       <AutoPrint />
-      <CertificateSheet type={template.id} data={cert.data as CertificateData} number={`${cert.number}/${cert.year}`} />
+      <CertificateSheet type={template.id} data={cert.data as CertificateData} />
       <style>{`
         @page { size: A4 landscape; margin: 0; }
         html, body { background: #e5e7eb; }

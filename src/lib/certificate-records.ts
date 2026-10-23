@@ -20,5 +20,7 @@ export function validateCertificate(type: string, raw: Record<string, string>) {
     if (field.type === "date" && value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new HttpError(400, `Data inválida: ${field.label}`);
     data[field.key] = value;
   }
-  return { template, data, recipientName: data.nome || "—" };
+  // nome que aparece no histórico (no casamento, o casal)
+  const recipientName = data.nome || [data.noivo, data.noiva].filter(Boolean).join(" e ") || "—";
+  return { template, data, recipientName };
 }

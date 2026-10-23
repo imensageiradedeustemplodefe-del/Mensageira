@@ -16,7 +16,7 @@ const MIN_FONT = 14;
  * Certificado pronto: arte de fundo + texto corrido que diminui a letra até caber na área do texto.
  * Recebe o tipo (e não o modelo) porque o modelo tem funções, que não passam do servidor para o navegador.
  */
-export function CertificateSheet({ type, data, number }: { type: string; data: CertificateData; number?: string }) {
+export function CertificateSheet({ type, data }: { type: string; data: CertificateData }) {
   const template = certificateTemplate(type)!;
   const boxRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
@@ -81,7 +81,6 @@ export function CertificateSheet({ type, data, number }: { type: string; data: C
           {s.role && <div style={{ fontSize: 13 }}>{s.role}</div>}
         </div>
       ))}
-      {number && <div style={{ position: "absolute", right: "3%", bottom: "1.8%", fontSize: 12, color: template.numberColor ?? "#e9dcb8" }}>Nº {number}</div>}
     </div>
   );
 }

@@ -35,8 +35,6 @@ export interface CertificateTemplate {
   id: string;
   name: string;
   background: string;
-  /** Cor do número do certificado (canto inferior direito), para contrastar com a arte. */
-  numberColor?: string;
   fields: CertificateField[];
   /** Área do texto corrido (% da página). */
   body: { left: number; top: number; width: number; height: number };
@@ -105,7 +103,6 @@ const batismo: CertificateTemplate = {
   id: "batismo",
   name: "Batismo",
   background: "/certificados/batismo.jpg",
-  numberColor: "#9a7b45",
   fields: [
     { key: "nome", label: "Nome completo", type: "text", required: true, fromMember: "name" },
     { key: "genero", label: "Tratamento", type: "gender", initial: "M", fromMember: "gender" },
@@ -140,7 +137,6 @@ const casamento: CertificateTemplate = {
   id: "casamento",
   name: "Casamento",
   background: "/certificados/casamento.jpg",
-  numberColor: "#9a7b45",
   fields: [
     { key: "noivo", label: "Nome do noivo", type: "text", required: true },
     { key: "noiva", label: "Nome da noiva", type: "text", required: true },
@@ -167,7 +163,6 @@ const obreiro: CertificateTemplate = {
   id: "obreiro",
   name: "Obreiro(a)",
   background: "/certificados/obreiro.jpg",
-  numberColor: "#9a7b45",
   fields: [
     { key: "nome", label: "Nome completo", type: "text", required: true, fromMember: "name" },
     { key: "genero", label: "Tratamento", type: "gender", initial: "M", fromMember: "gender" },
@@ -204,7 +199,6 @@ const apresentacao: CertificateTemplate = {
   id: "apresentacao",
   name: "Apresentação de criança",
   background: "/certificados/apresentacao.jpg",
-  numberColor: "#5b7f9a",
   fields: [
     { key: "nome", label: "Nome da criança", type: "text", required: true },
     { key: "genero", label: "Menino ou menina", type: "gender", initial: "M" },

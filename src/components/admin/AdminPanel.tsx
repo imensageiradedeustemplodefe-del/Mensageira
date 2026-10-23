@@ -59,7 +59,7 @@ const DESCRIPTIONS: Record<string, string> = {
   live: "Configure transmissões ao vivo",
   notifications: "Envie notificações personalizadas aos usuários",
   members: "Cadastro de membros, quem trabalha na obra, grupos e carteirinhas",
-  certificates: "Emita certificados numerados e imprima ou salve em PDF",
+  certificates: "Emita certificados e imprima ou salve em PDF",
   settings: "Textos, contatos, horários e integrações",
 };
 
