@@ -131,7 +131,109 @@ const batismo: CertificateTemplate = {
   ],
 };
 
-export const CERTIFICATES: CertificateTemplate[] = [batismo, ordenacaoPastoral];
+const PASTOR_FIELDS: CertificateField[] = [
+  { key: "assinante", label: "Quem assina (pastor)", type: "text", required: true, initial: "Gilmar José Radaelli" },
+  { key: "funcao", label: "Cargo de quem assina", type: "text", initial: "Pastor" },
+];
+
+const casamento: CertificateTemplate = {
+  id: "casamento",
+  name: "Casamento",
+  background: "/certificados/casamento.jpg",
+  numberColor: "#9a7b45",
+  fields: [
+    { key: "noivo", label: "Nome do noivo", type: "text", required: true },
+    { key: "noiva", label: "Nome da noiva", type: "text", required: true },
+    { key: "data", label: "Data do casamento", type: "date", required: true, initial: "today" },
+    { key: "testemunha1", label: "Testemunha 1 (opcional)", type: "text" },
+    { key: "testemunha2", label: "Testemunha 2 (opcional)", type: "text" },
+    ...PASTOR_FIELDS,
+  ],
+  body: { left: 24, top: 39.5, width: 54, height: 19 },
+  text: (d) => [
+    { text: `${f(d, "noivo") || "—"} e ${f(d, "noiva") || "—"}`, strong: true, big: true },
+    { text: "pela realização do seu matrimônio no dia " },
+    { text: longDate(d.data), strong: true },
+    { text: "." },
+  ],
+  signatures: (d) => [
+    { left: 39, top: 68, width: 17.6, name: f(d, "assinante"), role: f(d, "funcao") },
+    { left: 19.5, top: 76.3, width: 18.7, name: f(d, "testemunha1"), role: "Testemunha" },
+    { left: 57.1, top: 76.3, width: 16.5, name: f(d, "testemunha2"), role: "Testemunha" },
+  ],
+};
+
+const obreiro: CertificateTemplate = {
+  id: "obreiro",
+  name: "Obreiro(a)",
+  background: "/certificados/obreiro.jpg",
+  numberColor: "#9a7b45",
+  fields: [
+    { key: "nome", label: "Nome completo", type: "text", required: true, fromMember: "name" },
+    { key: "genero", label: "Tratamento", type: "gender", initial: "M", fromMember: "gender" },
+    { key: "pai", label: "Nome do pai", type: "text" },
+    { key: "mae", label: "Nome da mãe", type: "text" },
+    { key: "data", label: "Data da separação", type: "date", required: true, initial: "today" },
+    { key: "igreja", label: "Igreja", type: "text", required: true, initial: CHURCH_NAME },
+    ...PASTOR_FIELDS,
+  ],
+  body: { left: 9, top: 30, width: 82, height: 34 },
+  text: (d) => {
+    const fem = d.genero === "F";
+    const parents = [f(d, "pai"), f(d, "mae")].filter(Boolean);
+    const runs: CertificateRun[] = [{ text: "Certifico que " }, { text: f(d, "nome") || "—", strong: true }];
+    if (parents.length) {
+      runs.push({ text: fem ? ", filha de " : ", filho de " }, { text: parents[0], strong: true });
+      if (parents[1]) runs.push({ text: " e " }, { text: parents[1], strong: true });
+    }
+    runs.push(
+      { text: fem ? ", foi separada para o trabalho na Casa do Senhor, como " : ", foi separado para o trabalho na Casa do Senhor, como " },
+      { text: fem ? "Obreira" : "Obreiro", strong: true },
+      { text: ", no dia " },
+      { text: longDate(d.data), strong: true },
+      { text: ", na " },
+      { text: f(d, "igreja"), strong: true },
+      { text: "." },
+    );
+    return runs;
+  },
+  signatures: (d) => [{ left: 64.3, top: 73.8, width: 21, name: f(d, "assinante"), role: f(d, "funcao") }],
+};
+
+const apresentacao: CertificateTemplate = {
+  id: "apresentacao",
+  name: "Apresentação de criança",
+  background: "/certificados/apresentacao.jpg",
+  numberColor: "#5b7f9a",
+  fields: [
+    { key: "nome", label: "Nome da criança", type: "text", required: true },
+    { key: "genero", label: "Menino ou menina", type: "gender", initial: "M" },
+    { key: "nascimento", label: "Data de nascimento", type: "date" },
+    { key: "pai", label: "Nome do pai", type: "text" },
+    { key: "mae", label: "Nome da mãe", type: "text" },
+    { key: "cidade", label: "Cidade", type: "text", placeholder: "Ex.: Caçador" },
+    { key: "data", label: "Data da apresentação", type: "date", required: true, initial: "today" },
+    ...PASTOR_FIELDS,
+  ],
+  body: { left: 9, top: 36, width: 82, height: 18 },
+  text: (d) => {
+    const fem = d.genero === "F";
+    const parents = [f(d, "pai"), f(d, "mae")].filter(Boolean);
+    const runs: CertificateRun[] = [{ text: "Certificamos que " }, { text: f(d, "nome") || "—", strong: true }];
+    if (f(d, "nascimento")) runs.push({ text: fem ? ", nascida em " : ", nascido em " }, { text: longDate(d.nascimento), strong: true });
+    if (parents.length) {
+      runs.push({ text: fem ? ", filha de " : ", filho de " }, { text: parents[0], strong: true });
+      if (parents[1]) runs.push({ text: " e " }, { text: parents[1], strong: true });
+    }
+    runs.push({ text: fem ? ", foi apresentada" : ", foi apresentado" }, { text: " ao Senhor Jesus Cristo conforme a palavra de Deus em Lucas 2:22" });
+    if (f(d, "cidade")) runs.push({ text: ", em " }, { text: f(d, "cidade"), strong: true });
+    runs.push({ text: ", no dia " }, { text: longDate(d.data), strong: true }, { text: "." });
+    return runs;
+  },
+  signatures: (d) => [{ left: 47.3, top: 72.9, width: 23.9, name: f(d, "assinante"), role: f(d, "funcao") }],
+};
+
+export const CERTIFICATES: CertificateTemplate[] = [batismo, apresentacao, casamento, obreiro, ordenacaoPastoral];
 
 export function certificateTemplate(type: string) {
   return CERTIFICATES.find((c) => c.id === type);
