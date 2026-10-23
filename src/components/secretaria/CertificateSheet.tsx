@@ -58,7 +58,11 @@ export function CertificateSheet({ type, data, number }: { type: string; data: C
       >
         <p ref={textRef} style={{ margin: 0, textAlign: "center", lineHeight: 1.55, fontWeight: 500, fontSize: MAX_FONT }}>
           {runs.map((r, i) =>
-            r.strong ? (
+            r.big ? (
+              <strong key={i} style={{ display: "block", fontSize: "1.6em", fontWeight: 700, color: "#5a3d12", lineHeight: 1.3, margin: "0.15em 0" }}>
+                {r.text}
+              </strong>
+            ) : r.strong ? (
               <strong key={i} style={{ fontWeight: 700, color: "#5a3d12" }}>
                 {r.text}
               </strong>
@@ -77,7 +81,7 @@ export function CertificateSheet({ type, data, number }: { type: string; data: C
           {s.role && <div style={{ fontSize: 13 }}>{s.role}</div>}
         </div>
       ))}
-      {number && <div style={{ position: "absolute", right: "3%", bottom: "1.8%", fontSize: 12, color: "#e9dcb8" }}>Nº {number}</div>}
+      {number && <div style={{ position: "absolute", right: "3%", bottom: "1.8%", fontSize: 12, color: template.numberColor ?? "#e9dcb8" }}>Nº {number}</div>}
     </div>
   );
 }

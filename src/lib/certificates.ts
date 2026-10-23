@@ -14,13 +14,13 @@ export interface CertificateField {
   /** Valor inicial do formulário ("today" = data de hoje). */
   initial?: string;
   /** Campo puxado do cadastro do membro, quando um membro é escolhido. */
-  fromMember?: "name" | "gender" | "birthDate" | "bairro" | "cidade" | "uf";
+  fromMember?: "name" | "gender" | "birthDate" | "baptismDate" | "bairro" | "cidade" | "uf";
 }
 
 export type CertificateData = Record<string, string>;
 
-/** Trecho do texto do certificado; `strong` = dado preenchido (destacado). */
-export type CertificateRun = { text: string; strong?: boolean };
+/** Trecho do texto do certificado; `strong` = dado preenchido (destacado); `big` = linha própria, em letra maior (nome). */
+export type CertificateRun = { text: string; strong?: boolean; big?: boolean };
 
 export interface CertificateSignature {
   /** Posição da linha de assinatura na arte (% da página). */
@@ -35,6 +35,8 @@ export interface CertificateTemplate {
   id: string;
   name: string;
   background: string;
+  /** Cor do número do certificado (canto inferior direito), para contrastar com a arte. */
+  numberColor?: string;
   fields: CertificateField[];
   /** Área do texto corrido (% da página). */
   body: { left: number; top: number; width: number; height: number };
@@ -68,7 +70,7 @@ const ordenacaoPastoral: CertificateTemplate = {
   fields: [
     { key: "nome", label: "Nome completo", type: "text", required: true, fromMember: "name" },
     { key: "genero", label: "Tratamento", type: "gender", initial: "M", fromMember: "gender" },
-    { key: "nascimento", label: "Data de nascimento", type: "date", fromMember: "birthDate" },
+    { key: "naturalidade", label: "Nascido(a) em (cidade)", type: "text", placeholder: "Ex.: Caçador" },
     { key: "igreja", label: "Ordenado(a) pela igreja", type: "text", required: true, initial: CHURCH_NAME },
     { key: "bairro", label: "Bairro", type: "text", fromMember: "bairro" },
     { key: "cidade", label: "Cidade", type: "text", required: true, fromMember: "cidade" },
@@ -84,7 +86,7 @@ const ordenacaoPastoral: CertificateTemplate = {
       { text: fem ? "Certificamos que a Sra. " : "Certificamos que o Sr. " },
       { text: f(d, "nome") || "—", strong: true },
     ];
-    if (f(d, "nascimento")) runs.push({ text: fem ? ", nascida em " : ", nascido em " }, { text: longDate(d.nascimento), strong: true });
+    if (f(d, "naturalidade")) runs.push({ text: fem ? ", nascida em " : ", nascido em " }, { text: f(d, "naturalidade"), strong: true });
     runs.push({ text: fem ? ", foi ordenada Pastora pela " : ", foi ordenado Pastor pela " }, { text: f(d, "igreja"), strong: true });
     const place = [f(d, "bairro") && `bairro ${f(d, "bairro")}`, [f(d, "cidade"), f(d, "uf").toUpperCase()].filter(Boolean).join("/")]
       .filter(Boolean)
@@ -99,7 +101,37 @@ const ordenacaoPastoral: CertificateTemplate = {
   ],
 };
 
-export const CERTIFICATES: CertificateTemplate[] = [ordenacaoPastoral];
+const batismo: CertificateTemplate = {
+  id: "batismo",
+  name: "Batismo",
+  background: "/certificados/batismo.jpg",
+  numberColor: "#9a7b45",
+  fields: [
+    { key: "nome", label: "Nome completo", type: "text", required: true, fromMember: "name" },
+    { key: "genero", label: "Tratamento", type: "gender", initial: "M", fromMember: "gender" },
+    { key: "data", label: "Data do batismo", type: "date", required: true, initial: "today", fromMember: "baptismDate" },
+    { key: "assinante", label: "Quem assina (pastor)", type: "text", required: true, initial: "Gilmar José Radaelli" },
+    { key: "funcao", label: "Cargo de quem assina", type: "text", initial: "Pastor" },
+  ],
+  body: { left: 15, top: 56, width: 70, height: 26 },
+  text: (d) => [
+    { text: "Certificamos que" },
+    { text: f(d, "nome") || "—", strong: true, big: true },
+    { text: "crendo e obedecendo às Sagradas Escrituras e às doutrinas ensinadas por Jesus Cristo, " },
+    { text: d.genero === "F" ? "foi batizada" : "foi batizado" },
+    { text: " sob profissão de fé, em nome do " },
+    { text: "Pai, do Filho e do Espírito Santo", strong: true },
+    { text: ", no dia " },
+    { text: longDate(d.data), strong: true },
+    { text: "." },
+  ],
+  signatures: (d) => [
+    { left: 22.2, top: 87.3, width: 20.8, name: f(d, "assinante"), role: f(d, "funcao") },
+    { left: 57.2, top: 87.3, width: 20.6, name: f(d, "nome"), role: d.genero === "F" ? "Batizada" : "Batizado" },
+  ],
+};
+
+export const CERTIFICATES: CertificateTemplate[] = [batismo, ordenacaoPastoral];
 
 export function certificateTemplate(type: string) {
   return CERTIFICATES.find((c) => c.id === type);

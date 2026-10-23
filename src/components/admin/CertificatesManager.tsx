@@ -101,7 +101,13 @@ export function CertificatesManager() {
       for (const f of e.template.fields) {
         if (!f.fromMember) continue;
         const v =
-          f.fromMember === "name" ? m.name : f.fromMember === "birthDate" ? (m.birth_date ?? "").slice(0, 10) : (m[f.fromMember] ?? "");
+          f.fromMember === "name"
+            ? m.name
+            : f.fromMember === "birthDate"
+              ? (m.birth_date ?? "").slice(0, 10)
+              : f.fromMember === "baptismDate"
+                ? (m.baptism_date ?? "").slice(0, 10)
+                : (m[f.fromMember] ?? "");
         if (v) data[f.key] = v;
       }
       return { ...e, memberId: id, data };
