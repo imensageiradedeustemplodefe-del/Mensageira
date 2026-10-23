@@ -1,9 +1,9 @@
-import NextAuth, { type DefaultSession } from "next-auth";
+import NextAuth, { CredentialsSignin, type DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { clientIp, hit } from "@/lib/rate-limit";
+import { clientIp, hit, overLimit } from "@/lib/rate-limit";
 import { isStaffRole, type StaffRole } from "@/lib/roles";
 
 type AnyRole = StaffRole | "moderator" | "user";
@@ -28,6 +28,11 @@ const credentialsSchema = z.object({
   password: z.string().min(6).max(200),
 });
 
+/** Login bloqueado por excesso de tentativas erradas (a tela mostra uma mensagem própria). */
+class TooManyAttempts extends CredentialsSignin {
+  code = "too_many_attempts";
+}
+
 /** De quanto em quanto tempo a sessão confere no banco se o usuário ainda existe e qual é o papel. */
 const RECHECK_MS = 5 * 60 * 1000;
 
@@ -45,12 +50,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
 
-        // Contra tentativa de adivinhar senha: no máximo 10 tentativas a cada 15 min por IP
-        // e 30 por hora para o mesmo usuário (vindas de qualquer lugar)
+        // Contra tentativa de adivinhar senha: no máximo 10 tentativas ERRADAS a cada 15 min por IP
+        // e 30 por hora para o mesmo usuário (vindas de qualquer lugar). Login certo não conta,
+        // senão a equipe entrando com vários usuários do mesmo lugar ficava bloqueada.
         const login = parsed.data.login.toLowerCase();
-        const ipOk = await hit(`login-ip:${clientIp(request)}`, 10, 900);
-        const userOk = await hit(`login-user:${login}`, 30, 3600);
-        if (!ipOk || !userOk) return null;
+        const ipKey = `login-ip:${clientIp(request)}`;
+        const userKey = `login-user:${login}`;
+        if ((await overLimit(ipKey, 10)) || (await overLimit(userKey, 30))) throw new TooManyAttempts();
+        const failed = async () => {
+          await hit(ipKey, 10, 900);
+          await hit(userKey, 30, 3600);
+          return null;
+        };
 
         const user = await prisma.user.findUnique({
           where: login.includes("@") ? { email: login } : { username: login },
@@ -58,11 +69,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user || !isStaffRole(user.role)) {
           // mesmo tempo de resposta com ou sem usuário (não revela quais usuários existem)
           await bcrypt.compare(parsed.data.password, "$2a$10$CwTycUXWue0Thq9StjUM0uJ8.UpN0Zl6WuJ3mJhDmlCuLwMz2VK8a");
-          return null;
+          return failed();
         }
 
         const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
-        if (!ok) return null;
+        if (!ok) return failed();
 
         return { id: user.id, email: user.email, name: user.name, role: user.role, username: user.username };
       },

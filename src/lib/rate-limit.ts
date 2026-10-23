@@ -28,6 +28,17 @@ export async function hit(key: string, limit: number, windowSeconds: number) {
   }
 }
 
+/** Diz se `key` já chegou a `limit` na janela atual, sem contar mais uma. */
+export async function overLimit(key: string, limit: number) {
+  try {
+    const row = await prisma.rateLimit.findUnique({ where: { key } });
+    return !!row && row.resetAt > new Date() && row.count >= limit;
+  } catch (err) {
+    console.error("rate limit:", err);
+    return false;
+  }
+}
+
 /** Lança 429 quando o IP passou do limite para esta ação. */
 export async function limitOrThrow(req: Request, action: string, limit: number, windowSeconds: number) {
   if (!(await hit(`${action}:${clientIp(req)}`, limit, windowSeconds))) {

@@ -25,7 +25,11 @@ export function AdminLoginPage() {
     const result = await signIn("credentials", { login, password, redirect: false });
 
     if (result?.error) {
-      setError("Usuário ou senha inválidos.");
+      setError(
+        result.code === "too_many_attempts"
+          ? "Muitas tentativas erradas. Aguarde 15 minutos e tente de novo."
+          : "Usuário ou senha inválidos. Use o nome de usuário (ex.: maria), não o nome completo.",
+      );
       setIsSubmitting(false);
       return;
     }
