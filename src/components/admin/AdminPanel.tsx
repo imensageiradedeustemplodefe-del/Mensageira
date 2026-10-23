@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
-import { LogOut } from "lucide-react";
+import { LogOut, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import {
@@ -28,6 +28,9 @@ import { CustomNotificationsManager } from "@/components/admin/CustomNotificatio
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
 import { MembersManager } from "@/components/admin/MembersManager";
 import { CertificatesManager } from "@/components/admin/CertificatesManager";
+import { UsersManager } from "@/components/admin/UsersManager";
+import { ChangePasswordDialog } from "@/components/admin/ChangePasswordDialog";
+import { canSeeTab, homeTab, ROLE_LABELS, type StaffRole } from "@/lib/roles";
 
 const TITLES: Record<string, string> = {
   dashboard: "Dashboard",
@@ -43,6 +46,7 @@ const TITLES: Record<string, string> = {
   notifications: "Notificações Personalizadas",
   members: "Membros",
   certificates: "Certificados",
+  users: "Usuários",
   settings: "Configurações do Site",
 };
 
@@ -60,16 +64,26 @@ const DESCRIPTIONS: Record<string, string> = {
   notifications: "Envie notificações personalizadas aos usuários",
   members: "Cadastro de membros, quem trabalha na obra, grupos e carteirinhas",
   certificates: "Emita certificados e imprima ou salve em PDF",
+  users: "Quem entra no painel e o que cada um pode acessar",
   settings: "Textos, contatos, horários e integrações",
 };
 
-export function AdminPanel() {
-  const [activeTab, setActiveTab] = useState("dashboard");
+export interface PanelUser {
+  id: string;
+  role: StaffRole;
+  name: string;
+  username: string;
+}
+
+export function AdminPanel({ user }: { user: PanelUser }) {
+  const [activeTab, setActiveTab] = useState(() => homeTab(user.role));
+  const [passwordOpen, setPasswordOpen] = useState(false);
   // link de notificação: /admin?tab=registrations&event=...
   useEffect(() => {
     const tab = new URLSearchParams(window.location.search).get("tab");
-    if (tab && tab in TITLES) setActiveTab(tab);
-  }, []);
+    if (tab && tab in TITLES && canSeeTab(user.role, tab)) setActiveTab(tab);
+  }, [user.role]);
+  const show = (tab: string) => activeTab === tab && canSeeTab(user.role, tab);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/" });
@@ -80,7 +94,7 @@ export function AdminPanel() {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full bg-background">
-        <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} role={user.role} />
 
         <main className="flex-1 flex flex-col min-w-0">
           <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -103,7 +117,15 @@ export function AdminPanel() {
                 <h1 className="sm:hidden text-sm font-semibold truncate">{title}</h1>
               </div>
 
-              <Button onClick={handleLogout} variant="ghost" size="sm" className="ml-auto flex-shrink-0">
+              <div className="hidden md:flex flex-col items-end leading-tight ml-auto text-right">
+                <span className="text-sm font-medium">{user.name}</span>
+                <span className="text-xs text-muted-foreground">{ROLE_LABELS[user.role]}</span>
+              </div>
+              <Button onClick={() => setPasswordOpen(true)} variant="ghost" size="sm" className="ml-auto md:ml-0 flex-shrink-0" title="Trocar minha senha">
+                <KeyRound className="w-4 h-4" />
+                <span className="hidden sm:inline sm:ml-2">Senha</span>
+              </Button>
+              <Button onClick={handleLogout} variant="ghost" size="sm" className="flex-shrink-0">
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline sm:ml-2">Sair</span>
               </Button>
@@ -118,25 +140,27 @@ export function AdminPanel() {
               </div>
 
               <div className="animate-fade-in" key={activeTab}>
-                {activeTab === "dashboard" && <DashboardStats />}
-                {activeTab === "testimonies" && <TestimoniesManager />}
-                {activeTab === "drive" && <GoogleDriveManager />}
-                {activeTab === "media" && <MediaManager />}
-                {activeTab === "events" && <EventsManager />}
-                {activeTab === "registrations" && <RegistrationsOverview />}
-                {activeTab === "templates" && <EventTemplatesManager />}
-                {activeTab === "prayers" && <PrayerRequestsManager />}
-                {activeTab === "contact" && <ContactMessagesManager />}
-                {activeTab === "live" && <LiveStreamsManager />}
-                {activeTab === "notifications" && <CustomNotificationsManager />}
-                {activeTab === "settings" && <SiteSettingsManager />}
-                {activeTab === "members" && <MembersManager />}
-                {activeTab === "certificates" && <CertificatesManager />}
+                {show("dashboard") && <DashboardStats />}
+                {show("testimonies") && <TestimoniesManager />}
+                {show("drive") && <GoogleDriveManager />}
+                {show("media") && <MediaManager />}
+                {show("events") && <EventsManager />}
+                {show("registrations") && <RegistrationsOverview />}
+                {show("templates") && <EventTemplatesManager />}
+                {show("prayers") && <PrayerRequestsManager />}
+                {show("contact") && <ContactMessagesManager />}
+                {show("live") && <LiveStreamsManager />}
+                {show("notifications") && <CustomNotificationsManager />}
+                {show("settings") && <SiteSettingsManager />}
+                {show("members") && <MembersManager />}
+                {show("certificates") && <CertificatesManager />}
+                {show("users") && <UsersManager currentUserId={user.id} />}
               </div>
             </div>
           </div>
         </main>
       </div>
+      <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
     </SidebarProvider>
   );
 }

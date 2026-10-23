@@ -4,23 +4,32 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { clientIp, hit } from "@/lib/rate-limit";
+import { isStaffRole, type StaffRole } from "@/lib/roles";
+
+type AnyRole = StaffRole | "moderator" | "user";
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      role: "admin" | "moderator" | "user";
+      role: AnyRole;
+      username: string;
     } & DefaultSession["user"];
   }
   interface User {
-    role?: "admin" | "moderator" | "user";
+    role?: AnyRole;
+    username?: string;
   }
 }
 
+// "login" = nome de usuário (ou o e-mail antigo, para quem ainda digita o e-mail)
 const credentialsSchema = z.object({
-  email: z.string().email().max(255),
+  login: z.string().trim().min(2).max(255),
   password: z.string().min(6).max(200),
 });
+
+/** De quanto em quanto tempo a sessão confere no banco se o usuário ainda existe e qual é o papel. */
+const RECHECK_MS = 5 * 60 * 1000;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   // sessão do painel vale 7 dias
@@ -29,7 +38,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "E-mail", type: "email" },
+        login: { label: "Usuário", type: "text" },
         password: { label: "Senha", type: "password" },
       },
       async authorize(raw, request) {
@@ -37,17 +46,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!parsed.success) return null;
 
         // Contra tentativa de adivinhar senha: no máximo 10 tentativas a cada 15 min por IP
-        // e 30 por hora para o mesmo e-mail (vindas de qualquer lugar)
-        const email = parsed.data.email.toLowerCase().trim();
+        // e 30 por hora para o mesmo usuário (vindas de qualquer lugar)
+        const login = parsed.data.login.toLowerCase();
         const ipOk = await hit(`login-ip:${clientIp(request)}`, 10, 900);
-        const emailOk = await hit(`login-email:${email}`, 30, 3600);
-        if (!ipOk || !emailOk) return null;
+        const userOk = await hit(`login-user:${login}`, 30, 3600);
+        if (!ipOk || !userOk) return null;
 
         const user = await prisma.user.findUnique({
-          where: { email },
+          where: login.includes("@") ? { email: login } : { username: login },
         });
-        if (!user) {
-          // mesmo tempo de resposta com ou sem usuário (não revela quais e-mails existem)
+        if (!user || !isStaffRole(user.role)) {
+          // mesmo tempo de resposta com ou sem usuário (não revela quais usuários existem)
           await bcrypt.compare(parsed.data.password, "$2a$10$CwTycUXWue0Thq9StjUM0uJ8.UpN0Zl6WuJ3mJhDmlCuLwMz2VK8a");
           return null;
         }
@@ -55,29 +64,53 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!ok) return null;
 
-        return { id: user.id, email: user.email, name: user.name, role: user.role };
+        return { id: user.id, email: user.email, name: user.name, role: user.role, username: user.username };
       },
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.username = user.username;
+        token.checkedAt = Date.now();
+        return token;
+      }
+      // usuário excluído ou com papel trocado: vale em poucos minutos, sem esperar a sessão vencer
+      if (token.id && Date.now() - Number(token.checkedAt ?? 0) > RECHECK_MS) {
+        const current = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, username: true, name: true },
+        });
+        if (!current || !isStaffRole(current.role)) return null;
+        token.role = current.role;
+        token.username = current.username;
+        token.name = current.name;
+        token.checkedAt = Date.now();
       }
       return token;
     },
     session({ session, token }) {
       session.user.id = token.id as string;
-      session.user.role = (token.role as "admin" | "moderator" | "user") ?? "user";
+      session.user.role = (token.role as AnyRole) ?? "user";
+      session.user.username = (token.username as string) ?? "";
       return session;
     },
   },
 });
 
-/** Returns the session if the current user is an admin, otherwise null. */
-export async function getAdminSession() {
+/** Sessão de alguém da equipe (admin, mídia ou secretaria), ou null. Com `roles`, só se o papel estiver na lista. */
+export async function getStaffSession(roles?: StaffRole[]) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "admin") return null;
-  return session;
+  const role = session?.user?.role;
+  if (!session?.user || !isStaffRole(role)) return null;
+  if (roles && role !== "admin" && !roles.includes(role)) return null;
+  return session as typeof session & { user: { role: StaffRole } };
+}
+
+/** Sessão de administrador, ou null. */
+export async function getAdminSession() {
+  const session = await getStaffSession();
+  return session?.user.role === "admin" ? session : null;
 }

@@ -22,6 +22,7 @@ import {
   Home,
   Inbox,
   ClipboardList,
+  UserCog,
   Contact,
   Award,
   Briefcase
@@ -47,10 +48,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { canSeeTab, type StaffRole } from "@/lib/roles";
 
 interface AdminSidebarProps {
   activeTab: string;
   onTabChange: (value: string) => void;
+  role: StaffRole;
 }
 
 type BadgeKey = "contact" | "prayers" | "testimonies" | "live" | "registrations";
@@ -111,21 +114,26 @@ const menuItems: {
     title: "Sistema",
     icon: Settings,
     defaultOpen: true,
-    items: [{ title: "Configurações", value: "settings", icon: Settings, description: "Textos, contatos e horários" }],
+    items: [
+      { title: "Configurações", value: "settings", icon: Settings, description: "Textos, contatos e horários" },
+      { title: "Usuários", value: "users", icon: UserCog, description: "Acessos ao painel" },
+    ],
   },
 ];
 
-export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
+export function AdminSidebar({ activeTab, onTabChange, role }: AdminSidebarProps) {
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [searchQuery, setSearchQuery] = useState("");
   const [badges, setBadges] = useState<{ contact: number; prayers: number; testimonies: number; live: boolean; registrations?: number } | null>(null);
   useEffect(() => {
+    // contadores (orações, mensagens...) são da área do administrador
+    if (role !== "admin") return;
     const load = () => api<typeof badges>("/api/admin/badges").then(setBadges).catch(() => {});
     load();
     const t = setInterval(load, 60_000);
     return () => clearInterval(t);
-  }, [activeTab]);
+  }, [activeTab, role]);
   const badgeFor = (key?: BadgeKey) => {
     if (!key || !badges) return null;
     if (key === "live") return badges.live ? "Ao Vivo" : null;
@@ -142,7 +150,7 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
 
   const filteredMenuItems = menuItems.map(group => ({
     ...group,
-    items: group.items.filter(item => 
+    items: group.items.filter(item => canSeeTab(role, item.value)).filter(item => 
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description?.toLowerCase().includes(searchQuery.toLowerCase())
     )

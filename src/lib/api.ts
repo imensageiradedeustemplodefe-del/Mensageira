@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ZodError, type ZodType } from "zod";
-import { getAdminSession } from "@/lib/auth";
+import { getStaffSession } from "@/lib/auth";
+import { canUseApi } from "@/lib/roles";
 import { HttpError } from "@/lib/http-error";
 import { refreshPublicData } from "@/lib/public-cache";
 
@@ -14,10 +15,13 @@ export function error(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
-/** Throws a 401 HttpError when the current user is not an admin. */
+/**
+ * Exige alguém da equipe logado (401 se não). Qual área cada papel alcança (admin, mídia, secretaria)
+ * é conferido antes, em handler(), pelo caminho da rota (src/lib/roles.ts).
+ */
 export async function requireAdmin() {
-  const session = await getAdminSession();
-  if (!session) throw new HttpError(401, "Acesso de administrador necessário");
+  const session = await getStaffSession();
+  if (!session) throw new HttpError(401, "Faça login no painel");
   return session;
 }
 
@@ -42,6 +46,12 @@ const MUTATIONS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 export function handler<Ctx>(fn: (request: Request, ctx: Ctx) => Promise<Response>) {
   return async (request: Request, ctx: Ctx) => {
     try {
+      const { pathname } = new URL(request.url);
+      if (pathname.startsWith("/api/admin/")) {
+        const session = await getStaffSession();
+        if (!session) return error("Faça login no painel", 401);
+        if (!canUseApi(session.user.role, pathname)) return error("Seu usuário não tem acesso a esta área", 403);
+      }
       const response = await fn(request, ctx);
       // Alteração feita no painel: o site público passa a mostrar os dados novos na hora
       if (response.ok && MUTATIONS.has(request.method) && new URL(request.url).pathname.startsWith("/api/admin/")) {

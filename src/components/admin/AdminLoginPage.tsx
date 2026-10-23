@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,10 +22,10 @@ export function AdminLoginPage() {
     setError("");
     setIsSubmitting(true);
 
-    const result = await signIn("credentials", { email, password, redirect: false });
+    const result = await signIn("credentials", { login, password, redirect: false });
 
     if (result?.error) {
-      setError("E-mail ou senha inválidos.");
+      setError("Usuário ou senha inválidos.");
       setIsSubmitting(false);
       return;
     }
@@ -53,8 +53,17 @@ export function AdminLoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+              <Label htmlFor="login">Usuário</Label>
+              <Input
+                id="login"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
+                required
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+              />
             </div>
 
             <div className="space-y-2">

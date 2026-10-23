@@ -92,16 +92,18 @@ const galleryCategories = [
 ];
 
 async function main() {
-  // Admin inicial
-  const email = (process.env.SEED_ADMIN_EMAIL ?? "admin@mensageiradedeus.com.br").toLowerCase();
-  const password = process.env.SEED_ADMIN_PASSWORD ?? "troque-esta-senha";
-  const passwordHash = await bcrypt.hash(password, 12);
-  await prisma.user.upsert({
-    where: { email },
-    update: {},
-    create: { email, name: "Administrador", passwordHash, role: "admin" },
-  });
-  console.log(`✔ admin: ${email}`);
+  // Admin inicial: só quando o painel ainda não tem nenhum administrador
+  if ((await prisma.user.count({ where: { role: "admin" } })) === 0) {
+    const username = (process.env.SEED_ADMIN_USERNAME ?? "admin").toLowerCase();
+    const password = process.env.SEED_ADMIN_PASSWORD ?? "troque-esta-senha";
+    const passwordHash = await bcrypt.hash(password, 12);
+    await prisma.user.upsert({
+      where: { username },
+      update: { role: "admin" },
+      create: { username, name: "Administrador", passwordHash, role: "admin" },
+    });
+    console.log(`✔ admin: ${username}`);
+  }
 
   // Configurações do site (não sobrescreve valores já editados)
   for (const [settingKey, settingValue, settingType, category, displayName, description] of siteSettings) {

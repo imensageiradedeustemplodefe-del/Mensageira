@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { canUseApi, isStaffRole } from "@/lib/roles";
 
-// Protects /admin (except /admin/login) and /api/admin/* — full role checks happen in the handlers.
+// Protege /admin (menos /admin/login) e /api/admin/*: só a equipe entra, e cada papel só nas suas rotas.
+// A conferência completa (com o papel atualizado do banco) se repete nos handlers.
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = await getToken({
@@ -9,21 +11,20 @@ export async function proxy(request: NextRequest) {
     secret: process.env.AUTH_SECRET,
     secureCookie: process.env.NODE_ENV === "production",
   });
-  const isAdmin = token?.role === "admin";
+  const role = isStaffRole(token?.role) ? token.role : null;
 
   if (pathname.startsWith("/api/admin")) {
-    if (!isAdmin) {
-      return NextResponse.json({ error: "Acesso de administrador necessário" }, { status: 401 });
-    }
+    if (!role) return NextResponse.json({ error: "Faça login no painel" }, { status: 401 });
+    if (!canUseApi(role, pathname)) return NextResponse.json({ error: "Seu usuário não tem acesso a esta área" }, { status: 403 });
     return NextResponse.next();
   }
 
   if (pathname === "/admin/login") {
-    if (isAdmin) return NextResponse.redirect(new URL("/admin", request.url));
+    if (role) return NextResponse.redirect(new URL("/admin", request.url));
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/admin") && !isAdmin) {
+  if (pathname.startsWith("/admin") && !role) {
     const url = new URL("/admin/login", request.url);
     return NextResponse.redirect(url);
   }

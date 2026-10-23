@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getAdminSession } from "@/lib/auth";
+import { getStaffSession } from "@/lib/auth";
 import { certificateTemplate, type CertificateData } from "@/lib/certificates";
 import { CertificateSheet } from "@/components/secretaria/CertificateSheet";
 import { AutoPrint } from "@/components/print/AutoPrint";
@@ -13,7 +13,7 @@ const UUID = /^[0-9a-f-]{36}$/i;
 
 // Certificado em A4 deitado, pronto para imprimir ou salvar em PDF pelo navegador.
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-  if (!(await getAdminSession())) redirect("/admin/login");
+  if (!(await getStaffSession(["secretaria"]))) redirect("/admin");
   const { id } = await params;
   if (!UUID.test(id)) notFound();
   const cert = await prisma.certificate.findUnique({ where: { id } });

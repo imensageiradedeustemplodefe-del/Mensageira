@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getAdminSession } from "@/lib/auth";
+import { getStaffSession } from "@/lib/auth";
 import { CHURCH_NAME, shortDate } from "@/lib/certificates";
 import { AutoPrint } from "@/components/print/AutoPrint";
 
@@ -16,7 +16,7 @@ const day = (d: Date | null) => (d ? shortDate(d.toISOString()) : "—");
 // Carteirinhas no tamanho de cartão (85,6 x 54 mm), frente e verso lado a lado, 5 por folha A4.
 // Uso: /admin/secretaria/carteirinhas?ids=uuid1,uuid2
 export default async function Page({ searchParams }: { searchParams: Promise<{ ids?: string }> }) {
-  if (!(await getAdminSession())) redirect("/admin/login");
+  if (!(await getStaffSession(["secretaria"]))) redirect("/admin");
   const ids = ((await searchParams).ids ?? "").split(",").filter((id) => UUID.test(id)).slice(0, 200);
   const members = ids.length ? await prisma.member.findMany({ where: { id: { in: ids } }, orderBy: { name: "asc" } }) : [];
 

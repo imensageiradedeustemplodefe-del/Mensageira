@@ -17,7 +17,7 @@ npx prisma db seed          # admin inicial, configurações, versículos, model
 npm run dev                 # http://localhost:3000
 ```
 
-Painel administrativo: `/admin/login` (usuário/senha do seed: `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`).
+Painel administrativo: `/admin/login`, com nome de usuário e senha. Papéis: Administrador (tudo), Mídia (galeria, mídia, transmissões) e Secretaria (membros, certificados); o admin cria os usuários na aba Usuários. Para criar ou recuperar um admin pelo terminal: `npm run admin:create -- <usuario> <senha> [nome]`.
 
 ## Variáveis de ambiente
 
@@ -30,7 +30,7 @@ Painel administrativo: `/admin/login` (usuário/senha do seed: `SEED_ADMIN_EMAIL
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | Web Push — `npx web-push generate-vapid-keys`. |
 | `CRON_SECRET` | Protege `/api/cron/daily` (a Vercel envia `Authorization: Bearer <CRON_SECRET>`). |
 | `NEXT_PUBLIC_SITE_URL` | URL pública (para metadata/OG). |
-| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | Admin criado pelo seed. |
+| `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` | Admin criado pelo seed (só quando ainda não existe nenhum administrador). |
 | `META_PAGE_ID` / `META_PAGE_TOKEN` | (Opcional) Publicação automática dos eventos do dia, às 7h, na página do Facebook e no Instagram ligado a ela. Token da página com `pages_manage_posts`, `pages_read_engagement`, `instagram_basic` e `instagram_content_publish`. |
 | `META_IG_USER_ID` | (Opcional) Id da conta profissional do Instagram; se vazio, é descoberto pela página. |
 
@@ -42,7 +42,7 @@ Painel administrativo: `/admin/login` (usuário/senha do seed: `SEED_ADMIN_EMAIL
 4. Após o primeiro deploy, rode as migrations e o seed contra o banco de produção (uma vez):
    ```bash
    DATABASE_URL="<url de produção>" npx prisma migrate deploy
-   DATABASE_URL="<url de produção>" SEED_ADMIN_EMAIL=... SEED_ADMIN_PASSWORD=... npx prisma db seed
+   DATABASE_URL="<url de produção>" SEED_ADMIN_USERNAME=... SEED_ADMIN_PASSWORD=... npx prisma db seed
    ```
    Alternativa: defina o *Build Command* como `prisma migrate deploy && next build` para migrar a cada deploy.
 5. O cron de notificações (`vercel.json`) roda diariamente às 10h UTC (7h em Brasília).
