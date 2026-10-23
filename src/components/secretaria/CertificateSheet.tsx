@@ -27,12 +27,21 @@ export function CertificateSheet({ type, data }: { type: string; data: Certifica
     const box = boxRef.current;
     const text = textRef.current;
     if (!box || !text) return;
-    let size = MAX_FONT;
-    text.style.fontSize = `${size}px`;
-    while (size > MIN_FONT && text.scrollHeight > box.clientHeight) {
-      size -= 0.5;
+    const fit = () => {
+      let size = MAX_FONT;
       text.style.fontSize = `${size}px`;
-    }
+      while (size > MIN_FONT && text.scrollHeight > box.clientHeight) {
+        size -= 0.5;
+        text.style.fontSize = `${size}px`;
+      }
+    };
+    fit();
+    // a fonte do certificado pode chegar depois: mede de novo com ela
+    let alive = true;
+    document.fonts?.ready.then(() => alive && fit());
+    return () => {
+      alive = false;
+    };
   }, [key]);
 
   const b = template.body;

@@ -209,7 +209,7 @@ const apresentacao: CertificateTemplate = {
     { key: "data", label: "Data da apresentação", type: "date", required: true, initial: "today" },
     ...PASTOR_FIELDS,
   ],
-  body: { left: 9, top: 36, width: 82, height: 18 },
+  body: { left: 9, top: 37.5, width: 82, height: 16.5 },
   text: (d) => {
     const fem = d.genero === "F";
     const parents = [f(d, "pai"), f(d, "mae")].filter(Boolean);
