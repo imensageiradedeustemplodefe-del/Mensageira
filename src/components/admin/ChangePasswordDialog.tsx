@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { api } from "@/lib/fetcher";
@@ -53,13 +53,12 @@ export function ChangePasswordDialog({ open, onOpenChange }: { open: boolean; on
         <form onSubmit={save} className="space-y-3">
           <div>
             <Label htmlFor="pw-current">Senha atual</Label>
-            <Input id="pw-current" type="password" value={current} onChange={(e) => setCurrent(e.target.value)} required autoComplete="current-password" />
+            <PasswordInput id="pw-current" value={current} onChange={(e) => setCurrent(e.target.value)} required autoComplete="current-password" />
           </div>
           <div>
             <Label htmlFor="pw-new">Nova senha</Label>
-            <Input
+            <PasswordInput
               id="pw-new"
-              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -70,7 +69,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: { open: boolean; on
           </div>
           <div>
             <Label htmlFor="pw-confirm">Repita a nova senha</Label>
-            <Input id="pw-confirm" type="password" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} required autoComplete="new-password" />
+            <PasswordInput id="pw-confirm" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} required autoComplete="new-password" />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => close(false)}>

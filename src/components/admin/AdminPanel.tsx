@@ -121,11 +121,11 @@ export function AdminPanel({ user }: { user: PanelUser }) {
                 <span className="text-sm font-medium">{user.name}</span>
                 <span className="text-xs text-muted-foreground">{ROLE_LABELS[user.role]}</span>
               </div>
-              <Button onClick={() => setPasswordOpen(true)} variant="ghost" size="sm" className="ml-auto md:ml-0 flex-shrink-0" title="Trocar minha senha">
+              <Button onClick={() => setPasswordOpen(true)} variant="ghost" size="sm" className="ml-auto md:ml-0 flex-shrink-0" title="Trocar minha senha" aria-label="Trocar minha senha">
                 <KeyRound className="w-4 h-4" />
                 <span className="hidden sm:inline sm:ml-2">Senha</span>
               </Button>
-              <Button onClick={handleLogout} variant="ghost" size="sm" className="flex-shrink-0">
+              <Button onClick={handleLogout} variant="ghost" size="sm" className="flex-shrink-0" aria-label="Sair">
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline sm:ml-2">Sair</span>
               </Button>

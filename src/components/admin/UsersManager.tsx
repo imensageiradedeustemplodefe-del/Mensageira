@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Loader2, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -172,9 +173,8 @@ export function UsersManager({ currentUserId }: { currentUserId?: string }) {
               </div>
               <div>
                 <Label htmlFor="u-password">{form.id ? "Nova senha (opcional)" : "Senha"}</Label>
-                <Input
+                <PasswordInput
                   id="u-password"
-                  type="password"
                   value={form.password}
                   onChange={(e) => set("password", e.target.value)}
                   placeholder="Pelo menos 8 caracteres"
