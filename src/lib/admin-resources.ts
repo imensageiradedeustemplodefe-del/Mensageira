@@ -181,4 +181,44 @@ export const albums = {
   list: { orderBy: { createdAt: "desc" }, include: { _count: { select: { photos: true } } } },
 };
 
+// ---------- Secretaria: membros ----------
+const optionalDay = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "data inválida")
+  .nullable()
+  .optional()
+  .transform((v) => (v ? new Date(`${v}T00:00:00Z`) : v));
+const memberBase = z.object({
+  name: z.string().trim().min(2).max(200),
+  gender: z.enum(["M", "F"]).nullable().optional(),
+  birth_date: optionalDay,
+  phone: z.string().trim().max(30).nullable().optional(),
+  email: z.string().trim().max(200).nullable().optional(),
+  address: z.string().trim().max(300).nullable().optional(),
+  bairro: z.string().trim().max(100).nullable().optional(),
+  cidade: z.string().trim().max(100).nullable().optional(),
+  uf: z.string().trim().max(2).nullable().optional(),
+  baptism_date: optionalDay,
+  member_since: optionalDay,
+  role: z.string().trim().min(1).max(60).default("Membro"),
+  groups: z.array(z.string().trim().min(1).max(60)).max(30).default([]),
+  worker: z.boolean().default(false),
+  status: z.enum(["ativo", "inativo", "transferido", "falecido"]).default("ativo"),
+  // foto 3x4 já reduzida no navegador (JPEG em base64)
+  photo: z
+    .string()
+    .max(250_000)
+    .regex(/^data:image\/(jpeg|png|webp);base64,/, "foto inválida")
+    .nullable()
+    .optional(),
+  notes: z.string().trim().max(2000).nullable().optional(),
+});
+export const members = {
+  delegate: prisma.member,
+  createSchema: memberBase,
+  updateSchema: memberBase.partial(),
+  // a lista não traz as fotos (pesadas); o formulário busca o membro completo
+  list: { orderBy: { name: "asc" }, omit: { photo: true } },
+};
+
 export { collectionRoutes, itemRoutes };

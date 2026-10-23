@@ -421,3 +421,61 @@ model RateLimit {
   @@index([resetAt])
   @@map("rate_limits")
 }
+
+// ---------- Secretaria ----------
+
+// Cadastro de membros (carteirinha, contagens por cargo e grupo, quem trabalha na obra)
+model Member {
+  id          String    @id @default(uuid()) @db.Uuid
+  // número da carteirinha (matrícula), sequencial
+  number      Int       @unique @default(autoincrement())
+  name        String
+  gender      String?   // "M" | "F"
+  birthDate   DateTime? @map("birth_date") @db.Date
+  phone       String?
+  email       String?
+  address     String?
+  bairro      String?
+  cidade      String?
+  uf          String?
+  baptismDate DateTime? @map("baptism_date") @db.Date
+  memberSince DateTime? @map("member_since") @db.Date
+  // membro, cooperador, diácono, presbítero, evangelista, missionário, pastor...
+  role        String    @default("Membro")
+  // grupos/ministérios: louvor, jovens, senhoras...
+  groups      String[]  @default([])
+  // trabalha na obra (obreiro)
+  worker      Boolean   @default(false)
+  // ativo | inativo | transferido | falecido
+  status      String    @default("ativo")
+  // foto 3x4 pequena (JPEG em base64) para a carteirinha
+  photo       String?
+  notes       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  certificates Certificate[]
+
+  @@index([status])
+  @@map("members")
+}
+
+// Certificado emitido (numerado por ano). O modelo e a posição dos textos ficam em src/lib/certificates.ts
+model Certificate {
+  id            String   @id @default(uuid()) @db.Uuid
+  type          String
+  year          Int
+  number        Int
+  memberId      String?  @map("member_id") @db.Uuid
+  recipientName String   @map("recipient_name")
+  // campos preenchidos no formulário (nome, datas, igreja...)
+  data          Json
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  member Member? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@unique([year, number])
+  @@index([type])
+  @@map("certificates")
+}

@@ -21,7 +21,10 @@ import {
 
   Home,
   Inbox,
-  ClipboardList
+  ClipboardList,
+  Contact,
+  Award,
+  Briefcase
 } from "lucide-react";
 import {
   Sidebar,
@@ -83,6 +86,15 @@ const menuItems: {
       { title: "Mensagens", value: "contact", icon: Inbox, description: "Formulário de contato", badgeKey: "contact" },
       { title: "Testemunhos", value: "testimonies", icon: MessageCircle, description: "Histórias de fé", badgeKey: "testimonies" },
       { title: "Notificações", value: "notifications", icon: Bell, description: "Avisos para os celulares" },
+    ],
+  },
+  {
+    title: "Secretaria",
+    icon: Briefcase,
+    defaultOpen: true,
+    items: [
+      { title: "Membros", value: "members", icon: Contact, description: "Cadastro, carteirinhas e números" },
+      { title: "Certificados", value: "certificates", icon: Award, description: "Emitir e imprimir certificados" },
     ],
   },
   {

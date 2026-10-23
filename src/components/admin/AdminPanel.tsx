@@ -26,6 +26,8 @@ import EventTemplatesManager from "@/components/admin/EventTemplatesManager";
 import LiveStreamsManager from "@/components/admin/LiveStreamsManager";
 import { CustomNotificationsManager } from "@/components/admin/CustomNotificationsManager";
 import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
+import { MembersManager } from "@/components/admin/MembersManager";
+import { CertificatesManager } from "@/components/admin/CertificatesManager";
 
 const TITLES: Record<string, string> = {
   dashboard: "Dashboard",
@@ -39,6 +41,8 @@ const TITLES: Record<string, string> = {
   contact: "Mensagens de Contato",
   live: "Transmissões ao Vivo",
   notifications: "Notificações Personalizadas",
+  members: "Membros",
+  certificates: "Certificados",
   settings: "Configurações do Site",
 };
 
@@ -54,6 +58,8 @@ const DESCRIPTIONS: Record<string, string> = {
   contact: "Mensagens enviadas pelo formulário da página Contato",
   live: "Configure transmissões ao vivo",
   notifications: "Envie notificações personalizadas aos usuários",
+  members: "Cadastro de membros, quem trabalha na obra, grupos e carteirinhas",
+  certificates: "Emita certificados numerados e imprima ou salve em PDF",
   settings: "Textos, contatos, horários e integrações",
 };
 
@@ -124,6 +130,8 @@ export function AdminPanel() {
                 {activeTab === "live" && <LiveStreamsManager />}
                 {activeTab === "notifications" && <CustomNotificationsManager />}
                 {activeTab === "settings" && <SiteSettingsManager />}
+                {activeTab === "members" && <MembersManager />}
+                {activeTab === "certificates" && <CertificatesManager />}
               </div>
             </div>
           </div>
