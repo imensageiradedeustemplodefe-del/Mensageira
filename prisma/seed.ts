@@ -14,9 +14,6 @@ const siteSettings: Setting[] = [
   // Informações Gerais
   ["church_name", "Igreja Mensageira de Deus - Templo de Fé", "text", "general", "Nome da Igreja", "Nome completo da igreja"],
   ["church_slogan", "Proclamando a Palavra de Deus com Fé e Amor", "text", "general", "Slogan/Lema", "Frase que representa a igreja"],
-  ["hero_title", "Bem-vindos à Mensageira de Deus", "text", "general", "Título Principal", "Título da página inicial"],
-  ["hero_subtitle", "Templo de Fé", "text", "general", "Subtítulo", "Subtítulo da página inicial"],
-  ["hero_description", "Uma igreja comprometida com a Palavra de Deus, onde vidas são transformadas e famílias são edificadas no amor de Cristo.", "textarea", "general", "Descrição Principal", "Descrição da página inicial"],
 
   // Contato
   ["church_address", "R. Elias Biasi, 49 - Berger, Caçador - SC, 89500-000", "textarea", "contact", "Endereço", "Endereço completo da igreja"],
@@ -42,17 +39,10 @@ const siteSettings: Setting[] = [
 
   // Sobre
   ["church_description", "A Mensageira de Deus Templo de Fé é uma comunidade de fé comprometida com a pregação da Palavra de Deus e o cuidado pastoral das famílias.", "textarea", "about", "Descrição da Igreja", "Texto sobre a igreja para a página Sobre"],
-  ["pastor_name", "Pr. Gilmar Radaelli", "text", "about", "Nome do Pastor", "Nome do pastor principal"],
   ["church_founded_year", "", "number", "about", "Ano de Fundação", "Ano em que a igreja foi fundada"],
   ["pix_key", "", "text", "pix", "Chave PIX", "Chave para contribuições dos eventos (CPF, CNPJ, e-mail, telefone ou chave aleatória). Aparece para quem paga."],
   ["pix_name", "", "text", "pix", "Nome do recebedor", "Nome como está na conta (até 25 letras)"],
   ["pix_city", "Cacador", "text", "pix", "Cidade do recebedor", "Cidade da conta (sem acentos)"],
-  ["pastor_principal_name", "Pr. Gilmar Radaelli", "text", "about", "Pastor Principal", "Nome do pastor responsável principal"],
-  ["pastor_principal_description", "Líder espiritual dedicado ao crescimento da igreja e ao cuidado pastoral das famílias.", "textarea", "about", "Descrição Pastor Principal", "Descrição do pastor principal"],
-  ["pastora_name", "Pra. Vera Lucia Radaelli", "text", "about", "Nome da Pastora", "Nome da pastora responsável"],
-  ["pastora_description", "Comprometida com o ministério de mulheres e o ensino da Palavra de Deus.", "textarea", "about", "Descrição da Pastora", "Descrição da pastora"],
-  ["pastor_auxiliar_name", "Pr. João Batista", "text", "about", "Pastor Auxiliar", "Nome do pastor auxiliar"],
-  ["pastor_auxiliar_description", "Apoio pastoral e liderança em diversas atividades da congregação.", "textarea", "about", "Descrição Pastor Auxiliar", "Descrição do pastor auxiliar"],
 
   // Integrações Google (privadas — nunca expostas publicamente)
   ["google_drive_script_url", "", "text", "integrations", "URL do Google Apps Script (Galeria)", "URL do Apps Script que lista os álbuns/fotos do Google Drive"],

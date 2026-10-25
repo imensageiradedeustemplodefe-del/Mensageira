@@ -17,6 +17,7 @@ import { NotifyNewPhotos } from "@/components/gallery/NotifyNewPhotos";
 import { api } from "@/lib/fetcher";
 import { albumLabel, albumPhotoTotal, shareAlbum } from "@/lib/share";
 import type { GalleryAlbum } from "@/types/database";
+import { useContent } from "@/hooks/useSiteSettings";
 
 const DATE_RE = /(\d{2})[.\-](\d{2})[.\-](\d{4})/;
 const PAGE_SIZE = 20;
@@ -97,6 +98,7 @@ const pageRange = (current: number, total: number): (number | "…")[] => {
 };
 
 export function GalleryPage({ initialAlbums, initialAlbumId }: { initialAlbums?: GalleryAlbum[]; initialAlbumId?: string }) {
+  const { text } = useContent();
   const router = useRouter();
   // Link do álbum (/galeria/album/<id>): já começa dentro do álbum, sem mostrar a lista antes
   const [selected, setSelected] = useState<SelectedAlbum | null>(() => {
@@ -317,7 +319,7 @@ export function GalleryPage({ initialAlbums, initialAlbumId }: { initialAlbums?:
           subtitle={selected.photoCount ? `${albumPhotoTotal(selected.photoCount)} fotos` : "Explore as fotos deste momento especial"}
         />
       ) : (
-        <PageHero icon={Camera} title="Galeria de Fotos" subtitle="Momentos especiais da nossa comunidade">
+        <PageHero icon={Camera} title={text("gallery_page_title")} subtitle={text("gallery_page_subtitle")}>
           <div className="relative max-w-md mx-auto">
             <Search className="absolute left-3 top-1/2 z-10 -translate-y-1/2 pointer-events-none text-muted-foreground w-5 h-5" />
             <Input

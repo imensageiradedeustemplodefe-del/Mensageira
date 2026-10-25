@@ -24,6 +24,7 @@ import {
 import { api } from "@/lib/fetcher";
 import type { Event } from "@/types/database";
 import { PageHero } from "@/components/layout/PageHero";
+import { useContent } from "@/hooks/useSiteSettings";
 
 const formatEventDate = (dateString: string, formatStr: string) =>
   format(new Date(dateString), formatStr, { locale: ptBR });
@@ -75,6 +76,7 @@ function useHeaderHeight() {
 
 
 export function EventsPage() {
+  const { text } = useContent();
   const [query, setQuery] = useState("");
   // Começa no mês atual (antes listava todos os meses de uma vez: dezenas de cartões)
   const [month, setMonth] = useState<string>(() => monthKey(new Date())); // "all" | "yyyy-MM"
@@ -144,7 +146,7 @@ export function EventsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHero title="Eventos e Programação" subtitle="Acompanhe nossa programação de eventos especiais e atividades">
+      <PageHero title={text("events_page_title")} subtitle={text("events_page_subtitle")}>
         <div className="max-w-md mx-auto">
           <SearchBar onSearch={handleSearch} placeholder="Pesquisar eventos..." />
         </div>

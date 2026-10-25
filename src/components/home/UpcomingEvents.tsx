@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareButton } from "@/components/ShareButton";
 import { shareSchedule } from "@/lib/share";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useContent, useSiteSettings } from "@/hooks/useSiteSettings";
 import { LAVACAR_HOURS, LAVACAR_SUMMARY } from "@/lib/recurring-events";
 
 interface UpcomingEventsProps {
@@ -29,6 +29,7 @@ const EventSkeleton = () => (
 
 export const UpcomingEvents = ({ loading = false }: UpcomingEventsProps) => {
   const { settings } = useSiteSettings();
+  const { text } = useContent();
 
   const upcomingEvents = [
     {
@@ -77,10 +78,8 @@ export const UpcomingEvents = ({ loading = false }: UpcomingEventsProps) => {
     <section className="py-8 sm:py-12 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-6 sm:mb-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Próximos Eventos</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Participe dos nossos cultos e atividades. Todos são bem-vindos!
-          </p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">{text("home_events_title")}</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{text("home_events_description")}</p>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

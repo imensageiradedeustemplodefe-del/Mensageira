@@ -12,13 +12,13 @@ import { Label } from "@/components/ui/label";
 import { SearchBar } from "@/components/SearchBar";
 import { ShareButton } from "@/components/ShareButton";
 import { shareTestimony } from "@/lib/share";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useContent } from "@/hooks/useSiteSettings";
 import { api } from "@/lib/fetcher";
 import type { Testimony } from "@/types/database";
 import { PageHero } from "@/components/layout/PageHero";
 
 export function TestimoniesPage() {
-  const { settings } = useSiteSettings();
+  const { text } = useContent();
   const { data: testimonies = [], isLoading: loading } = useQuery({
     queryKey: ["testimonies", "public"],
     queryFn: () => api<Testimony[]>("/api/testimonies"),
@@ -58,7 +58,7 @@ export function TestimoniesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHero icon={Heart} title={settings.testimonies_page_title} subtitle={settings.testimonies_page_subtitle} />
+      <PageHero icon={Heart} title={text("testimonies_page_title")} subtitle={text("testimonies_page_subtitle")} />
 
       {/* Formulário primeiro, como na página de orações */}
       <section className="py-8 sm:py-12">
@@ -69,9 +69,9 @@ export function TestimoniesPage() {
                 <Send className="w-6 h-6 text-primary" />
               </div>
               <CardTitle id="testimony-form-title" className="text-2xl">
-                {settings.testimonies_form_title}
+                {text("testimonies_form_title")}
               </CardTitle>
-              <p className="text-muted-foreground">{settings.testimonies_form_description}</p>
+              <p className="text-muted-foreground">{text("testimonies_form_description")}</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -124,7 +124,7 @@ export function TestimoniesPage() {
             <>
               {filteredTestimonies.length > 0 && (
                 <>
-                  <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">{settings.testimonies_featured_title}</h2>
+                  <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">{text("testimonies_featured_title")}</h2>
                   <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-8 mb-8 sm:mb-12">
                     {filteredTestimonies.slice(0, 2).map((testimony) => (
                       <Card
@@ -159,7 +159,7 @@ export function TestimoniesPage() {
                 </>
               )}
 
-              <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">{settings.testimonies_all_title}</h2>
+              <h2 className="text-3xl font-bold text-center text-foreground mb-6 sm:mb-8">{text("testimonies_all_title")}</h2>
 
               {filteredTestimonies.length > 0 ? (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -183,7 +183,7 @@ export function TestimoniesPage() {
               ) : (
                 <div className="text-center py-8 sm:py-12">
                   <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg text-muted-foreground">{settings.testimonies_empty_message}</p>
+                  <p className="text-lg text-muted-foreground">{text("testimonies_empty_message")}</p>
                 </div>
               )}
             </>

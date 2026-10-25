@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Youtube, Download, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useContent } from "@/hooks/useSiteSettings";
 
 interface HeroSectionProps {
   installable: boolean;
@@ -10,23 +11,21 @@ interface HeroSectionProps {
 }
 
 export const HeroSection = ({ installable, onInstallClick }: HeroSectionProps) => {
+  const { text } = useContent();
   return (
     <section className="relative bg-gradient-to-br from-primary/10 via-background to-peaceful-blue/20 py-8 sm:py-16">
       <div className="absolute inset-0 bg-gradient-to-r from-spiritual-glow/5 to-transparent"></div>
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center space-y-6">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-            Bem-vindos à
-            <span className="block text-primary mt-2">Mensageira de Deus</span>
-            <span className="block text-lg sm:text-xl font-normal text-muted-foreground mt-2">Templo de Fé</span>
-            <span className="block text-base sm:text-lg font-normal text-muted-foreground mt-1">
-              Uma igreja comprometida com a Palavra de Deus
-            </span>
+            {text("home_hero_welcome")}
+            <span className="block text-primary mt-2">{text("home_hero_name")}</span>
+            <span className="block text-lg sm:text-xl font-normal text-muted-foreground mt-2">{text("home_hero_subtitle")}</span>
+            <span className="block text-base sm:text-lg font-normal text-muted-foreground mt-1">{text("home_hero_tagline")}</span>
           </h1>
 
           <p className="max-w-2xl mx-auto text-lg sm:text-xl text-muted-foreground leading-relaxed">
-            Venha fazer parte da nossa família de fé. Aqui você encontrará acolhimento, crescimento espiritual e uma
-            comunidade que se importa com você.
+            {text("home_hero_text")}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-6 px-4">

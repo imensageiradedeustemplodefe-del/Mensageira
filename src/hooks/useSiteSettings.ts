@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/fetcher";
 import type { SiteSettingRow } from "@/types/database";
+import { CONTENT_DEFAULTS, type ListKey } from "@/lib/site-content";
+import { parseList } from "@/lib/about-content";
 
 export interface SiteSettings {
   pix_key: string;
@@ -170,14 +172,28 @@ export function useSiteSettings() {
         if (s.setting_value) acc[s.setting_key as keyof SiteSettings] = s.setting_value;
         return acc;
       }, {});
-      return { ...defaultSettings, ...map };
+      return { settings: { ...defaultSettings, ...map }, raw: map as Record<string, string> };
     },
     staleTime: 5 * 60 * 1000,
   });
 
   return {
-    settings: query.data ?? defaultSettings,
+    settings: query.data?.settings ?? defaultSettings,
+    raw: query.data?.raw ?? {},
     loading: query.isLoading,
     refresh: query.refetch,
+  };
+}
+
+/**
+ * Textos e listas do site editáveis no painel (src/lib/site-content.ts). `text(chave)` devolve o valor
+ * salvo ou, sem valor, o texto padrão; `list(chave, padrão)` faz o mesmo para as listas da página Sobre.
+ */
+export function useContent() {
+  const { raw, loading } = useSiteSettings();
+  return {
+    loading,
+    text: (key: string) => raw[key] || CONTENT_DEFAULTS[key] || "",
+    list: <T,>(key: ListKey, fallback: T[]) => parseList<T>(raw[key], fallback),
   };
 }

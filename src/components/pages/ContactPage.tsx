@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useContent, useSiteSettings } from "@/hooks/useSiteSettings";
 import { api } from "@/lib/fetcher";
 import { maskPhoneInput } from "@/lib/phone";
 import { PageHero } from "@/components/layout/PageHero";
@@ -19,6 +19,7 @@ const DEFAULT_ADDRESS = "R. Elias Biasi, 49 - Berger, Caçador - SC, 89500-000";
 export function ContactPage() {
   const { toast } = useToast();
   const { settings } = useSiteSettings();
+  const { text } = useContent();
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
 
   const email = settings.contact_email_secretary || settings.church_email || DEFAULT_EMAIL;
@@ -66,8 +67,8 @@ export function ContactPage() {
   return (
     <div className="min-h-screen bg-background">
       <PageHero
-        title="Entre em Contato"
-        subtitle="Estamos aqui para você. Entre em contato conosco para dúvidas, pedidos de oração ou para conhecer melhor nossa igreja."
+        title={text("contact_page_title")}
+        subtitle={text("contact_page_subtitle")}
       />
 
       <section className="py-8 sm:py-12">
@@ -184,8 +185,7 @@ export function ContactPage() {
                   <div className="mt-6 p-4 bg-white/50 dark:bg-white/5 rounded-lg">
                     <h4 className="font-medium text-foreground mb-2">Pedidos de Oração</h4>
                     <p className="text-sm text-muted-foreground">
-                      Envie seus pedidos de oração através do formulário ou durante nossas transmissões ao vivo. Nossa
-                      equipe estará orando por você.
+                      {text("contact_prayer_text")}
                     </p>
                   </div>
                 </CardContent>

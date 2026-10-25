@@ -11,6 +11,7 @@ import { api } from "@/lib/fetcher";
 import { prayerCategoryLabel } from "@/lib/prayers";
 import type { PublicPrayerRequest } from "@/types/database";
 import { PageHero } from "@/components/layout/PageHero";
+import { useContent } from "@/hooks/useSiteSettings";
 
 const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
@@ -25,6 +26,7 @@ const getCategoryColor = (category: string) => {
 };
 
 export function PrayerPage() {
+  const { text } = useContent();
   const { data: requests = [], isLoading: loading } = useQuery({
     queryKey: ["prayers", "public"],
     queryFn: () => api<PublicPrayerRequest[]>("/api/prayers"),
@@ -32,7 +34,7 @@ export function PrayerPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHero icon={HandHeart} title="Casa de Oração" subtitle={'"A minha casa será chamada casa de oração para todos os povos" - Isaías 56:7'} />
+      <PageHero icon={HandHeart} title={text("prayer_page_title")} subtitle={text("prayer_page_subtitle")} />
 
       <section className="py-8 sm:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

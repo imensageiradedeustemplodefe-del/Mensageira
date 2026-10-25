@@ -491,3 +491,18 @@ model Certificate {
   @@index([type])
   @@map("certificates")
 }
+
+// ---------- Conteúdo do site ----------
+
+// Imagens enviadas pelo painel (fotos dos pastores etc.), já reduzidas no navegador. Servidas em
+// /api/images/<id> com cache longo: trocar a foto gera outro id, então o cache nunca fica velho.
+model SiteImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  mime      String
+  data      Bytes
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("site_images")
+}

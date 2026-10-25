@@ -6,7 +6,7 @@ import { Play, Calendar, Clock, Youtube, Facebook, Globe, ExternalLink } from "l
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useContent, useSiteSettings } from "@/hooks/useSiteSettings";
 import { api } from "@/lib/fetcher";
 import type { LiveStream } from "@/types/database";
 import { PageHero } from "@/components/layout/PageHero";
@@ -19,6 +19,7 @@ declare global {
 
 export function LivePage() {
   const { settings } = useSiteSettings();
+  const { text } = useContent();
   const { data: streams = [], isLoading: loading } = useQuery({
     queryKey: ["live", "public"],
     queryFn: () => api<LiveStream[]>("/api/live"),
@@ -137,7 +138,7 @@ export function LivePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHero title="Transmissão ao Vivo" subtitle="Participe dos nossos cultos online e faça parte da nossa comunidade de fé." />
+      <PageHero title={text("live_page_title")} subtitle={text("live_page_subtitle")} />
 
       <section className="py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
