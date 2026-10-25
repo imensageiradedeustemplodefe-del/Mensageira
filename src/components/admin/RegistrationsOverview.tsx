@@ -9,6 +9,7 @@ import { api } from "@/lib/fetcher";
 import { EventRegistrationManager } from "./EventRegistrationManager";
 import { AdminAlertsToggle } from "./AdminAlertsToggle";
 import { EventClosureControls } from "./EventClosureControls";
+import { fmtClose, isClosed, scheduledClose } from "@/lib/event-closure";
 
 interface Row {
   id: string;
@@ -20,6 +21,8 @@ interface Row {
   registration_required: boolean;
   registrations_closed: boolean;
   contributions_closed: boolean;
+  registrations_close_at: string | null;
+  contributions_close_at: string | null;
   is_published: boolean;
   registrations: number;
   fields: number;
@@ -135,8 +138,12 @@ export function RegistrationsOverview() {
           )}
           <div className="flex flex-wrap gap-1.5">
             {full && <Badge variant="destructive">Esgotado</Badge>}
-            {r.registrations_closed && <Badge variant="destructive">Inscrições encerradas</Badge>}
-            {r.contributions_closed && !!r.contribution_cents && <Badge variant="outline">Contribuições encerradas</Badge>}
+            {isClosed(r.registrations_closed, r.registrations_close_at) ? (
+              <Badge variant="destructive">Inscrições encerradas</Badge>
+            ) : (
+              scheduledClose(r.registrations_close_at) && <Badge variant="outline">Inscrições até {fmtClose(scheduledClose(r.registrations_close_at)!)}</Badge>
+            )}
+            {!!r.contribution_cents && isClosed(r.contributions_closed, r.contributions_close_at) && <Badge variant="outline">Contribuições encerradas</Badge>}
             {!!r.payments_to_check && (
               <Badge className="bg-sky-600 text-white hover:bg-sky-600">
                 {r.payments_to_check} PIX para conferir

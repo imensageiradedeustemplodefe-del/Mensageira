@@ -5,6 +5,7 @@ import { handler, json, error } from "@/lib/api";
 import { registrationCode } from "@/lib/pix";
 import { alertAdminsAboutRegistration } from "@/lib/registration-alerts";
 import { limitOrThrow } from "@/lib/rate-limit";
+import { isClosed } from "@/lib/event-closure";
 
 type Ctx = { params: Promise<{ id: string; registrationId: string }> };
 
@@ -15,7 +16,7 @@ const SELECT = {
   paymentReportedAt: true,
   pushEndpoint: true,
   paymentMethod: true,
-  event: { select: { contributionsClosed: true } },
+  event: { select: { contributionsClosed: true, contributionsCloseAt: true } },
 } as const;
 
 async function find(ctx: Ctx) {
@@ -30,7 +31,7 @@ type Row = {
   paymentReportedAt: Date | null;
   pushEndpoint: string | null;
   paymentMethod: string | null;
-  event: { contributionsClosed: boolean };
+  event: { contributionsClosed: boolean; contributionsCloseAt: Date | null };
 };
 
 const status = (r: Row) => ({
@@ -39,7 +40,8 @@ const status = (r: Row) => ({
   payment_reported_at: r.paymentReportedAt,
   payment_method: r.paymentMethod,
   notify: !!r.pushEndpoint, // este aparelho será avisado por notificação quando confirmarem
-  contributions_closed: r.event.contributionsClosed, // equipe encerrou as contribuições: sem PIX nem "Já fiz o PIX"
+  // equipe encerrou as contribuições (na hora ou programado): sem PIX nem "Já fiz o PIX"
+  contributions_closed: isClosed(r.event.contributionsClosed, r.event.contributionsCloseAt),
 });
 
 // Situação da inscrição para a própria pessoa (só quem tem o id, guardado no aparelho dela). Sem dados pessoais.
@@ -62,7 +64,7 @@ export const PATCH = handler(async (req, ctx: Ctx) => {
   const body = schema.safeParse(await req.json().catch(() => ({})));
   if (!body.success) return error("Dados inválidos");
   const { report, push_endpoint, payment_method } = body.data;
-  if ((report || payment_method) && r.event.contributionsClosed) return error("As contribuições para este evento foram encerradas", 409);
+  if ((report || payment_method) && isClosed(r.event.contributionsClosed, r.event.contributionsCloseAt)) return error("As contribuições para este evento foram encerradas", 409);
 
   const data: { paymentReportedAt?: Date; pushEndpoint?: string; paymentMethod?: string } = {};
   if (report && !r.contributionPaid && !r.paymentReportedAt) {

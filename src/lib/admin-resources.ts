@@ -66,6 +66,9 @@ const eventBase = z.object({
   registration_required: z.boolean().default(false),
   registrations_closed: z.boolean().default(false),
   contributions_closed: z.boolean().default(false),
+  // encerramento programado (data e hora); null = sem programação
+  registrations_close_at: optionalDate,
+  contributions_close_at: optionalDate,
   contribution_cents: z.number().int().min(0).max(10_000_000).nullable().optional(),
   contribution_note: optionalStr,
   // recebedor do PIX só deste evento (em branco = padrão de Configurações)

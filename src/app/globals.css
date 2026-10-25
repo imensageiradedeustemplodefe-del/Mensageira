@@ -229,8 +229,8 @@
     outline-offset: 3px;
   }
 
-  /* Accessibility: Minimum touch target size (44x44px) */
-  button,
+  /* Accessibility: Minimum touch target size (44x44px). Chaves (switch) têm desenho próprio e ficam fora. */
+  button:not([role="switch"]),
   a,
   [role="button"],
   input[type="checkbox"],

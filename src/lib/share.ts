@@ -1,6 +1,7 @@
 // Textos e links de compartilhamento. Cada item aponta para a sua própria página (com preview
 // próprio no WhatsApp/Facebook), e a mensagem já vem formatada para o WhatsApp (*negrito*).
 import { format } from "date-fns";
+import { isClosed } from "@/lib/event-closure";
 import { ptBR } from "date-fns/locale";
 import { formatBRL } from "@/lib/pix";
 
@@ -22,18 +23,20 @@ interface SignupInfo {
   event_date: string;
   registration_required?: boolean | null;
   registrations_closed?: boolean | null;
+  registrations_close_at?: string | Date | null;
   contribution_cents?: number | null;
   contribution_note?: string | null;
   contributions_closed?: boolean | null;
+  contributions_close_at?: string | Date | null;
 }
 
 /** Evento com inscrição aberta que ainda não aconteceu: precisa confirmar presença (e contribuir, se tiver valor). */
 export const eventSignupOpen = (e: SignupInfo) =>
-  !!e.registration_required && !e.registrations_closed && new Date(e.event_date).getTime() > Date.now();
+  !!e.registration_required && !isClosed(e.registrations_closed, e.registrations_close_at) && new Date(e.event_date).getTime() > Date.now();
 
 /** "R$ 50,00 (inclui almoço)" — null sem valor ou com as contribuições encerradas */
 export const eventContribution = (e: SignupInfo) =>
-  e.contribution_cents && !e.contributions_closed
+  e.contribution_cents && !isClosed(e.contributions_closed, e.contributions_close_at)
     ? `${formatBRL(e.contribution_cents)}${e.contribution_note ? ` (${e.contribution_note})` : ""}`
     : null;
 

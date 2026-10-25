@@ -6,6 +6,7 @@ import { formatPhoneBR, isPhoneFieldType } from "@/lib/phone";
 import { alertAdminsAboutRegistration } from "@/lib/registration-alerts";
 import { limitOrThrow } from "@/lib/rate-limit";
 import { refreshPublicData } from "@/lib/public-cache";
+import { isClosed } from "@/lib/event-closure";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -29,7 +30,7 @@ export const POST = handler(async (req, ctx: Ctx) => {
     },
   });
   if (!event) return error("Evento não encontrado ou sem inscrições", 404);
-  if (event.registrationsClosed) return error("As inscrições para este evento foram encerradas", 409);
+  if (isClosed(event.registrationsClosed, event.registrationsCloseAt)) return error("As inscrições para este evento foram encerradas", 409);
   if (event.eventDate.getTime() < Date.now() - 6 * 3600 * 1000) return error("As inscrições para este evento já foram encerradas", 409);
   if (event.maxParticipants && event._count.registrations >= event.maxParticipants) {
     return error("As vagas para este evento estão esgotadas", 409);
@@ -53,7 +54,7 @@ export const POST = handler(async (req, ctx: Ctx) => {
   }
 
   // Evento com contribuição (ainda aberta): a forma de pagamento é escolhida junto com a inscrição
-  const contributionOpen = !!event.contributionCents && !event.contributionsClosed;
+  const contributionOpen = !!event.contributionCents && !isClosed(event.contributionsClosed, event.contributionsCloseAt);
   if (contributionOpen && !body.payment_method) return error("Escolha a forma de pagamento: PIX ou dinheiro no dia");
 
   const registration = await prisma.eventRegistration.create({

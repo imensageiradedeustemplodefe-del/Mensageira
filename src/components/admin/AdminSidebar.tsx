@@ -2,51 +2,43 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/fetcher";
-import { 
-  BarChart3, 
-  MessageCircle, 
-  Cloud, 
-  Music, 
-  Calendar, 
-  Copy, 
-  Heart, 
-  Radio,
-  Settings,
-  ChevronRight,
-  ChevronDown,
-  Bell,
-  Search,
-  Image,
-  Users,
-
-  Home,
-  Inbox,
-  ClipboardList,
-  UserCog,
-  Contact,
+import {
   Award,
-  Briefcase
+  BarChart3,
+  Bell,
+  Briefcase,
+  Calendar,
+  ChevronDown,
+  ClipboardList,
+  Cloud,
+  Contact,
+  Copy,
+  ExternalLink,
+  Heart,
+  Image,
+  Inbox,
+  MessageCircle,
+  Music,
+  Radio,
+  Search,
+  Settings,
+  UserCog,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { canSeeTab, canUseApi, type StaffRole } from "@/lib/roles";
 
@@ -58,22 +50,14 @@ interface AdminSidebarProps {
 
 type BadgeKey = "contact" | "prayers" | "testimonies" | "live" | "registrations";
 
-const menuItems: {
-  title: string;
-  icon: typeof Home;
-  defaultOpen: boolean;
-  items: { title: string; value: string; icon: typeof Home; description: string; badgeKey?: BadgeKey }[];
-}[] = [
-  {
-    title: "Visão Geral",
-    icon: Home,
-    defaultOpen: true,
-    items: [{ title: "Dashboard", value: "dashboard", icon: BarChart3, description: "Resumo e números" }],
-  },
+type MenuItem = { title: string; value: string; icon: typeof Calendar; description: string; badgeKey?: BadgeKey };
+
+// Grupo sem título = itens soltos no topo (ex.: Dashboard)
+const menuItems: { title?: string; icon?: typeof Calendar; items: MenuItem[] }[] = [
+  { items: [{ title: "Dashboard", value: "dashboard", icon: BarChart3, description: "Resumo e números" }] },
   {
     title: "Eventos",
     icon: Calendar,
-    defaultOpen: true,
     items: [
       { title: "Eventos", value: "events", icon: Calendar, description: "Programação e cultos" },
       { title: "Inscrições", value: "registrations", icon: ClipboardList, description: "Inscritos e listas", badgeKey: "registrations" },
@@ -83,7 +67,6 @@ const menuItems: {
   {
     title: "Comunidade",
     icon: Users,
-    defaultOpen: true,
     items: [
       { title: "Pedidos de Oração", value: "prayers", icon: Heart, description: "Orações recebidas", badgeKey: "prayers" },
       { title: "Mensagens", value: "contact", icon: Inbox, description: "Formulário de contato", badgeKey: "contact" },
@@ -94,7 +77,6 @@ const menuItems: {
   {
     title: "Secretaria",
     icon: Briefcase,
-    defaultOpen: true,
     items: [
       { title: "Membros", value: "members", icon: Contact, description: "Cadastro, carteirinhas e números" },
       { title: "Certificados", value: "certificates", icon: Award, description: "Emitir e imprimir certificados" },
@@ -103,7 +85,6 @@ const menuItems: {
   {
     title: "Conteúdo",
     icon: Image,
-    defaultOpen: true,
     items: [
       { title: "Galeria (Drive)", value: "drive", icon: Cloud, description: "Álbuns de fotos e vídeos" },
       { title: "Mídia e Rádios", value: "media", icon: Music, description: "Rádios, vídeos e áudios" },
@@ -113,7 +94,6 @@ const menuItems: {
   {
     title: "Sistema",
     icon: Settings,
-    defaultOpen: true,
     items: [
       { title: "Configurações", value: "settings", icon: Settings, description: "Textos, contatos e horários" },
       { title: "Usuários", value: "users", icon: UserCog, description: "Acessos ao painel" },
@@ -122,10 +102,12 @@ const menuItems: {
 ];
 
 export function AdminSidebar({ activeTab, onTabChange, role }: AdminSidebarProps) {
-  const { state, isMobile } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const { state, isMobile, setOpenMobile } = useSidebar();
+  const isCollapsed = state === "collapsed" && !isMobile;
   const [searchQuery, setSearchQuery] = useState("");
+  const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});
   const [badges, setBadges] = useState<{ contact: number; prayers: number; testimonies: number; live: boolean; registrations?: number } | null>(null);
+
   useEffect(() => {
     // contadores (orações, mensagens...) só para quem cuida dessas áreas
     if (!canUseApi(role, "/api/admin/badges")) return;
@@ -134,190 +116,121 @@ export function AdminSidebar({ activeTab, onTabChange, role }: AdminSidebarProps
     const t = setInterval(load, 60_000);
     return () => clearInterval(t);
   }, [activeTab, role]);
+
   const badgeFor = (key?: BadgeKey) => {
     if (!key || !badges) return null;
-    if (key === "live") return badges.live ? "Ao Vivo" : null;
+    if (key === "live") return badges.live ? "Ao vivo" : null;
     const n = badges[key] ?? 0;
     return n > 0 ? String(n) : null;
   };
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
-    menuItems.forEach(group => {
-      initial[group.title] = group.defaultOpen;
-    });
-    return initial;
-  });
 
-  const filteredMenuItems = menuItems.map(group => ({
-    ...group,
-    items: group.items.filter(item => canSeeTab(role, item.value)).filter(item => 
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  })).filter(group => group.items.length > 0);
+  const q = searchQuery.trim().toLowerCase();
+  const groups = menuItems
+    .map((group) => ({
+      ...group,
+      items: group.items
+        .filter((item) => canSeeTab(role, item.value))
+        .filter((item) => !q || item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q)),
+    }))
+    .filter((group) => group.items.length > 0);
+  // com poucos grupos (mídia, secretaria) não precisa de busca
+  const showSearch = !isCollapsed && !isMobile && menuItems.filter((g) => g.items.some((i) => canSeeTab(role, i.value))).length > 3;
 
-  const handleGroupToggle = (groupTitle: string) => {
-    setOpenGroups(prev => ({
-      ...prev,
-      [groupTitle]: !prev[groupTitle]
-    }));
+  const select = (value: string) => {
+    onTabChange(value);
+    if (isMobile) setOpenMobile(false);
   };
 
-  const handleItemClick = (value: string) => {
-    onTabChange(value);
-    if (isMobile) {
-      const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
-      trigger?.click();
-    }
+  const renderItem = (item: MenuItem) => {
+    const isActive = activeTab === item.value;
+    const badge = badgeFor(item.badgeKey);
+    return (
+      <SidebarMenuItem key={item.value}>
+        <SidebarMenuButton
+          onClick={() => select(item.value)}
+          isActive={isActive}
+          tooltip={item.title}
+          title={isCollapsed ? undefined : item.description}
+          className={cn(
+            // no computador, itens compactos (o padrão global de 44px fica para o toque no celular)
+            "h-9 rounded-md transition-colors md:min-h-0 md:min-w-0 justify-start",
+            isActive
+              ? "bg-primary/10 text-primary font-medium hover:bg-primary/15 hover:text-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+              : "text-sidebar-foreground/80 hover:bg-sidebar-accent",
+          )}
+        >
+          <item.icon className="w-4 h-4 shrink-0" />
+          <span className="flex-1 truncate">{item.title}</span>
+          {badge && !isCollapsed && (
+            <span
+              className={cn(
+                "ml-auto rounded-full px-1.5 min-w-5 text-center text-[11px] font-semibold leading-5",
+                item.badgeKey === "live" ? "bg-red-600 text-white" : "bg-destructive/10 text-destructive",
+              )}
+            >
+              {badge}
+            </span>
+          )}
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
   };
 
   return (
-    <Sidebar 
-      className="border-r bg-sidebar" 
-      collapsible="icon"
-    >
-      {/* Header */}
-      <SidebarHeader className={cn(
-        "border-b border-sidebar-border transition-all duration-200",
-        isCollapsed ? "p-2" : "p-4"
-      )}>
-        <div className="flex items-center gap-3">
-          <div className={cn(
-            "flex items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg transition-all duration-200",
-            isCollapsed ? "w-8 h-8" : "w-10 h-10"
-          )}>
-            <Settings className={cn(isCollapsed ? "w-4 h-4" : "w-5 h-5")} />
-          </div>
+    <Sidebar className="border-r bg-sidebar" collapsible="icon">
+      <SidebarHeader className={cn("border-b border-sidebar-border", isCollapsed ? "p-2" : "px-4 py-3")}>
+        <div className="flex items-center gap-3 min-w-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/logo-icon.png"
+            alt=""
+            className={cn("rounded-full bg-white object-contain shrink-0 ring-1 ring-border", isCollapsed ? "w-8 h-8" : "w-10 h-10")}
+          />
           {!isCollapsed && (
-            <div className="flex flex-col animate-fade-in">
-              <span className="font-bold text-sm text-sidebar-foreground">Palavra Viva</span>
-              <span className="text-xs text-muted-foreground">Painel da Mensageira de Deus</span>
+            <div className="flex flex-col min-w-0 leading-tight">
+              <span className="font-bold text-sm text-sidebar-foreground truncate">Mensageira de Deus</span>
+              <span className="text-xs text-muted-foreground truncate">Painel administrativo</span>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-3">
-        {/* Search */}
-        {/* Busca só no computador (no celular abriria o teclado ao abrir o menu) */}
-        {!isCollapsed && !isMobile && (
-          <div className="mb-4 px-2 animate-fade-in">
+      <SidebarContent className="px-2 py-2 gap-0">
+        {showSearch && (
+          <div className="px-1 pb-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar..."
+                placeholder="Buscar no menu"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-sm bg-sidebar-accent/50 border-sidebar-border focus:bg-background"
+                className="pl-8 h-8 text-sm bg-sidebar-accent/50 border-sidebar-border focus:bg-background"
               />
             </div>
           </div>
         )}
 
-        {/* Menu Groups */}
-        {filteredMenuItems.map((group) => {
-          const isOpen = openGroups[group.title] ?? group.defaultOpen;
-          const hasActiveItem = group.items.some(item => item.value === activeTab);
-
+        {groups.map((group, i) => {
+          const key = group.title ?? `g${i}`;
+          // grupo com o item ativo ou buscando: sempre aberto
+          const open = !closedGroups[key] || !!q || group.items.some((item) => item.value === activeTab);
           return (
-            <SidebarGroup key={group.title} className="mb-1">
-              {isCollapsed ? (
-                // Collapsed: Show items directly without group header
+            <SidebarGroup key={key} className="p-0 py-1">
+              {!group.title || isCollapsed ? (
                 <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.items.map((item) => {
-                      const isActive = activeTab === item.value;
-                      return (
-                        <SidebarMenuItem key={item.value}>
-                          <SidebarMenuButton
-                            onClick={() => handleItemClick(item.value)}
-                            tooltip={item.title}
-                            className={cn(
-                              "w-full transition-all duration-200 rounded-lg",
-                              isActive 
-                                ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90" 
-                                : "hover:bg-sidebar-accent"
-                            )}
-                          >
-                            <item.icon className="w-4 h-4 flex-shrink-0" />
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </SidebarMenu>
+                  <SidebarMenu className="gap-0.5">{group.items.map(renderItem)}</SidebarMenu>
                 </SidebarGroupContent>
               ) : (
-                // Expanded: Show collapsible groups
-                <Collapsible
-                  open={isOpen}
-                  onOpenChange={() => handleGroupToggle(group.title)}
-                >
+                <Collapsible open={open} onOpenChange={(o) => setClosedGroups((prev) => ({ ...prev, [key]: !o }))}>
                   <CollapsibleTrigger asChild>
-                    <button className={cn(
-                      "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                      hasActiveItem 
-                        ? "text-primary bg-primary/5" 
-                        : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/50"
-                    )}>
-                      <group.icon className="w-4 h-4 flex-shrink-0" />
+                    <button className="w-full flex items-center justify-start gap-2 px-2 pt-2 pb-1 md:min-h-0 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground">
                       <span className="flex-1 text-left">{group.title}</span>
-                      <ChevronDown className={cn(
-                        "w-4 h-4 transition-transform duration-200",
-                        isOpen ? "" : "-rotate-90"
-                      )} />
+                      <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", open ? "" : "-rotate-90")} />
                     </button>
                   </CollapsibleTrigger>
-                  <CollapsibleContent className="animate-accordion-down">
-                    <SidebarGroupContent className="mt-1 ml-2 pl-4 border-l border-sidebar-border/50">
-                      <SidebarMenu>
-                        {group.items.map((item) => {
-                          const isActive = activeTab === item.value;
-                          return (
-                            <SidebarMenuItem key={item.value}>
-                              <SidebarMenuButton
-                                onClick={() => handleItemClick(item.value)}
-                                className={cn(
-                                  "w-full justify-start transition-all duration-200 rounded-lg group/item",
-                                  isActive 
-                                    ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90" 
-                                    : "hover:bg-sidebar-accent"
-                                )}
-                              >
-                                <item.icon className={cn(
-                                  "w-4 h-4 flex-shrink-0 transition-transform duration-200",
-                                  "group-hover/item:scale-110"
-                                )} />
-                                <div className="flex-1 flex flex-col items-start gap-0.5">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm">{item.title}</span>
-                                    {badgeFor(item.badgeKey) && (
-                                      <Badge 
-                                        variant="secondary" 
-                                        className={cn(
-                                          "text-[10px] px-1.5 py-0 h-4",
-                                          isActive 
-                                            ? "bg-primary-foreground/20 text-primary-foreground" 
-                                            : "bg-destructive/10 text-destructive"
-                                        )}
-                                      >
-                                        {badgeFor(item.badgeKey)}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  {item.description && !isActive && (
-                                    <span className="text-xs text-muted-foreground line-clamp-1">
-                                      {item.description}
-                                    </span>
-                                  )}
-                                </div>
-                                {isActive && (
-                                  <ChevronRight className="w-4 h-4 flex-shrink-0 animate-fade-in" />
-                                )}
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          );
-                        })}
-                      </SidebarMenu>
+                  <CollapsibleContent>
+                    <SidebarGroupContent>
+                      <SidebarMenu className="gap-0.5">{group.items.map(renderItem)}</SidebarMenu>
                     </SidebarGroupContent>
                   </CollapsibleContent>
                 </Collapsible>
@@ -326,31 +239,21 @@ export function AdminSidebar({ activeTab, onTabChange, role }: AdminSidebarProps
           );
         })}
 
-        {/* Empty state for search */}
-        {searchQuery && filteredMenuItems.length === 0 && !isCollapsed && (
-          <div className="px-4 py-8 text-center text-muted-foreground animate-fade-in">
-            <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">Nenhum item encontrado</p>
-          </div>
+        {q && groups.length === 0 && !isCollapsed && (
+          <p className="px-3 py-6 text-center text-sm text-muted-foreground">Nada encontrado</p>
         )}
       </SidebarContent>
 
-      {/* Footer */}
       {!isCollapsed && (
-        <SidebarFooter className="border-t border-sidebar-border p-4 animate-fade-in">
+        <SidebarFooter className="border-t border-sidebar-border p-2">
           <a
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20 transition-colors"
+            className="flex items-center justify-start gap-2 rounded-md px-2 h-9 md:min-h-0 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent"
           >
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
-              <Home className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-foreground truncate">Ver o site</p>
-              <p className="text-[10px] text-muted-foreground truncate">imensageiradedeus.com.br</p>
-            </div>
+            <ExternalLink className="w-4 h-4" />
+            <span className="flex-1">Ver o site</span>
           </a>
         </SidebarFooter>
       )}

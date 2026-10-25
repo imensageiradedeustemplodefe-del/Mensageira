@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/SearchBar";
 import { ShareButton } from "@/components/ShareButton";
+import { isClosed } from "@/lib/event-closure";
 import { shareEvent } from "@/lib/share";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -306,23 +307,25 @@ export function EventsPage() {
                           {event.registration_required && (
                             <div className="pt-2 border-t space-y-2">
                               <div className="flex flex-wrap gap-2">
-                                {event.registrations_closed ? (
+                                {isClosed(event.registrations_closed, event.registrations_close_at) ? (
                                   <Badge variant="secondary">Inscrições encerradas</Badge>
                                 ) : (
                                   <Badge variant="outline" className="text-orange-600 border-orange-600">
                                     Inscrição Obrigatória
                                   </Badge>
                                 )}
-                                {event.contribution_cents && !event.contributions_closed && !event.registrations_closed ? (
+                                {event.contribution_cents &&
+                                !isClosed(event.contributions_closed, event.contributions_close_at) &&
+                                !isClosed(event.registrations_closed, event.registrations_close_at) ? (
                                   <Badge variant="outline" className="text-[#1f9e91] border-[#32BCAD]">
                                     Contribuição {(event.contribution_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                                   </Badge>
                                 ) : null}
                               </div>
                               <Link href={`/eventos/${event.id}/inscricao`} className="block">
-                                <Button className="w-full" size="sm" variant={event.registrations_closed ? "outline" : "default"}>
+                                <Button className="w-full" size="sm" variant={isClosed(event.registrations_closed, event.registrations_close_at) ? "outline" : "default"}>
                                   <UserPlus className="w-4 h-4 mr-2" />
-                                  {event.registrations_closed ? "Ver minha inscrição" : "Inscrever-se"}
+                                  {isClosed(event.registrations_closed, event.registrations_close_at) ? "Ver minha inscrição" : "Inscrever-se"}
                                 </Button>
                               </Link>
                               {event.contact_info && (

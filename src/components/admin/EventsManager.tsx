@@ -35,6 +35,14 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EventRegistrationManager } from './EventRegistrationManager';
 import { GenerateYearEvents } from './GenerateYearEvents';
+import { isClosed } from '@/lib/event-closure';
+
+/** ISO -> valor do campo datetime-local (horário do aparelho) */
+const toLocalInput = (iso?: string | null) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+};
 
 interface Event {
   id: string;
@@ -48,6 +56,8 @@ interface Event {
   registration_required: boolean;
   registrations_closed?: boolean;
   contributions_closed?: boolean;
+  registrations_close_at?: string | null;
+  contributions_close_at?: string | null;
   max_participants?: number | null;
   contribution_cents?: number | null;
   contribution_note?: string | null;
@@ -94,6 +104,8 @@ export default function EventsManager() {
     registration_required: false,
     registrations_closed: false,
     contributions_closed: false,
+    registrations_close_at: '',
+    contributions_close_at: '',
     image_url: '',
     max_participants: '',
     contribution: '',
@@ -145,6 +157,8 @@ export default function EventsManager() {
       registration_required: false,
       registrations_closed: false,
       contributions_closed: false,
+      registrations_close_at: '',
+      contributions_close_at: '',
       image_url: '',
       max_participants: '',
       contribution: '',
@@ -192,6 +206,8 @@ export default function EventsManager() {
       registration_required: event.registration_required,
       registrations_closed: !!event.registrations_closed,
       contributions_closed: !!event.contributions_closed,
+      registrations_close_at: toLocalInput(event.registrations_close_at),
+      contributions_close_at: toLocalInput(event.contributions_close_at),
       image_url: event.image_url || '',
       max_participants: event.max_participants ? String(event.max_participants) : '',
       contribution: event.contribution_cents ? (event.contribution_cents / 100).toFixed(2).replace('.', ',') : '',
@@ -222,6 +238,8 @@ export default function EventsManager() {
       registration_required: formData.registration_required,
       registrations_closed: formData.registrations_closed,
       contributions_closed: formData.contributions_closed,
+      registrations_close_at: formData.registrations_close_at ? new Date(formData.registrations_close_at).toISOString() : null,
+      contributions_close_at: formData.contributions_close_at ? new Date(formData.contributions_close_at).toISOString() : null,
       image_url: formData.image_url || null,
       max_participants: formData.max_participants ? Math.max(1, parseInt(formData.max_participants, 10)) || null : null,
       // "10", "10,00" ou "10.50" -> centavos
@@ -493,7 +511,7 @@ export default function EventsManager() {
                         checked={formData.registrations_closed}
                         onCheckedChange={(checked) => setFormData({...formData, registrations_closed: checked as boolean})}
                       />
-                      <Label htmlFor="registrations_closed">Encerrar inscrições</Label>
+                      <Label htmlFor="registrations_closed">Encerrar inscrições agora</Label>
                     </div>
                     {formData.contribution.trim() && (
                       <div className="flex items-center space-x-2">
@@ -502,7 +520,29 @@ export default function EventsManager() {
                           checked={formData.contributions_closed}
                           onCheckedChange={(checked) => setFormData({...formData, contributions_closed: checked as boolean})}
                         />
-                        <Label htmlFor="contributions_closed">Encerrar contribuições</Label>
+                        <Label htmlFor="contributions_closed">Encerrar contribuições agora</Label>
+                      </div>
+                    )}
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="registrations_close_at">Encerrar inscrições sozinho em (opcional)</Label>
+                      <Input
+                        id="registrations_close_at"
+                        type="datetime-local"
+                        value={formData.registrations_close_at}
+                        onChange={(e) => setFormData({...formData, registrations_close_at: e.target.value})}
+                      />
+                    </div>
+                    {formData.contribution.trim() && (
+                      <div className="space-y-2">
+                        <Label htmlFor="contributions_close_at">Encerrar contribuições sozinho em (opcional)</Label>
+                        <Input
+                          id="contributions_close_at"
+                          type="datetime-local"
+                          value={formData.contributions_close_at}
+                          onChange={(e) => setFormData({...formData, contributions_close_at: e.target.value})}
+                        />
                       </div>
                     )}
                   </div>
@@ -659,8 +699,8 @@ export default function EventsManager() {
                         {event.registration_required && (
                           <Badge variant="outline" className="text-primary border-primary">Com inscrição</Badge>
                         )}
-                        {event.registration_required && event.registrations_closed && <Badge variant="destructive">Inscrições encerradas</Badge>}
-                        {event.contribution_cents && event.contributions_closed ? <Badge variant="outline">Contribuições encerradas</Badge> : null}
+                        {event.registration_required && isClosed(event.registrations_closed, event.registrations_close_at) && <Badge variant="destructive">Inscrições encerradas</Badge>}
+                        {event.contribution_cents && isClosed(event.contributions_closed, event.contributions_close_at) ? <Badge variant="outline">Contribuições encerradas</Badge> : null}
                         {event.is_published ? (
                           <Badge variant="outline" className="text-green-600 border-green-600">
                             Publicado

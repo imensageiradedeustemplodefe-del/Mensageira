@@ -17,6 +17,7 @@ import { RatingInput, ratingStyleOf } from "@/components/forms/RatingInput";
 import { ContributionBox, getSavedRegistrations, saveRegistration, type SavedRegistration } from "@/components/forms/ContributionBox";
 import { formatBRL } from "@/lib/pix";
 import { maskPhoneInput } from "@/lib/phone";
+import { fmtClose, isClosed, scheduledClose } from "@/lib/event-closure";
 
 type EventWithFields = Event & { registration_fields: EventRegistrationField[]; registrations_count: number };
 
@@ -57,7 +58,9 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
 
   const fields = event?.registration_fields ?? [];
   // contribuição que ainda pede forma de pagamento (a equipe pode encerrar as contribuições)
-  const contributionOpen = !!event?.contribution_cents && !event.contributions_closed;
+  const contributionOpen = !!event?.contribution_cents && !isClosed(event.contributions_closed, event.contributions_close_at);
+  const signupClosed = !!event && isClosed(event.registrations_closed, event.registrations_close_at);
+  const closesAt = scheduledClose(event?.registrations_close_at);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -269,14 +272,14 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                 ) : (
                   <p className="text-sm text-muted-foreground">{saved.map((r) => r.label).filter(Boolean).join(", ") || "Sua inscrição foi registrada."}</p>
                 )}
-                {!showForm && !event?.registrations_closed && (
+                {!showForm && !signupClosed && (
                   <Button variant="outline" className="w-full gap-2 mt-2" onClick={() => setShowForm(true)}>
                     <UserPlus className="w-4 h-4" /> Inscrever outra pessoa
                   </Button>
                 )}
               </div>
             )}
-            {event?.registrations_closed && (
+            {signupClosed && (
               <div className="flex items-center gap-3 rounded-lg border bg-muted p-4">
                 <Lock className="w-6 h-6 text-muted-foreground shrink-0" />
                 <div>
@@ -285,9 +288,10 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                 </div>
               </div>
             )}
-            {!event?.registrations_closed && (saved.length === 0 || showForm) && (
+            {!signupClosed && (saved.length === 0 || showForm) && (
             <form onSubmit={handleSubmit} className="space-y-6">
               <h2 className="text-xl font-semibold">Formulário de Inscrição</h2>
+              {closesAt && <p className="text-sm text-muted-foreground -mt-4">Inscrições até {fmtClose(closesAt)}.</p>}
               {fields.map((field) => (
                 <div key={field.id} className="space-y-2">
                   <Label htmlFor={field.field_name}>

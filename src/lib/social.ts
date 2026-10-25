@@ -57,9 +57,11 @@ function caption(event: {
   description: string | null;
   registrationRequired: boolean;
   registrationsClosed: boolean;
+  registrationsCloseAt: Date | null;
   contributionCents: number | null;
   contributionNote: string | null;
   contributionsClosed: boolean;
+  contributionsCloseAt: Date | null;
 }) {
   const share = shareEvent({
     id: event.id,
@@ -69,9 +71,11 @@ function caption(event: {
     description: event.description,
     registration_required: event.registrationRequired,
     registrations_closed: event.registrationsClosed,
+    registrations_close_at: event.registrationsCloseAt,
     contribution_cents: event.contributionCents,
     contribution_note: event.contributionNote,
     contributions_closed: event.contributionsClosed,
+    contributions_close_at: event.contributionsCloseAt,
   });
   return `${share.text.replace(/\*/g, "")}\n\n👉 ${share.url}`;
 }

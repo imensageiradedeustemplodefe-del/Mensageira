@@ -22,7 +22,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let eventPages: MetadataRoute.Sitemap = [];
   try {
     const events = await prisma.event.findMany({
-      where: { isPublished: true, registrationRequired: true, registrationsClosed: false, eventDate: { gte: now } },
+      where: {
+        isPublished: true,
+        registrationRequired: true,
+        registrationsClosed: false,
+        OR: [{ registrationsCloseAt: null }, { registrationsCloseAt: { gt: now } }],
+        eventDate: { gte: now },
+      },
       select: { id: true, updatedAt: true },
     });
     eventPages = events.map((e) => ({

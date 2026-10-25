@@ -8,6 +8,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { getSharedEvent, fmtEventDate } from "@/lib/share-pages";
 import { eventContribution, eventSignupOpen, shareEvent } from "@/lib/share";
 import { PageHero } from "@/components/layout/PageHero";
+import { isClosed } from "@/lib/event-closure";
 
 type Props = { params: Promise<{ eventId: string }> };
 
@@ -23,9 +24,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     event_date: event.eventDate.toISOString(),
     registration_required: event.registrationRequired,
     registrations_closed: event.registrationsClosed,
+    registrations_close_at: event.registrationsCloseAt,
     contribution_cents: event.contributionCents,
     contribution_note: event.contributionNote,
     contributions_closed: event.contributionsClosed,
+    contributions_close_at: event.contributionsCloseAt,
   };
   const contribution = eventContribution(signup);
   const signupText = eventSignupOpen(signup) ? `Inscrições abertas${contribution ? ` • Contribuição ${contribution}` : ""} — ` : "";
@@ -57,10 +60,13 @@ export default async function Page({ params }: Props) {
     description: event.description,
     registration_required: event.registrationRequired,
     registrations_closed: event.registrationsClosed,
+    registrations_close_at: event.registrationsCloseAt,
     contribution_cents: event.contributionCents,
     contribution_note: event.contributionNote,
     contributions_closed: event.contributionsClosed,
+    contributions_close_at: event.contributionsCloseAt,
   });
+  const signupClosed = isClosed(event.registrationsClosed, event.registrationsCloseAt);
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,10 +117,10 @@ export default async function Page({ params }: Props) {
               {event.description && <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{event.description}</p>}
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                {event.registrationRequired && event.registrationsClosed && !past && (
+                {event.registrationRequired && signupClosed && !past && (
                   <p className="sm:flex-1 rounded-md border px-4 py-2 text-center text-sm text-muted-foreground">Inscrições encerradas</p>
                 )}
-                {event.registrationRequired && !event.registrationsClosed && !past && (
+                {event.registrationRequired && !signupClosed && !past && (
                   <Link href={`/eventos/${event.id}/inscricao`} className="sm:flex-1">
                     <Button className="w-full">
                       <UserPlus className="w-4 h-4 mr-2" />

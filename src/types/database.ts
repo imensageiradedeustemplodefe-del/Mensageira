@@ -38,8 +38,10 @@ export interface Event {
   max_participants: number | null;
   registration_required: boolean;
   registrations_closed?: boolean;
+  registrations_close_at?: string | null;
   contribution_cents?: number | null;
   contributions_closed?: boolean;
+  contributions_close_at?: string | null;
   contribution_note?: string | null;
   pix_key?: string | null;
   pix_name?: string | null;
