@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Banknote, Bell, BellRing, CheckCircle2, Clock, Loader2, QrCode, Send } from "lucide-react";
+import { Banknote, Bell, BellRing, CheckCircle2, Clock, Loader2, Lock, QrCode, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PixPayment } from "@/components/forms/PixPayment";
 import { api, ApiError } from "@/lib/fetcher";
@@ -14,6 +14,7 @@ interface Status {
   payment_reported_at: string | null;
   payment_method?: "pix" | "cash" | null;
   notify?: boolean;
+  contributions_closed?: boolean; // equipe encerrou as contribuições
 }
 
 /** Endpoint da assinatura de notificação deste aparelho (se as notificações estiverem ativas). */
@@ -199,6 +200,18 @@ export function ContributionBox({
           </div>
           {notifyLine}
         </>
+      ) : status.contributions_closed ? (
+        <div className="flex items-center gap-3 rounded-lg bg-muted border p-3">
+          <Lock className="w-6 h-6 text-muted-foreground shrink-0" />
+          <div>
+            <p className="font-semibold">Contribuições encerradas</p>
+            <p className="text-sm text-muted-foreground">
+              {status.payment_method === "cash"
+                ? `Você combinou pagar em dinheiro: entregue ${formatBRL(amountCents)} para a equipe no dia do evento.`
+                : "A equipe encerrou as contribuições deste evento. Se ainda falta acertar, fale com a equipe."}
+            </p>
+          </div>
+        </div>
       ) : status.payment_method === "cash" ? (
         <>
           <div className="flex items-center gap-3 rounded-lg bg-amber-500/10 border border-amber-500/40 p-3">

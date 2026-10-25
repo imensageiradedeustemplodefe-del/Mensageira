@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Loader2, CheckCircle2, QrCode, Banknote, UserPlus } from "lucide-react";
+import { Calendar, Loader2, CheckCircle2, QrCode, Banknote, UserPlus, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/fetcher";
 import type { Event, EventRegistrationField } from "@/types/database";
@@ -56,6 +56,8 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
   }, [eventId, router, toast]);
 
   const fields = event?.registration_fields ?? [];
+  // contribuição que ainda pede forma de pagamento (a equipe pode encerrar as contribuições)
+  const contributionOpen = !!event?.contribution_cents && !event.contributions_closed;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +69,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
       )
       .map((field) => field.field_label);
 
-    if (event?.contribution_cents && !paymentMethod) missingFields.push("Forma de pagamento");
+    if (contributionOpen && !paymentMethod) missingFields.push("Forma de pagamento");
 
     if (missingFields.length > 0) {
       toast({
@@ -80,7 +82,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
 
     setSubmitting(true);
     try {
-      const reg = await api<{ id: string }>(`/api/events/${eventId}/registrations`, { method: "POST", json: { registration_data: formData, ...(event?.contribution_cents ? { payment_method: paymentMethod } : {}) } });
+      const reg = await api<{ id: string }>(`/api/events/${eventId}/registrations`, { method: "POST", json: { registration_data: formData, ...(contributionOpen ? { payment_method: paymentMethod } : {}) } });
       if (reg?.id) {
         // nome (primeiro campo de texto preenchido) só para a pessoa reconhecer a inscrição depois
         const first = fields.find((f) => !["rating", "checkbox", "select", "date", "number"].includes(f.field_type) && formData[f.field_name]);
@@ -194,7 +196,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
               <p className="text-lg text-muted-foreground mb-8">
                 Sua inscrição para <strong>{event?.title}</strong> foi registrada com sucesso.
               </p>
-              {event?.contribution_cents && regId ? (
+              {contributionOpen && event?.contribution_cents && regId ? (
                 <div className="mb-8">
                   <ContributionBox
                     eventId={eventId}
@@ -206,7 +208,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                   />
                 </div>
               ) : null}
-              <Button variant={event?.contribution_cents ? "outline" : "default"} onClick={() => router.push("/eventos")}>Ver Outros Eventos</Button>
+              <Button variant={contributionOpen ? "outline" : "default"} onClick={() => router.push("/eventos")}>Ver Outros Eventos</Button>
             </CardContent>
           </Card>
         </div>
@@ -267,14 +269,23 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                 ) : (
                   <p className="text-sm text-muted-foreground">{saved.map((r) => r.label).filter(Boolean).join(", ") || "Sua inscrição foi registrada."}</p>
                 )}
-                {!showForm && (
+                {!showForm && !event?.registrations_closed && (
                   <Button variant="outline" className="w-full gap-2 mt-2" onClick={() => setShowForm(true)}>
                     <UserPlus className="w-4 h-4" /> Inscrever outra pessoa
                   </Button>
                 )}
               </div>
             )}
-            {(saved.length === 0 || showForm) && (
+            {event?.registrations_closed && (
+              <div className="flex items-center gap-3 rounded-lg border bg-muted p-4">
+                <Lock className="w-6 h-6 text-muted-foreground shrink-0" />
+                <div>
+                  <p className="font-semibold">Inscrições encerradas</p>
+                  <p className="text-sm text-muted-foreground">Este evento não está mais recebendo inscrições.</p>
+                </div>
+              </div>
+            )}
+            {!event?.registrations_closed && (saved.length === 0 || showForm) && (
             <form onSubmit={handleSubmit} className="space-y-6">
               <h2 className="text-xl font-semibold">Formulário de Inscrição</h2>
               {fields.map((field) => (
@@ -286,7 +297,7 @@ export function EventRegistrationPage({ eventId }: { eventId: string }) {
                   {renderField(field)}
                 </div>
               ))}
-              {event?.contribution_cents ? (
+              {contributionOpen && event?.contribution_cents ? (
                 <div className="rounded-lg border border-[#32BCAD]/40 bg-[#32BCAD]/10 p-4 text-sm">
                   <p className="font-semibold">Contribuição: {formatBRL(event.contribution_cents)}</p>
                   {event.contribution_note && <p className="text-muted-foreground mt-0.5">{event.contribution_note}</p>}

@@ -95,6 +95,10 @@ model Event {
   isPublished          Boolean  @default(false) @map("is_published")
   maxParticipants      Int?     @map("max_participants")
   registrationRequired Boolean  @default(false) @map("registration_required")
+  /// inscrições encerradas pela equipe: ninguém mais se inscreve (quem já se inscreveu continua vendo a inscrição)
+  registrationsClosed  Boolean  @default(false) @map("registrations_closed")
+  /// contribuições encerradas: some o PIX e o "Já fiz o PIX"; a pessoa só vê a situação do pagamento
+  contributionsClosed  Boolean  @default(false) @map("contributions_closed")
   /// Contribuição pedida na inscrição, em centavos (ex.: 1000 = R$ 10,00). null = sem contribuição
   contributionCents    Int?     @map("contribution_cents")
   contributionNote     String?  @map("contribution_note")

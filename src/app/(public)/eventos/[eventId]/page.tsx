@@ -22,8 +22,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const signup = {
     event_date: event.eventDate.toISOString(),
     registration_required: event.registrationRequired,
+    registrations_closed: event.registrationsClosed,
     contribution_cents: event.contributionCents,
     contribution_note: event.contributionNote,
+    contributions_closed: event.contributionsClosed,
   };
   const contribution = eventContribution(signup);
   const signupText = eventSignupOpen(signup) ? `Inscrições abertas${contribution ? ` • Contribuição ${contribution}` : ""} — ` : "";
@@ -54,8 +56,10 @@ export default async function Page({ params }: Props) {
     location: event.location,
     description: event.description,
     registration_required: event.registrationRequired,
+    registrations_closed: event.registrationsClosed,
     contribution_cents: event.contributionCents,
     contribution_note: event.contributionNote,
+    contributions_closed: event.contributionsClosed,
   });
 
   return (
@@ -107,7 +111,10 @@ export default async function Page({ params }: Props) {
               {event.description && <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{event.description}</p>}
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                {event.registrationRequired && !past && (
+                {event.registrationRequired && event.registrationsClosed && !past && (
+                  <p className="sm:flex-1 rounded-md border px-4 py-2 text-center text-sm text-muted-foreground">Inscrições encerradas</p>
+                )}
+                {event.registrationRequired && !event.registrationsClosed && !past && (
                   <Link href={`/eventos/${event.id}/inscricao`} className="sm:flex-1">
                     <Button className="w-full">
                       <UserPlus className="w-4 h-4 mr-2" />

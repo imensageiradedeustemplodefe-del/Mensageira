@@ -37,7 +37,9 @@ export interface Event {
   is_published: boolean;
   max_participants: number | null;
   registration_required: boolean;
+  registrations_closed?: boolean;
   contribution_cents?: number | null;
+  contributions_closed?: boolean;
   contribution_note?: string | null;
   pix_key?: string | null;
   pix_name?: string | null;

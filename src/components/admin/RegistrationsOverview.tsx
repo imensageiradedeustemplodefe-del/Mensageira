@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { api } from "@/lib/fetcher";
 import { EventRegistrationManager } from "./EventRegistrationManager";
 import { AdminAlertsToggle } from "./AdminAlertsToggle";
+import { EventClosureControls } from "./EventClosureControls";
 
 interface Row {
   id: string;
@@ -17,6 +18,8 @@ interface Row {
   max_participants: number | null;
   contribution_cents: number | null;
   registration_required: boolean;
+  registrations_closed: boolean;
+  contributions_closed: boolean;
   is_published: boolean;
   registrations: number;
   fields: number;
@@ -69,12 +72,20 @@ export function RegistrationsOverview() {
           <ArrowLeft className="w-4 h-4 mr-2" /> Todos os eventos com inscrição
         </Button>
         <Card>
-          <CardContent className="p-5 space-y-1">
-            <h2 className="text-xl font-bold">{selected.title}</h2>
-            <p className="text-sm text-muted-foreground capitalize">
-              {fmtDate(selected.event_date)}
-              {selected.location ? ` • ${selected.location}` : ""}
-            </p>
+          <CardContent className="p-5 space-y-3">
+            <div className="space-y-1">
+              <h2 className="text-xl font-bold">{selected.title}</h2>
+              <p className="text-sm text-muted-foreground capitalize">
+                {fmtDate(selected.event_date)}
+                {selected.location ? ` • ${selected.location}` : ""}
+              </p>
+            </div>
+            <EventClosureControls
+              eventId={selected.id}
+              value={selected}
+              hasContribution={!!selected.contribution_cents}
+              onChange={(v) => setSelected({ ...selected, ...v })}
+            />
           </CardContent>
         </Card>
         <EventRegistrationManager eventId={selected.id} eventTitle={selected.title} maxParticipants={selected.max_participants} contributionCents={selected.contribution_cents} defaultTab="registrations" />
@@ -124,6 +135,8 @@ export function RegistrationsOverview() {
           )}
           <div className="flex flex-wrap gap-1.5">
             {full && <Badge variant="destructive">Esgotado</Badge>}
+            {r.registrations_closed && <Badge variant="destructive">Inscrições encerradas</Badge>}
+            {r.contributions_closed && !!r.contribution_cents && <Badge variant="outline">Contribuições encerradas</Badge>}
             {!!r.payments_to_check && (
               <Badge className="bg-sky-600 text-white hover:bg-sky-600">
                 {r.payments_to_check} PIX para conferir

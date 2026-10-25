@@ -49,7 +49,18 @@ async function postInstagram(imageUrl: string, caption: string) {
 }
 
 /** Texto do post: o mesmo do compartilhamento, sem a marcação de negrito do WhatsApp. */
-function caption(event: { id: string; title: string; eventDate: Date; location: string | null; description: string | null; registrationRequired: boolean; contributionCents: number | null; contributionNote: string | null }) {
+function caption(event: {
+  id: string;
+  title: string;
+  eventDate: Date;
+  location: string | null;
+  description: string | null;
+  registrationRequired: boolean;
+  registrationsClosed: boolean;
+  contributionCents: number | null;
+  contributionNote: string | null;
+  contributionsClosed: boolean;
+}) {
   const share = shareEvent({
     id: event.id,
     title: event.title,
@@ -57,8 +68,10 @@ function caption(event: { id: string; title: string; eventDate: Date; location: 
     location: event.location,
     description: event.description,
     registration_required: event.registrationRequired,
+    registrations_closed: event.registrationsClosed,
     contribution_cents: event.contributionCents,
     contribution_note: event.contributionNote,
+    contributions_closed: event.contributionsClosed,
   });
   return `${share.text.replace(/\*/g, "")}\n\n👉 ${share.url}`;
 }

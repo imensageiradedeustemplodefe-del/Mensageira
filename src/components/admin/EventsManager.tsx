@@ -46,6 +46,8 @@ interface Event {
   category: string;
   is_published: boolean;
   registration_required: boolean;
+  registrations_closed?: boolean;
+  contributions_closed?: boolean;
   max_participants?: number | null;
   contribution_cents?: number | null;
   contribution_note?: string | null;
@@ -90,6 +92,8 @@ export default function EventsManager() {
     category: 'geral',
     is_published: false,
     registration_required: false,
+    registrations_closed: false,
+    contributions_closed: false,
     image_url: '',
     max_participants: '',
     contribution: '',
@@ -139,6 +143,8 @@ export default function EventsManager() {
       category: 'geral',
       is_published: false,
       registration_required: false,
+      registrations_closed: false,
+      contributions_closed: false,
       image_url: '',
       max_participants: '',
       contribution: '',
@@ -184,6 +190,8 @@ export default function EventsManager() {
       category: event.category,
       is_published: event.is_published,
       registration_required: event.registration_required,
+      registrations_closed: !!event.registrations_closed,
+      contributions_closed: !!event.contributions_closed,
       image_url: event.image_url || '',
       max_participants: event.max_participants ? String(event.max_participants) : '',
       contribution: event.contribution_cents ? (event.contribution_cents / 100).toFixed(2).replace('.', ',') : '',
@@ -212,6 +220,8 @@ export default function EventsManager() {
       category: formData.category,
       is_published: formData.is_published,
       registration_required: formData.registration_required,
+      registrations_closed: formData.registrations_closed,
+      contributions_closed: formData.contributions_closed,
       image_url: formData.image_url || null,
       max_participants: formData.max_participants ? Math.max(1, parseInt(formData.max_participants, 10)) || null : null,
       // "10", "10,00" ou "10.50" -> centavos
@@ -476,6 +486,26 @@ export default function EventsManager() {
               {formData.registration_required && (
                 <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
                   <p className="text-sm font-semibold">Inscrição</p>
+                  <div className="flex flex-wrap gap-x-6 gap-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="registrations_closed"
+                        checked={formData.registrations_closed}
+                        onCheckedChange={(checked) => setFormData({...formData, registrations_closed: checked as boolean})}
+                      />
+                      <Label htmlFor="registrations_closed">Encerrar inscrições</Label>
+                    </div>
+                    {formData.contribution.trim() && (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="contributions_closed"
+                          checked={formData.contributions_closed}
+                          onCheckedChange={(checked) => setFormData({...formData, contributions_closed: checked as boolean})}
+                        />
+                        <Label htmlFor="contributions_closed">Encerrar contribuições</Label>
+                      </div>
+                    )}
+                  </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="max_participants">Máximo de participantes (opcional)</Label>
@@ -629,6 +659,8 @@ export default function EventsManager() {
                         {event.registration_required && (
                           <Badge variant="outline" className="text-primary border-primary">Com inscrição</Badge>
                         )}
+                        {event.registration_required && event.registrations_closed && <Badge variant="destructive">Inscrições encerradas</Badge>}
+                        {event.contribution_cents && event.contributions_closed ? <Badge variant="outline">Contribuições encerradas</Badge> : null}
                         {event.is_published ? (
                           <Badge variant="outline" className="text-green-600 border-green-600">
                             Publicado

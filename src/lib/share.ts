@@ -21,16 +21,21 @@ const SIGNATURE = "Igreja Mensageira De Deus Templo De Fé";
 interface SignupInfo {
   event_date: string;
   registration_required?: boolean | null;
+  registrations_closed?: boolean | null;
   contribution_cents?: number | null;
   contribution_note?: string | null;
+  contributions_closed?: boolean | null;
 }
 
-/** Evento com inscrição que ainda não aconteceu: precisa confirmar presença (e contribuir, se tiver valor). */
-export const eventSignupOpen = (e: SignupInfo) => !!e.registration_required && new Date(e.event_date).getTime() > Date.now();
+/** Evento com inscrição aberta que ainda não aconteceu: precisa confirmar presença (e contribuir, se tiver valor). */
+export const eventSignupOpen = (e: SignupInfo) =>
+  !!e.registration_required && !e.registrations_closed && new Date(e.event_date).getTime() > Date.now();
 
-/** "R$ 50,00 (inclui almoço)" */
+/** "R$ 50,00 (inclui almoço)" — null sem valor ou com as contribuições encerradas */
 export const eventContribution = (e: SignupInfo) =>
-  e.contribution_cents ? `${formatBRL(e.contribution_cents)}${e.contribution_note ? ` (${e.contribution_note})` : ""}` : null;
+  e.contribution_cents && !e.contributions_closed
+    ? `${formatBRL(e.contribution_cents)}${e.contribution_note ? ` (${e.contribution_note})` : ""}`
+    : null;
 
 export function shareEvent(e: SignupInfo & { id: string; title: string; location?: string | null; description?: string | null }): ShareData {
   const d = new Date(e.event_date);

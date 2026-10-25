@@ -306,19 +306,23 @@ export function EventsPage() {
                           {event.registration_required && (
                             <div className="pt-2 border-t space-y-2">
                               <div className="flex flex-wrap gap-2">
-                                <Badge variant="outline" className="text-orange-600 border-orange-600">
-                                  Inscrição Obrigatória
-                                </Badge>
-                                {event.contribution_cents ? (
+                                {event.registrations_closed ? (
+                                  <Badge variant="secondary">Inscrições encerradas</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-orange-600 border-orange-600">
+                                    Inscrição Obrigatória
+                                  </Badge>
+                                )}
+                                {event.contribution_cents && !event.contributions_closed && !event.registrations_closed ? (
                                   <Badge variant="outline" className="text-[#1f9e91] border-[#32BCAD]">
                                     Contribuição {(event.contribution_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                                   </Badge>
                                 ) : null}
                               </div>
                               <Link href={`/eventos/${event.id}/inscricao`} className="block">
-                                <Button className="w-full" size="sm">
+                                <Button className="w-full" size="sm" variant={event.registrations_closed ? "outline" : "default"}>
                                   <UserPlus className="w-4 h-4 mr-2" />
-                                  Inscrever-se
+                                  {event.registrations_closed ? "Ver minha inscrição" : "Inscrever-se"}
                                 </Button>
                               </Link>
                               {event.contact_info && (

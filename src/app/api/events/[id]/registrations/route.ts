@@ -29,6 +29,7 @@ export const POST = handler(async (req, ctx: Ctx) => {
     },
   });
   if (!event) return error("Evento não encontrado ou sem inscrições", 404);
+  if (event.registrationsClosed) return error("As inscrições para este evento foram encerradas", 409);
   if (event.eventDate.getTime() < Date.now() - 6 * 3600 * 1000) return error("As inscrições para este evento já foram encerradas", 409);
   if (event.maxParticipants && event._count.registrations >= event.maxParticipants) {
     return error("As vagas para este evento estão esgotadas", 409);
@@ -51,11 +52,12 @@ export const POST = handler(async (req, ctx: Ctx) => {
     data[f.fieldName] = isPhoneFieldType(f.fieldType) && typeof v === "string" ? formatPhoneBR(v) : v;
   }
 
-  // Evento com contribuição: a forma de pagamento é escolhida junto com a inscrição
-  if (event.contributionCents && !body.payment_method) return error("Escolha a forma de pagamento: PIX ou dinheiro no dia");
+  // Evento com contribuição (ainda aberta): a forma de pagamento é escolhida junto com a inscrição
+  const contributionOpen = !!event.contributionCents && !event.contributionsClosed;
+  if (contributionOpen && !body.payment_method) return error("Escolha a forma de pagamento: PIX ou dinheiro no dia");
 
   const registration = await prisma.eventRegistration.create({
-    data: { eventId: id, registrationData: data as object, paymentMethod: event.contributionCents ? body.payment_method : null },
+    data: { eventId: id, registrationData: data as object, paymentMethod: contributionOpen ? body.payment_method : null },
     select: { id: true, createdAt: true },
   });
 
