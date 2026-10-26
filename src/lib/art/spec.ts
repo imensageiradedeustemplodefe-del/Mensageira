@@ -31,7 +31,19 @@ export interface ArtTheme {
   shade: string;
 }
 
+export const ART_STYLES = {
+  minimalista: { label: "Minimalista", description: "Fundo liso, bastante espaço e letras finas", themes: ["papel", "marinho", "grafite", "areia"] },
+  vibrante: { label: "Vibrante", description: "Degradê, faixas coloridas e títulos fortes", themes: ["azul", "dourado", "noite", "claro"] },
+} as const;
+export type ArtStyle = keyof typeof ART_STYLES;
+
 export const ART_THEMES = {
+  // minimalista: o fundo é a cor "from" lisa; "accent" só em detalhes finos
+  papel: { label: "Papel", from: "#F7F4EE", to: "#F7F4EE", text: "#1F1D1A", muted: "#6B655C", accent: "#A8834A", onAccent: "#FFFFFF", shade: "247, 244, 238" },
+  marinho: { label: "Marinho", from: "#0F2742", to: "#0F2742", text: "#F4F7FB", muted: "#A9BBD0", accent: "#8EC5FF", onAccent: "#0F2742", shade: "15, 39, 66" },
+  grafite: { label: "Grafite", from: "#161616", to: "#161616", text: "#F2F2F2", muted: "#9A9A9A", accent: "#C9A96E", onAccent: "#161616", shade: "22, 22, 22" },
+  areia: { label: "Areia", from: "#E9E1D4", to: "#E9E1D4", text: "#2F2619", muted: "#6E6150", accent: "#8A6A3F", onAccent: "#FFFFFF", shade: "233, 225, 212" },
+  // vibrante
   azul: { label: "Azul Mensageira", from: "#2A9BFF", to: "#0B4FA8", text: "#FFFFFF", muted: "#DCEBFF", accent: "#FFD54A", onAccent: "#0B3B7A", shade: "8, 38, 86" },
   dourado: { label: "Dourado", from: "#2B1D0E", to: "#70501F", text: "#FFF8E7", muted: "#EADCBC", accent: "#E8C26A", onAccent: "#2B1D0E", shade: "34, 22, 8" },
   noite: { label: "Noite", from: "#0B1530", to: "#1D3270", text: "#FFFFFF", muted: "#C9D6FF", accent: "#5EB4FF", onAccent: "#0B1530", shade: "6, 12, 32" },
@@ -43,8 +55,9 @@ const text = (max: number) => z.string().trim().max(max).default("");
 
 export const artSpecSchema = z.object({
   format: z.enum(Object.keys(ART_FORMATS) as [ArtFormat, ...ArtFormat[]]).default("feed"),
+  style: z.enum(Object.keys(ART_STYLES) as [ArtStyle, ...ArtStyle[]]).default("minimalista"),
   template: z.enum(Object.keys(ART_TEMPLATES) as [ArtTemplate, ...ArtTemplate[]]).default("evento"),
-  theme: z.enum(Object.keys(ART_THEMES) as [ArtThemeId, ...ArtThemeId[]]).default("azul"),
+  theme: z.enum(Object.keys(ART_THEMES) as [ArtThemeId, ...ArtThemeId[]]).default("papel"),
   tag: text(40), // etiqueta no alto (ex.: "EVENTO", "HOJE TEM")
   title: text(140),
   text: text(600), // texto do aviso / versículo / subtítulo da capa

@@ -14,11 +14,12 @@ let assets: Promise<{ fonts: { name: string; data: Buffer; weight: 500 | 600 | 7
 function loadAssets() {
   assets ??= (async () => {
     const dir = join(process.cwd(), "assets/fonts");
-    const [m500, m700, m800, pItalic, logo] = await Promise.all([
+    const [m500, m700, m800, pItalic, pNormal, logo] = await Promise.all([
       readFile(join(dir, "montserrat-latin-500-normal.woff")),
       readFile(join(dir, "montserrat-latin-700-normal.woff")),
       readFile(join(dir, "montserrat-latin-800-normal.woff")),
       readFile(join(dir, "playfair-display-latin-600-italic.woff")),
+      readFile(join(dir, "playfair-display-latin-500-normal.woff")),
       readFile(join(process.cwd(), "public/images/logo-icon.png")),
     ]);
     return {
@@ -27,6 +28,7 @@ function loadAssets() {
         { name: "Montserrat", data: m700, weight: 700, style: "normal" },
         { name: "Montserrat", data: m800, weight: 800, style: "normal" },
         { name: "Playfair", data: pItalic, weight: 600, style: "italic" },
+        { name: "Playfair", data: pNormal, weight: 500, style: "normal" },
       ],
       logo: `data:image/png;base64,${logo.toString("base64")}`,
     };
@@ -179,12 +181,175 @@ function Body({ spec, theme }: { spec: ArtSpec; theme: ArtTheme }) {
   );
 }
 
+// ---------------- Estilo minimalista ----------------
+// Fundo liso, muito espaço, título em serifa fina, detalhes pequenos com letras espaçadas e linhas finas.
+
+const upper = (s: string) => s.toLocaleUpperCase("pt-BR");
+
+function minimalTitleSize(t: string, story: boolean) {
+  const n = t.length;
+  const base = n <= 14 ? 118 : n <= 24 ? 100 : n <= 36 ? 86 : n <= 55 ? 72 : n <= 85 ? 60 : 50;
+  return story ? Math.round(base * 1.1) : base;
+}
+
+function MinimalBody({ spec, theme, center }: { spec: ArtSpec; theme: ArtTheme; center: boolean }) {
+  const story = spec.format === "story";
+  const align = center ? "center" : "flex-start";
+  const rule = <div style={{ display: "flex", width: 90, height: 2, background: theme.accent }} />;
+  const small = (t: string, color = theme.muted) => (
+    <div style={{ display: "flex", fontSize: 30, fontWeight: 500, letterSpacing: 5, color, textAlign: center ? "center" : "left", justifyContent: align }}>{upper(t)}</div>
+  );
+
+  if (spec.template === "versiculo") {
+    const t = spec.text;
+    const size = t.length <= 90 ? 62 : t.length <= 160 ? 54 : t.length <= 260 ? 46 : 38;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 44 }}>
+        {rule}
+        <div
+          style={{
+            display: "flex",
+            fontFamily: "Playfair",
+            fontStyle: "italic",
+            fontWeight: 600,
+            fontSize: story ? size + 6 : size,
+            lineHeight: 1.45,
+            color: theme.text,
+            textAlign: "center",
+            justifyContent: "center",
+          }}
+        >
+          {t}
+        </div>
+        {spec.reference && small(spec.reference, theme.accent)}
+        {rule}
+      </div>
+    );
+  }
+
+  const details = spec.template === "evento" ? [[spec.date, spec.time].filter(Boolean).join("  ·  "), spec.location].filter(Boolean) : [];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: align, gap: 40 }}>
+      <div
+        style={{
+          display: "flex",
+          fontFamily: "Playfair",
+          fontWeight: 500,
+          fontSize: minimalTitleSize(spec.title, story),
+          lineHeight: 1.08,
+          color: theme.text,
+          textAlign: center ? "center" : "left",
+          justifyContent: align,
+        }}
+      >
+        {spec.title}
+      </div>
+      {rule}
+      {(spec.template === "aviso" || spec.template === "capa") && spec.text && (
+        <div
+          style={{
+            display: "flex",
+            fontSize: spec.template === "capa" ? 40 : spec.text.length > 220 ? 34 : 40,
+            fontWeight: 500,
+            lineHeight: 1.5,
+            color: theme.muted,
+            textAlign: center ? "center" : "left",
+            justifyContent: align,
+          }}
+        >
+          {spec.text}
+        </div>
+      )}
+      {details.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: align, gap: 16 }}>
+          {details.map((d, i) => (
+            <div key={i} style={{ display: "flex", fontSize: i === 0 ? 34 : 30, fontWeight: i === 0 ? 700 : 500, letterSpacing: 4, color: i === 0 ? theme.text : theme.muted }}>
+              {upper(d)}
+            </div>
+          ))}
+        </div>
+      )}
+      {spec.highlight && (
+        <div style={{ display: "flex", fontSize: 28, fontWeight: 700, letterSpacing: 3, color: theme.accent, border: `2px solid ${theme.accent}`, padding: "14px 26px", borderRadius: 999 }}>
+          {upper(spec.highlight)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function minimalNode(spec: ArtSpec, theme: ArtTheme, logo: string, photo: string | null, width: number, height: number) {
+  const story = spec.format === "story";
+  const pad = story ? 110 : 100;
+  const safeTop = story ? 150 : 0;
+  const safeBottom = story ? 190 : 0;
+  const center = spec.template === "versiculo" || spec.template === "capa";
+  // com foto: a foto ocupa a parte de cima, limpa; o texto fica no bloco liso de baixo (capa: foto inteira, levemente escurecida)
+  const fullPhoto = !!photo && spec.template === "capa";
+  const photoH = photo && !fullPhoto ? Math.round(height * (story ? 0.5 : spec.format === "square" ? 0.46 : 0.52)) : 0;
+  const fg = fullPhoto ? { ...theme, text: "#FFFFFF", muted: "#E6E6E6" } : theme;
+
+  const tag = spec.tag ? (
+    <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+      <div style={{ display: "flex", width: 40, height: 2, background: fg.accent }} />
+      <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: 7, color: fg.accent }}>{upper(spec.tag)}</div>
+    </div>
+  ) : (
+    <div style={{ display: "flex" }} />
+  );
+  const footer = (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: center ? "center" : "flex-start", gap: 18 }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={logo} width={64} height={64} alt="" style={{ borderRadius: 999, background: "#fff" }} />
+      <div style={{ display: "flex", fontSize: 24, fontWeight: 500, letterSpacing: 4, color: fg.muted }}>{upper("Igreja Mensageira de Deus")}</div>
+    </div>
+  );
+
+  return (
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", position: "relative", fontFamily: "Montserrat", background: theme.from, color: fg.text }}>
+      {photo && (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={photo} width={width} height={fullPhoto ? height : photoH} alt="" style={{ position: "absolute", top: 0, left: 0 }} />
+          {fullPhoto && <div style={{ position: "absolute", top: 0, left: 0, width, height, display: "flex", background: "rgba(0,0,0,0.42)" }} />}
+        </>
+      )}
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          width: "100%",
+          height: "100%",
+          padding: `${(photoH ? photoH + 70 : pad + safeTop)}px ${pad}px ${pad + safeBottom}px`,
+        }}
+      >
+        {!photoH && tag}
+        <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, justifyContent: photoH ? "flex-start" : "center", gap: 36, padding: photoH ? "0" : "40px 0" }}>
+          {photoH > 0 && tag}
+          <MinimalBody spec={spec} theme={fg} center={center} />
+        </div>
+        {footer}
+      </div>
+    </div>
+  );
+}
+
 /** Gera a arte em JPEG. */
 export async function renderArt(spec: ArtSpec): Promise<Buffer> {
   const { width, height } = ART_FORMATS[spec.format];
   const theme = ART_THEMES[spec.theme];
   const { fonts, logo } = await loadAssets();
-  const photo = spec.photo ? await backgroundPhoto(spec.photo, width, height) : null;
+  const minimal = spec.style === "minimalista";
+  const photoBox = minimal && spec.photo && spec.template !== "capa"
+    ? { width, height: Math.round(height * (spec.format === "story" ? 0.5 : spec.format === "square" ? 0.46 : 0.52)) }
+    : { width, height };
+  const photo = spec.photo ? await backgroundPhoto(spec.photo, photoBox.width, photoBox.height) : null;
+  if (minimal) {
+    const png = new ImageResponse(minimalNode(spec, theme, logo, photo, width, height), { width, height, fonts });
+    return sharp(Buffer.from(await png.arrayBuffer())).jpeg({ quality: 92 }).toBuffer();
+  }
   const pad = spec.format === "story" ? 96 : 80;
   // story: deixa livres as faixas de cima e de baixo, onde o Instagram põe o perfil e a resposta
   const safeTop = spec.format === "story" ? 170 : 0;

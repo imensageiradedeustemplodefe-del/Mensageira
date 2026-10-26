@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { api } from "@/lib/fetcher";
 import { formatBRL } from "@/lib/pix";
 import { isClosed } from "@/lib/event-closure";
-import { ART_DEFAULTS, ART_FORMATS, ART_TEMPLATES, ART_THEMES, ordinalFirstDay, type ArtFormat, type ArtSpec, type ArtTemplate, type ArtThemeId } from "@/lib/art/spec";
+import { ART_DEFAULTS, ART_FORMATS, ART_STYLES, ART_TEMPLATES, ART_THEMES, ordinalFirstDay, type ArtFormat, type ArtSpec, type ArtStyle, type ArtTemplate, type ArtThemeId } from "@/lib/art/spec";
 import { cn } from "@/lib/utils";
 
 interface EventRow {
@@ -38,7 +38,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const eventDate = (iso: string) => ordinalFirstDay(cap(new Date(iso).toLocaleDateString("pt-BR", { ...tz, weekday: "long", day: "numeric", month: "long" })));
 const eventTime = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { ...tz, hour: "2-digit", minute: "2-digit" }).replace(":", "h");
 
-const EMPTY: ArtSpec = { format: "feed", template: "evento", theme: "azul", tag: "", title: "", text: "", reference: "", date: "", time: "", location: "", highlight: "", photo: null };
+const EMPTY: ArtSpec = { format: "feed", style: "minimalista", template: "evento", theme: "papel", tag: "", title: "", text: "", reference: "", date: "", time: "", location: "", highlight: "", photo: null };
 
 /** Reduz a foto (lado maior até 1600px) e envia; devolve o endereço. */
 async function uploadPhoto(file: File) {
@@ -111,7 +111,7 @@ export function ArtStudio() {
     };
   }, [key]);
 
-  const changeTemplate = (template: ArtTemplate) => setSpec((s) => ({ ...EMPTY, format: s.format, theme: s.theme, photo: s.photo, ...ART_DEFAULTS[template], template }));
+  const changeTemplate = (template: ArtTemplate) => setSpec((s) => ({ ...EMPTY, format: s.format, style: s.style, theme: s.theme, photo: s.photo, ...ART_DEFAULTS[template], template }));
 
   const fillFromEvent = (id: string) => {
     const e = events.find((x) => x.id === id);
@@ -209,6 +209,26 @@ export function ArtStudio() {
           </div>
 
           <div className="space-y-2">
+            <Label>Estilo</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {(Object.keys(ART_STYLES) as ArtStyle[]).map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => set({ style: st, theme: ART_STYLES[st].themes[0] })}
+                  className={cn(
+                    "rounded-lg border-2 p-2 text-left min-h-0 block",
+                    spec.style === st ? "border-primary bg-primary/10" : "border-border hover:border-primary/50",
+                  )}
+                >
+                  <span className="block text-sm font-semibold">{ART_STYLES[st].label}</span>
+                  <span className="block text-[11px] text-muted-foreground leading-tight">{ART_STYLES[st].description}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <Label>Modelo</Label>
             <div className="grid grid-cols-2 gap-2">
               {(Object.keys(ART_TEMPLATES) as ArtTemplate[]).map((t) => (
@@ -231,7 +251,7 @@ export function ArtStudio() {
           <div className="space-y-2">
             <Label>Cores</Label>
             <div className="flex flex-wrap gap-2">
-              {(Object.keys(ART_THEMES) as ArtThemeId[]).map((id) => {
+              {(ART_STYLES[spec.style].themes as readonly ArtThemeId[]).map((id) => {
                 const th = ART_THEMES[id];
                 return (
                   <button

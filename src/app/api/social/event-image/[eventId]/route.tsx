@@ -26,8 +26,9 @@ export const GET = async (_req: Request, ctx: { params: Promise<{ eventId: strin
   const jpeg = await renderArt(
     artSpecSchema.parse({
       format: "feed",
+      style: "minimalista",
       template: "evento",
-      theme: "azul",
+      theme: "marinho",
       tag: "Hoje tem",
       title: event.title.slice(0, 140),
       date: ordinalFirstDay(`${date.charAt(0).toUpperCase()}${date.slice(1)}`),
