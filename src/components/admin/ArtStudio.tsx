@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Camera, Download, Loader2, Share2, X } from "lucide-react";
+import { AlignCenter, AlignLeft, Camera, Download, Loader2, Save, Share2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { api } from "@/lib/fetcher";
 import { formatBRL } from "@/lib/pix";
 import { isClosed } from "@/lib/event-closure";
-import { ART_DEFAULTS, ART_FORMATS, ART_STYLES, ART_TEMPLATES, ART_THEMES, ordinalFirstDay, type ArtFormat, type ArtSpec, type ArtStyle, type ArtTemplate, type ArtThemeId } from "@/lib/art/spec";
+import {
+  ART_BACKGROUNDS,
+  ART_DEFAULTS,
+  ART_FORMATS,
+  ART_POSITIONS,
+  ART_TEMPLATES,
+  ART_THEMES,
+  ordinalFirstDay,
+  type ArtBackground,
+  type ArtFormat,
+  type ArtPosition,
+  type ArtSpec,
+  type ArtTemplate,
+  type ArtThemeId,
+} from "@/lib/art/spec";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 interface EventRow {
@@ -38,7 +54,36 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const eventDate = (iso: string) => ordinalFirstDay(cap(new Date(iso).toLocaleDateString("pt-BR", { ...tz, weekday: "long", day: "numeric", month: "long" })));
 const eventTime = (iso: string) => new Date(iso).toLocaleTimeString("pt-BR", { ...tz, hour: "2-digit", minute: "2-digit" }).replace(":", "h");
 
-const EMPTY: ArtSpec = { format: "feed", style: "minimalista", template: "evento", theme: "papel", tag: "", title: "", text: "", reference: "", date: "", time: "", location: "", highlight: "", photo: null };
+const EMPTY: ArtSpec = {
+  format: "feed",
+  template: "evento",
+  theme: "papel",
+  tag: "",
+  title: "",
+  text: "",
+  reference: "",
+  date: "",
+  time: "",
+  location: "",
+  highlight: "",
+  photo: null,
+  background: "cor",
+  position: "base",
+  align: "left",
+  textColor: "#FFFFFF",
+  accentColor: "#E8C26A",
+  overlay: 40,
+  showLogo: true,
+};
+
+/** Cores rápidas para as letras sobre imagem de fundo */
+const QUICK_COLORS = ["#FFFFFF", "#F7F4EE", "#E8C26A", "#8EC5FF", "#161616", "#0F2742"];
+
+interface Preset {
+  id: string;
+  name: string;
+  spec: ArtSpec;
+}
 
 /** Reduz a foto (lado maior até 1600px) e envia; devolve o endereço. */
 async function uploadPhoto(file: File) {
@@ -111,7 +156,61 @@ export function ArtStudio() {
     };
   }, [key]);
 
-  const changeTemplate = (template: ArtTemplate) => setSpec((s) => ({ ...EMPTY, format: s.format, style: s.style, theme: s.theme, photo: s.photo, ...ART_DEFAULTS[template], template }));
+  // troca o modelo mantendo o visual (formato, cores, fundo)
+  const changeTemplate = (template: ArtTemplate) =>
+    setSpec((s) => ({
+      ...EMPTY,
+      format: s.format,
+      theme: s.theme,
+      photo: s.photo,
+      background: s.background,
+      position: s.position,
+      align: s.align,
+      textColor: s.textColor,
+      accentColor: s.accentColor,
+      overlay: s.overlay,
+      showLogo: s.showLogo,
+      ...ART_DEFAULTS[template],
+      template,
+    }));
+
+  // modelos salvos
+  const [presets, setPresets] = useState<Preset[]>([]);
+  const [activePreset, setActivePreset] = useState<string | null>(null);
+  useEffect(() => {
+    api<Preset[]>("/api/admin/art/presets").then(setPresets).catch(() => {});
+  }, []);
+  const applyPreset = (p: Preset) => {
+    setSpec({ ...EMPTY, ...p.spec });
+    setActivePreset(p.id);
+  };
+  const savePreset = async () => {
+    const current = presets.find((p) => p.id === activePreset);
+    const name = prompt("Nome do modelo (ex.: Culto da Família – Story)", current?.name ?? spec.title)?.trim();
+    if (!name) return;
+    try {
+      // mesmo nome do modelo aberto: atualiza; nome novo: cria outro
+      const row =
+        current && current.name === name
+          ? await api<Preset>(`/api/admin/art/presets/${current.id}`, { method: "PATCH", json: { spec } })
+          : await api<Preset>("/api/admin/art/presets", { method: "POST", json: { name, spec } });
+      setPresets((list) => [...list.filter((p) => p.id !== row.id), row].sort((a, b) => a.name.localeCompare(b.name)));
+      setActivePreset(row.id);
+      toast.success(`Modelo "${row.name}" salvo`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível salvar o modelo");
+    }
+  };
+  const deletePreset = async (p: Preset) => {
+    if (!confirm(`Excluir o modelo "${p.name}"?`)) return;
+    try {
+      await api(`/api/admin/art/presets/${p.id}`, { method: "DELETE" });
+      setPresets((list) => list.filter((x) => x.id !== p.id));
+      if (activePreset === p.id) setActivePreset(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Não foi possível excluir");
+    }
+  };
 
   const fillFromEvent = (id: string) => {
     const e = events.find((x) => x.id === id);
@@ -188,6 +287,36 @@ export function ArtStudio() {
     <div className="grid lg:grid-cols-[minmax(320px,420px)_1fr] gap-4 items-start">
       <Card>
         <CardContent className="p-4 space-y-5">
+          {presets.length > 0 && (
+            <div className="space-y-2">
+              <Label>Modelos salvos</Label>
+              <div className="flex flex-wrap gap-2">
+                {presets.map((p) => (
+                  <span
+                    key={p.id}
+                    className={cn(
+                      "inline-flex items-center rounded-full border-2 text-xs",
+                      activePreset === p.id ? "border-primary bg-primary/10 text-primary" : "border-border",
+                    )}
+                  >
+                    <button type="button" className="pl-3 pr-1 py-1.5 min-h-0 min-w-0 font-medium" onClick={() => applyPreset(p)}>
+                      {p.name}
+                    </button>
+                    <button
+                      type="button"
+                      className="px-1.5 py-1.5 min-h-0 min-w-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => deletePreset(p)}
+                      aria-label={`Excluir o modelo ${p.name}`}
+                      title="Excluir modelo"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label>Formato</Label>
             <div className="grid grid-cols-3 gap-2">
@@ -203,26 +332,6 @@ export function ArtStudio() {
                 >
                   <span className="block border-2 border-current rounded-sm" style={{ width: 18, height: (18 * ART_FORMATS[f].height) / ART_FORMATS[f].width }} />
                   {ART_FORMATS[f].label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Estilo</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {(Object.keys(ART_STYLES) as ArtStyle[]).map((st) => (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => set({ style: st, theme: ART_STYLES[st].themes[0] })}
-                  className={cn(
-                    "rounded-lg border-2 p-2 text-left min-h-0 block",
-                    spec.style === st ? "border-primary bg-primary/10" : "border-border hover:border-primary/50",
-                  )}
-                >
-                  <span className="block text-sm font-semibold">{ART_STYLES[st].label}</span>
-                  <span className="block text-[11px] text-muted-foreground leading-tight">{ART_STYLES[st].description}</span>
                 </button>
               ))}
             </div>
@@ -248,10 +357,11 @@ export function ArtStudio() {
             </div>
           </div>
 
+          {spec.background !== "imagem" && (
           <div className="space-y-2">
             <Label>Cores</Label>
             <div className="flex flex-wrap gap-2">
-              {(ART_STYLES[spec.style].themes as readonly ArtThemeId[]).map((id) => {
+              {(Object.keys(ART_THEMES) as ArtThemeId[]).map((id) => {
                 const th = ART_THEMES[id];
                 return (
                   <button
@@ -264,13 +374,14 @@ export function ArtStudio() {
                       spec.theme === id ? "border-primary" : "border-border",
                     )}
                   >
-                    <span className="w-6 h-6 rounded-full border" style={{ background: `linear-gradient(135deg, ${th.from}, ${th.to})`, boxShadow: `inset 0 0 0 4px ${th.accent}` }} />
+                    <span className="w-6 h-6 rounded-full border" style={{ background: th.bg, boxShadow: `inset 0 0 0 4px ${th.accent}` }} />
                     {th.label}
                   </button>
                 );
               })}
             </div>
           </div>
+          )}
 
           {spec.template === "evento" && events.length > 0 && (
             <div className="space-y-1.5">
@@ -335,8 +446,25 @@ export function ArtStudio() {
             {spec.template === "capa" && field("text", "Subtítulo (opcional)")}
           </div>
 
-          <div className="space-y-2 border-t pt-4">
-            <Label>Foto de fundo (opcional)</Label>
+          <div className="space-y-3 border-t pt-4">
+            <Label>Fundo</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {(Object.keys(ART_BACKGROUNDS) as ArtBackground[]).map((bg) => (
+                <button
+                  key={bg}
+                  type="button"
+                  onClick={() => set({ background: bg })}
+                  className={cn(
+                    "rounded-lg border-2 px-2 py-2 text-xs font-medium min-h-0",
+                    spec.background === bg ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50",
+                  )}
+                >
+                  {ART_BACKGROUNDS[bg].label}
+                </button>
+              ))}
+            </div>
+            {spec.background !== "cor" && (
+            <>
             <input
               ref={fileRef}
               type="file"
@@ -380,6 +508,54 @@ export function ArtStudio() {
                 </div>
               </>
             )}
+            {spec.background === "imagem" && (
+              <div className="space-y-3 rounded-lg border p-3 bg-muted/30">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Posição do texto</Label>
+                  <div className="flex gap-2">
+                    {(Object.keys(ART_POSITIONS) as ArtPosition[]).map((pos) => (
+                      <Button key={pos} type="button" size="sm" variant={spec.position === pos ? "default" : "outline"} onClick={() => set({ position: pos })}>
+                        {ART_POSITIONS[pos]}
+                      </Button>
+                    ))}
+                    <Button type="button" size="icon" variant={spec.align === "left" ? "default" : "outline"} onClick={() => set({ align: "left" })} aria-label="Alinhar à esquerda" title="Alinhar à esquerda">
+                      <AlignLeft className="w-4 h-4" />
+                    </Button>
+                    <Button type="button" size="icon" variant={spec.align === "center" ? "default" : "outline"} onClick={() => set({ align: "center" })} aria-label="Centralizar" title="Centralizar">
+                      <AlignCenter className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                {(["textColor", "accentColor"] as const).map((k) => (
+                  <div key={k} className="space-y-1.5">
+                    <Label className="text-xs">{k === "textColor" ? "Cor das letras" : "Cor dos detalhes (linhas e etiqueta)"}</Label>
+                    <div className="flex items-center gap-2">
+                      {QUICK_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => set({ [k]: c })}
+                          className={cn("w-7 h-7 rounded-full border-2 min-h-0 min-w-0", spec[k].toLowerCase() === c.toLowerCase() ? "border-primary" : "border-border")}
+                          style={{ background: c }}
+                          aria-label={c}
+                        />
+                      ))}
+                      <input type="color" value={spec[k]} onChange={(e) => set({ [k]: e.target.value })} className="w-9 h-8 rounded border bg-transparent p-0.5 cursor-pointer" aria-label="Outra cor" />
+                    </div>
+                  </div>
+                ))}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Escurecer a imagem: {spec.overlay}%</Label>
+                  <Slider min={0} max={85} step={5} value={[spec.overlay]} onValueChange={([v]) => set({ overlay: v })} />
+                </div>
+                <label className="flex items-center justify-between gap-2 text-sm">
+                  <span>Mostrar logo e nome da igreja</span>
+                  <Switch checked={spec.showLogo} onCheckedChange={(v) => set({ showLogo: v })} />
+                </label>
+              </div>
+            )}
+            </>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -401,6 +577,9 @@ export function ArtStudio() {
         <div className="flex gap-2 justify-center">
           <Button onClick={download} disabled={!preview} className="gap-2">
             <Download className="w-4 h-4" /> Baixar imagem
+          </Button>
+          <Button variant="outline" onClick={savePreset} className="gap-2">
+            <Save className="w-4 h-4" /> Salvar como modelo
           </Button>
           {canShare && (
             <Button variant="outline" onClick={share} disabled={!preview} className="gap-2">

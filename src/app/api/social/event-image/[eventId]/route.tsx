@@ -26,7 +26,6 @@ export const GET = async (_req: Request, ctx: { params: Promise<{ eventId: strin
   const jpeg = await renderArt(
     artSpecSchema.parse({
       format: "feed",
-      style: "minimalista",
       template: "evento",
       theme: "marinho",
       tag: "Hoje tem",

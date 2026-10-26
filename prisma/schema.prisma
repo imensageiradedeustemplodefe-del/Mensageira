@@ -506,3 +506,15 @@ model SiteImage {
 
   @@map("site_images")
 }
+
+// Modelo de arte salvo no gerador do painel (formato, fundo, cores, posição e textos de partida)
+model ArtPreset {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  spec      Json
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("art_presets")
+}
