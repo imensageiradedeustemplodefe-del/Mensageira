@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { sendPushToAll } from "@/lib/push";
+import { sendPushToAdmins, sendPushToAll } from "@/lib/push";
+import { POST_KINDS, type PostKind } from "@/lib/social-posts";
 import { publishTodayEventsToSocial } from "@/lib/social";
 
 /**
@@ -62,6 +63,27 @@ export async function runDailyNotifications(source = "cron") {
     );
   }
   results.events = eventResults;
+
+  // Lembrete do calendário de posts para os celulares da equipe ("Avisar este aparelho" no painel):
+  // o que é para postar hoje e o que amanhã ainda não está pronto
+  if (source === "cron") {
+    try {
+      const tomorrow = new Date(Date.UTC(+today.slice(0, 4), +today.slice(5, 7) - 1, +today.slice(8, 10) + 1));
+      const posts = await prisma.socialPost.findMany({
+        where: { status: { not: "postado" }, date: { in: [new Date(`${today}T00:00:00Z`), tomorrow] } },
+        orderBy: { createdAt: "asc" },
+      });
+      const label = (p: (typeof posts)[number]) => `${p.title} (${POST_KINDS[p.kind as PostKind] ?? p.kind}${p.responsible ? `, ${p.responsible}` : ""})`;
+      const todays = posts.filter((p) => p.date.toISOString().slice(0, 10) === today);
+      const late = posts.filter((p) => p.date.toISOString().slice(0, 10) !== today && (p.status === "planejado" || p.status === "producao"));
+      if (todays.length || late.length) {
+        const lines = [todays.length ? `Hoje: ${todays.map(label).join("; ")}` : "", late.length ? `Amanhã, ainda não pronto: ${late.map(label).join("; ")}` : ""].filter(Boolean);
+        results.postReminder = await sendPushToAdmins({ title: "📅 Calendário de posts", body: lines.join("\n").slice(0, 300), url: "/admin?tab=art", tag: `posts_${today}` });
+      }
+    } catch (err) {
+      results.postReminder = { error: String(err) };
+    }
+  }
 
   // Publicação dos eventos de hoje no Facebook/Instagram: só no envio automático das 7h
   if (source === "cron") {
