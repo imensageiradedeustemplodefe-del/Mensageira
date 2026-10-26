@@ -32,7 +32,7 @@ import { PresetGallery, SavePresetDialog, uploadThumb, type Preset } from "@/com
 import { ArtListEditor } from "@/components/admin/art/ArtListEditor";
 import { DrivePhotoPicker } from "@/components/admin/art/DrivePhotoPicker";
 import { CaptionBox } from "@/components/admin/art/CaptionBox";
-import { buildCaption } from "@/lib/art/caption";
+import { buildCaptions } from "@/lib/art/caption";
 import { useContent } from "@/hooks/useSiteSettings";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,8 @@ interface EventRow {
   title: string;
   event_date: string;
   location: string | null;
+  description?: string | null;
+  category?: string | null;
   is_published: boolean;
   registration_required: boolean;
   registrations_closed?: boolean;
@@ -123,13 +125,19 @@ export function ArtStudio() {
   const blobRef = useRef<Blob | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const set = (patch: Partial<ArtSpec>) => setSpec((s) => ({ ...s, ...patch }));
-  // evento escolhido em "Preencher com um evento" (para pôr o link na legenda)
+  // evento escolhido em "Preencher com um evento" (link, tema e descrição na legenda)
   const [eventId, setEventId] = useState<string | null>(null);
   const { text: content } = useContent();
-  const caption = useMemo(
-    () => buildCaption(spec, { eventId: spec.template === "evento" ? eventId : null, hashtags: content("social_hashtags"), closing: content("social_closing") }),
-    [spec, eventId, content],
-  );
+  const captions = useMemo(() => {
+    const ev = spec.template === "evento" ? events.find((e) => e.id === eventId) : undefined;
+    return buildCaptions(spec, {
+      eventId: ev?.id ?? null,
+      category: ev?.category,
+      description: ev?.description,
+      hashtags: content("social_hashtags"),
+      closing: content("social_closing"),
+    });
+  }, [spec, eventId, events, content]);
 
   useEffect(() => {
     api<EventRow[]>("/api/admin/events")
@@ -582,7 +590,7 @@ export function ArtStudio() {
         <p className="text-xs text-muted-foreground text-center">
           {fmt.width} × {fmt.height} px, pronta para o Instagram e o Facebook. No celular, “Compartilhar” abre direto o app.
         </p>
-        <CaptionBox key={`${spec.template}-${eventId ?? ""}`} auto={caption} />
+        <CaptionBox key={`${spec.template}-${eventId ?? ""}`} options={captions} />
       </div>
     </div>
     </div>

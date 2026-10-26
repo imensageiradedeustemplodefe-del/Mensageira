@@ -13,6 +13,7 @@ import { api } from "@/lib/fetcher";
 import { artSpecSchema, ART_FORMATS, ART_THEMES, type ArtFormat, type ArtSpec, type ArtThemeId } from "@/lib/art/spec";
 import { useContent } from "@/hooks/useSiteSettings";
 import { CaptionBox } from "@/components/admin/art/CaptionBox";
+import { carouselCaptions } from "@/lib/art/caption";
 import type { Preset } from "@/components/admin/ArtPresets";
 import { cn } from "@/lib/utils";
 
@@ -145,13 +146,13 @@ export function CarouselStudio() {
     } else downloadAll();
   };
 
-  const caption = useMemo(() => {
-    const cover = slides.find((s) => s.kind === "capa");
-    const points = slides.filter((s) => s.kind === "aviso" && s.title).map((s) => `• ${s.title}`);
-    return [cover?.title && `📖 ${cover.title}`, cover?.text && cover.text !== START[0].text ? cover.text : null, points.length ? `\n${points.join("\n")}` : null, "\nArraste para o lado e salve para ler depois. 🙏", content("social_hashtags") && `\n${content("social_hashtags")}`]
-      .filter(Boolean)
-      .join("\n");
-  }, [slides, content]);
+  const captions = useMemo(
+    () => {
+      const cover = slides.find((x) => x.kind === "capa")?.title ?? "";
+      return carouselCaptions(cover === START[0].title ? "" : cover, { hashtags: content("social_hashtags") });
+    },
+    [slides, content],
+  );
 
   const fmt = ART_FORMATS[base.format];
   return (
@@ -300,7 +301,7 @@ export function CarouselStudio() {
             </Button>
           )}
         </div>
-        <CaptionBox auto={caption} />
+        <CaptionBox options={captions} />
       </div>
     </div>
   );
