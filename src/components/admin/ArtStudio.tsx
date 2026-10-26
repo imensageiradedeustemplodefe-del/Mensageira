@@ -28,6 +28,7 @@ import {
   type ArtThemeId,
 } from "@/lib/art/spec";
 import { Slider } from "@/components/ui/slider";
+import { PresetGallery, SavePresetDialog, uploadThumb, type Preset } from "@/components/admin/ArtPresets";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
@@ -79,11 +80,6 @@ const EMPTY: ArtSpec = {
 /** Cores rápidas para as letras sobre imagem de fundo */
 const QUICK_COLORS = ["#FFFFFF", "#F7F4EE", "#E8C26A", "#8EC5FF", "#161616", "#0F2742"];
 
-interface Preset {
-  id: string;
-  name: string;
-  spec: ArtSpec;
-}
 
 /** Reduz a foto (lado maior até 1600px) e envia; devolve o endereço. */
 async function uploadPhoto(file: File) {
@@ -177,38 +173,33 @@ export function ArtStudio() {
   // modelos salvos
   const [presets, setPresets] = useState<Preset[]>([]);
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [saveOpen, setSaveOpen] = useState(false);
   useEffect(() => {
     api<Preset[]>("/api/admin/art/presets").then(setPresets).catch(() => {});
   }, []);
   const applyPreset = (p: Preset) => {
     setSpec({ ...EMPTY, ...p.spec });
     setActivePreset(p.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
-  const savePreset = async () => {
-    const current = presets.find((p) => p.id === activePreset);
-    const name = prompt("Nome do modelo (ex.: Culto da Família – Story)", current?.name ?? spec.title)?.trim();
-    if (!name) return;
+  const newArt = () => {
+    setSpec({ ...EMPTY, ...ART_DEFAULTS.evento });
+    setActivePreset(null);
+  };
+  const savePreset = async (mode: "update" | "new", name: string) => {
     try {
-      // mesmo nome do modelo aberto: atualiza; nome novo: cria outro
+      // miniatura feita com a prévia atual
+      const thumb_url = blobRef.current ? await uploadThumb(blobRef.current) : null;
       const row =
-        current && current.name === name
-          ? await api<Preset>(`/api/admin/art/presets/${current.id}`, { method: "PATCH", json: { spec } })
-          : await api<Preset>("/api/admin/art/presets", { method: "POST", json: { name, spec } });
+        mode === "update" && activePreset
+          ? await api<Preset>(`/api/admin/art/presets/${activePreset}`, { method: "PATCH", json: { spec, thumb_url } })
+          : await api<Preset>("/api/admin/art/presets", { method: "POST", json: { name, spec, thumb_url } });
       setPresets((list) => [...list.filter((p) => p.id !== row.id), row].sort((a, b) => a.name.localeCompare(b.name)));
       setActivePreset(row.id);
       toast.success(`Modelo "${row.name}" salvo`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível salvar o modelo");
-    }
-  };
-  const deletePreset = async (p: Preset) => {
-    if (!confirm(`Excluir o modelo "${p.name}"?`)) return;
-    try {
-      await api(`/api/admin/art/presets/${p.id}`, { method: "DELETE" });
-      setPresets((list) => list.filter((x) => x.id !== p.id));
-      if (activePreset === p.id) setActivePreset(null);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Não foi possível excluir");
+      throw err;
     }
   };
 
@@ -284,39 +275,19 @@ export function ArtStudio() {
   );
 
   return (
+    <div className="space-y-4">
+    <PresetGallery presets={presets} activeId={activePreset} onOpen={applyPreset} onNew={newArt} setPresets={setPresets} />
+    <SavePresetDialog
+      key={saveOpen ? `aberto-${activePreset}` : "fechado"}
+      open={saveOpen}
+      onOpenChange={setSaveOpen}
+      current={presets.find((p) => p.id === activePreset) ?? null}
+      suggestedName={spec.title || spec.reference || ""}
+      onSave={savePreset}
+    />
     <div className="grid lg:grid-cols-[minmax(320px,420px)_1fr] gap-4 items-start">
       <Card>
         <CardContent className="p-4 space-y-5">
-          {presets.length > 0 && (
-            <div className="space-y-2">
-              <Label>Modelos salvos</Label>
-              <div className="flex flex-wrap gap-2">
-                {presets.map((p) => (
-                  <span
-                    key={p.id}
-                    className={cn(
-                      "inline-flex items-center rounded-full border-2 text-xs",
-                      activePreset === p.id ? "border-primary bg-primary/10 text-primary" : "border-border",
-                    )}
-                  >
-                    <button type="button" className="pl-3 pr-1 py-1.5 min-h-0 min-w-0 font-medium" onClick={() => applyPreset(p)}>
-                      {p.name}
-                    </button>
-                    <button
-                      type="button"
-                      className="px-1.5 py-1.5 min-h-0 min-w-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => deletePreset(p)}
-                      aria-label={`Excluir o modelo ${p.name}`}
-                      title="Excluir modelo"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label>Formato</Label>
             <div className="grid grid-cols-3 gap-2">
@@ -578,7 +549,7 @@ export function ArtStudio() {
           <Button onClick={download} disabled={!preview} className="gap-2">
             <Download className="w-4 h-4" /> Baixar imagem
           </Button>
-          <Button variant="outline" onClick={savePreset} className="gap-2">
+          <Button variant="outline" onClick={() => setSaveOpen(true)} disabled={!preview} className="gap-2">
             <Save className="w-4 h-4" /> Salvar como modelo
           </Button>
           {canShare && (
@@ -591,6 +562,7 @@ export function ArtStudio() {
           {fmt.width} × {fmt.height} px, pronta para o Instagram e o Facebook. No celular, “Compartilhar” abre direto o app.
         </p>
       </div>
+    </div>
     </div>
   );
 }
