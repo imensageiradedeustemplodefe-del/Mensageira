@@ -50,7 +50,10 @@ export function PresetGallery({
   onOpen,
   onNew,
   setPresets,
+  grid = false,
 }: {
+  /** grade de 3 colunas (dentro do painel da arte) em vez da faixa com rolagem lateral */
+  grid?: boolean;
   presets: Preset[];
   activeId: string | null;
   onOpen: (p: Preset) => void;
@@ -105,22 +108,27 @@ export function PresetGallery({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-baseline justify-between gap-2">
-        <h3 className="font-semibold">Modelos salvos</h3>
-        <span className="text-xs text-muted-foreground">Toque para abrir. Monte uma arte e use “Salvar como modelo” para criar outro.</span>
-      </div>
-      <div className="flex gap-3 overflow-x-auto pb-2 snap-x">
+    <div className="space-y-1.5">
+      {grid ? (
+        <p className="text-xs text-muted-foreground">Toque para abrir. Monte uma arte e use “Salvar como modelo” para criar outro.</p>
+      ) : (
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 className="font-semibold">Modelos salvos</h3>
+          <span className="text-xs text-muted-foreground">Toque para abrir. Monte uma arte e use “Salvar como modelo” para criar outro.</span>
+        </div>
+      )}
+      <div className={grid ? "grid grid-cols-3 gap-2" : "flex gap-3 overflow-x-auto pb-2 snap-x"}>
         <button
           type="button"
           onClick={onNew}
           className={cn(
-            "snap-start shrink-0 w-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 text-sm text-muted-foreground hover:border-primary hover:text-primary min-h-0",
+            grid ? "w-full" : "snap-start shrink-0 w-24",
+            "rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground hover:border-primary hover:text-primary min-h-0",
             activeId === null && "border-primary text-primary",
           )}
-          style={{ height: 196 }}
+          style={{ height: 108 }}
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-5 h-5" />
           Arte nova
         </button>
         {presets.map((p) => {
@@ -128,12 +136,12 @@ export function PresetGallery({
           const thumb = thumbOf(p);
           const active = activeId === p.id;
           return (
-            <div key={p.id} className="snap-start shrink-0 w-32 relative group">
+            <div key={p.id} className={cn("relative group", grid ? "min-w-0" : "snap-start shrink-0 w-24")}>
               <button
                 type="button"
                 onClick={() => onOpen(p)}
                 className={cn("block w-full rounded-xl border-2 overflow-hidden bg-muted min-h-0", active ? "border-primary ring-2 ring-primary/30" : "border-transparent hover:border-primary/50")}
-                style={{ height: 150 }}
+                style={{ height: 108 }}
                 title={`Abrir ${p.name}`}
               >
                 {thumb ? (

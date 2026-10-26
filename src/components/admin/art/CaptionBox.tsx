@@ -29,8 +29,8 @@ export function CaptionBox({ options }: { options: string[] }) {
 
   return (
     <div className="space-y-1.5 rounded-lg border p-3 bg-card">
-      <div className="flex items-center justify-between gap-2">
-        <Label htmlFor="art-caption">Legenda pronta</Label>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Label htmlFor="art-caption" className="whitespace-nowrap">Legenda pronta</Label>
         <div className="flex flex-wrap justify-end gap-1">
           {edited && (
             <Button

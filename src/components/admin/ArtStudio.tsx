@@ -35,6 +35,7 @@ import { CaptionBox } from "@/components/admin/art/CaptionBox";
 import { buildCaptions } from "@/lib/art/caption";
 import { useContent } from "@/hooks/useSiteSettings";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 interface EventRow {
@@ -301,7 +302,6 @@ export function ArtStudio() {
 
   return (
     <div className="space-y-4">
-    <PresetGallery presets={presets} activeId={activePreset} onOpen={applyPreset} onNew={newArt} setPresets={setPresets} />
     <SavePresetDialog
       key={saveOpen ? `aberto-${activePreset}` : "fechado"}
       open={saveOpen}
@@ -310,9 +310,29 @@ export function ArtStudio() {
       suggestedName={spec.title || spec.reference || ""}
       onSave={savePreset}
     />
-    <div className="grid lg:grid-cols-[minmax(320px,420px)_1fr] gap-4 items-start">
-      <Card>
-        <CardContent className="p-4 space-y-5">
+    <div className="grid lg:grid-cols-[minmax(320px,400px)_1fr] gap-4 items-start">
+      <Card className="lg:sticky lg:top-20">
+        <CardContent className="p-4 space-y-4">
+          <div className="space-y-2">
+            <Label>Modelo</Label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {(Object.keys(ART_TEMPLATES) as ArtTemplate[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => changeTemplate(t)}
+                  title={ART_TEMPLATES[t].description}
+                  className={cn(
+                    "rounded-lg border-2 px-2 py-1.5 text-xs font-semibold min-h-0 leading-tight",
+                    spec.template === t ? "border-primary bg-primary/10" : "border-border hover:border-primary/50",
+                  )}
+                >
+                  {ART_TEMPLATES[t].label.replace(" (reels / story)", "")}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label>Formato</Label>
             <div className="grid grid-cols-3 gap-2">
@@ -322,249 +342,249 @@ export function ArtStudio() {
                   type="button"
                   onClick={() => set({ format: f })}
                   className={cn(
-                    "rounded-lg border-2 px-2 py-2 text-xs font-medium flex flex-col items-center gap-1 min-h-0",
+                    "rounded-lg border-2 px-2 py-1.5 text-xs font-medium flex items-center justify-center gap-1.5 min-h-0",
                     spec.format === f ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50",
                   )}
                 >
-                  <span className="block border-2 border-current rounded-sm" style={{ width: 18, height: (18 * ART_FORMATS[f].height) / ART_FORMATS[f].width }} />
+                  <span className="block border-2 border-current rounded-sm" style={{ width: 10, height: (10 * ART_FORMATS[f].height) / ART_FORMATS[f].width }} />
                   {ART_FORMATS[f].label}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Modelo</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {(Object.keys(ART_TEMPLATES) as ArtTemplate[]).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => changeTemplate(t)}
-                  className={cn(
-                    "rounded-lg border-2 p-2 text-left min-h-0 block",
-                    spec.template === t ? "border-primary bg-primary/10" : "border-border hover:border-primary/50",
-                  )}
-                >
-                  <span className="block text-sm font-semibold">{ART_TEMPLATES[t].label}</span>
-                  <span className="block text-[11px] text-muted-foreground leading-tight">{ART_TEMPLATES[t].description}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {spec.background !== "imagem" && (
-          <div className="space-y-2">
-            <Label>Cores</Label>
-            <div className="flex flex-wrap gap-2">
-              {(Object.keys(ART_THEMES) as ArtThemeId[]).map((id) => {
-                const th = ART_THEMES[id];
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => set({ theme: id })}
-                    title={th.label}
-                    className={cn(
-                      "flex items-center gap-2 rounded-full border-2 pl-1 pr-3 py-1 text-xs min-h-0",
-                      spec.theme === id ? "border-primary" : "border-border",
-                    )}
-                  >
-                    <span className="w-6 h-6 rounded-full border" style={{ background: th.bg, boxShadow: `inset 0 0 0 4px ${th.accent}` }} />
-                    {th.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          )}
-
-          {spec.template === "evento" && events.length > 0 && (
-            <div className="space-y-1.5">
-              <Label>Preencher com um evento</Label>
-              <Select onValueChange={fillFromEvent}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Escolha um evento da programação" />
-                </SelectTrigger>
-                <SelectContent>
-                  {events.map((e) => (
-                    <SelectItem key={e.id} value={e.id}>
-                      {new Date(e.event_date).toLocaleDateString("pt-BR", { ...tz, day: "2-digit", month: "2-digit" })} • {e.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {spec.template === "versiculo" && verses.length > 0 && (
-            <div className="space-y-1.5">
-              <Label>Usar um versículo cadastrado</Label>
-              <Select
-                onValueChange={(id) => {
-                  const v = verses.find((x) => x.id === id);
-                  if (v) set({ text: v.verse_text, reference: v.verse_reference });
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Escolha um versículo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {verses.map((v) => (
-                    <SelectItem key={v.id} value={v.id}>
-                      {v.verse_reference}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <div className="space-y-3 border-t pt-4">
-            {field("tag", "Etiqueta no alto", { placeholder: "Ex.: EVENTO, HOJE TEM (vazio = sem etiqueta)" })}
-            {spec.template !== "versiculo" &&
-              field("title", spec.template === "aniversariantes" ? "Mês" : spec.template === "programacao" ? "Período (ex.: 26 out a 1 nov)" : "Título")}
-            {(spec.template === "programacao" || spec.template === "aniversariantes") && <ArtListEditor spec={spec} set={set} events={events} />}
-            {spec.template === "aniversariantes" && field("text", "Mensagem (opcional)")}
-            {spec.template === "evento" && (
-              <>
-                <div className="grid grid-cols-[1fr_7rem] gap-2">
-                  {field("date", "Data")}
-                  {field("time", "Horário")}
-                </div>
-                {field("location", "Local")}
-                {field("highlight", "Destaque (opcional)", { placeholder: "Ex.: Inscrições abertas • R$ 20,00" })}
-              </>
-            )}
-            {spec.template === "aviso" && field("text", "Texto", { area: true })}
-            {spec.template === "versiculo" && (
-              <>
-                {field("text", "Versículo", { area: true })}
-                {field("reference", "Referência", { placeholder: "Ex.: João 3:16" })}
-              </>
-            )}
-            {spec.template === "capa" && field("text", "Subtítulo (opcional)")}
-          </div>
-
-          <div className="space-y-3 border-t pt-4">
-            <Label>Fundo</Label>
-            <div className="grid grid-cols-3 gap-2">
-              {(Object.keys(ART_BACKGROUNDS) as ArtBackground[]).map((bg) => (
-                <button
-                  key={bg}
-                  type="button"
-                  onClick={() => set({ background: bg })}
-                  className={cn(
-                    "rounded-lg border-2 px-2 py-2 text-xs font-medium min-h-0",
-                    spec.background === bg ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50",
-                  )}
-                >
-                  {ART_BACKGROUNDS[bg].label}
-                </button>
-              ))}
-            </div>
-            {spec.background !== "cor" && (
-            <>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                e.target.value = "";
-                if (f) pickPhoto(f);
-              }}
-            />
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" size="sm" className="gap-2" disabled={uploading} onClick={() => fileRef.current?.click()}>
-                {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-                {spec.photo ? "Trocar foto" : "Enviar foto"}
-              </Button>
-              <DrivePhotoPicker onPick={(url) => set({ photo: { url, x: 50, y: 40 } })} />
-              {spec.photo && (
-                <Button type="button" variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive" onClick={() => set({ photo: null })}>
-                  <X className="w-4 h-4" /> Tirar foto
-                </Button>
-              )}
-            </div>
-            {spec.photo && (
-              <>
-                <p className="text-xs text-muted-foreground">Toque na parte da foto que deve ficar no centro (ex.: o rosto).</p>
-                <div
-                  className="relative w-fit cursor-crosshair select-none"
-                  onClick={(e) => {
-                    const r = e.currentTarget.getBoundingClientRect();
-                    const x = Math.round(((e.clientX - r.left) / r.width) * 100);
-                    const y = Math.round(((e.clientY - r.top) / r.height) * 100);
-                    set({ photo: { ...spec.photo!, x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) } });
-                  }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={spec.photo.url} alt="" className="max-h-48 max-w-full rounded" draggable={false} />
-                  <span
-                    className="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-[0_0_0_2px_rgba(0,0,0,0.5)] pointer-events-none"
-                    style={{ left: `${spec.photo.x}%`, top: `${spec.photo.y}%` }}
-                  />
-                </div>
-              </>
-            )}
-            {spec.background === "imagem" && (
-              <div className="space-y-3 rounded-lg border p-3 bg-muted/30">
+          <Tabs defaultValue="texto" className="space-y-3">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="modelos">Salvos{presets.length ? ` (${presets.length})` : ""}</TabsTrigger>
+              <TabsTrigger value="texto">Texto</TabsTrigger>
+              <TabsTrigger value="visual">Visual</TabsTrigger>
+            </TabsList>
+            {/* com altura limitada no computador, a página não rola: só a aba, se precisar */}
+            <TabsContent value="modelos" className="mt-0 lg:max-h-[calc(100vh-31rem)] lg:min-h-48 lg:overflow-y-auto lg:pr-1">
+              <PresetGallery grid presets={presets} activeId={activePreset} onOpen={applyPreset} onNew={newArt} setPresets={setPresets} />
+            </TabsContent>
+            <TabsContent value="texto" className="space-y-3 mt-0 lg:max-h-[calc(100vh-31rem)] lg:min-h-48 lg:overflow-y-auto lg:pr-1">
+              {spec.template === "evento" && events.length > 0 && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Posição do texto</Label>
-                  <div className="flex gap-2">
-                    {(Object.keys(ART_POSITIONS) as ArtPosition[]).map((pos) => (
-                      <Button key={pos} type="button" size="sm" variant={spec.position === pos ? "default" : "outline"} onClick={() => set({ position: pos })}>
-                        {ART_POSITIONS[pos]}
-                      </Button>
-                    ))}
-                    <Button type="button" size="icon" variant={spec.align === "left" ? "default" : "outline"} onClick={() => set({ align: "left" })} aria-label="Alinhar à esquerda" title="Alinhar à esquerda">
-                      <AlignLeft className="w-4 h-4" />
-                    </Button>
-                    <Button type="button" size="icon" variant={spec.align === "center" ? "default" : "outline"} onClick={() => set({ align: "center" })} aria-label="Centralizar" title="Centralizar">
-                      <AlignCenter className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-                {(["textColor", "accentColor"] as const).map((k) => (
-                  <div key={k} className="space-y-1.5">
-                    <Label className="text-xs">{k === "textColor" ? "Cor das letras" : "Cor dos detalhes (linhas e etiqueta)"}</Label>
-                    <div className="flex items-center gap-2">
-                      {QUICK_COLORS.map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => set({ [k]: c })}
-                          className={cn("w-7 h-7 rounded-full border-2 min-h-0 min-w-0", spec[k].toLowerCase() === c.toLowerCase() ? "border-primary" : "border-border")}
-                          style={{ background: c }}
-                          aria-label={c}
-                        />
+                  <Label>Preencher com um evento</Label>
+                  <Select onValueChange={fillFromEvent}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Escolha um evento da programação" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {events.map((e) => (
+                        <SelectItem key={e.id} value={e.id}>
+                          {new Date(e.event_date).toLocaleDateString("pt-BR", { ...tz, day: "2-digit", month: "2-digit" })} • {e.title}
+                        </SelectItem>
                       ))}
-                      <input type="color" value={spec[k]} onChange={(e) => set({ [k]: e.target.value })} className="w-9 h-8 rounded border bg-transparent p-0.5 cursor-pointer" aria-label="Outra cor" />
-                    </div>
-                  </div>
-                ))}
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Escurecer a imagem: {spec.overlay}%</Label>
-                  <Slider min={0} max={85} step={5} value={[spec.overlay]} onValueChange={([v]) => set({ overlay: v })} />
+                    </SelectContent>
+                  </Select>
                 </div>
-                <label className="flex items-center justify-between gap-2 text-sm">
-                  <span>Mostrar logo e nome da igreja</span>
-                  <Switch checked={spec.showLogo} onCheckedChange={(v) => set({ showLogo: v })} />
-                </label>
+              )}
+              {spec.template === "versiculo" && verses.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label>Usar um versículo cadastrado</Label>
+                  <Select
+                    onValueChange={(id) => {
+                      const v = verses.find((x) => x.id === id);
+                      if (v) set({ text: v.verse_text, reference: v.verse_reference });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Escolha um versículo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {verses.map((v) => (
+                        <SelectItem key={v.id} value={v.id}>
+                          {v.verse_reference}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                {field("tag", "Etiqueta no alto", { placeholder: "Ex.: EVENTO, HOJE TEM (vazio = sem etiqueta)" })}
+                {spec.template !== "versiculo" &&
+                  field("title", spec.template === "aniversariantes" ? "Mês" : spec.template === "programacao" ? "Período (ex.: 26 out a 1 nov)" : "Título")}
+                {(spec.template === "programacao" || spec.template === "aniversariantes") && <ArtListEditor spec={spec} set={set} events={events} />}
+                {spec.template === "aniversariantes" && field("text", "Mensagem (opcional)")}
+                {spec.template === "evento" && (
+                  <>
+                    <div className="grid grid-cols-[1fr_7rem] gap-2">
+                      {field("date", "Data")}
+                      {field("time", "Horário")}
+                    </div>
+                    {field("location", "Local")}
+                    {field("highlight", "Destaque (opcional)", { placeholder: "Ex.: Inscrições abertas • R$ 20,00" })}
+                  </>
+                )}
+                {spec.template === "aviso" && field("text", "Texto", { area: true })}
+                {spec.template === "versiculo" && (
+                  <>
+                    {field("text", "Versículo", { area: true })}
+                    {field("reference", "Referência", { placeholder: "Ex.: João 3:16" })}
+                  </>
+                )}
+                {spec.template === "capa" && field("text", "Subtítulo (opcional)")}
               </div>
-            )}
-            </>
-            )}
-          </div>
+
+            </TabsContent>
+            <TabsContent value="visual" className="space-y-4 mt-0 lg:max-h-[calc(100vh-31rem)] lg:min-h-48 lg:overflow-y-auto lg:pr-1">
+              {spec.background !== "imagem" && (
+              <div className="space-y-2">
+                <Label>Cores</Label>
+                <div className="flex flex-wrap gap-2">
+                  {(Object.keys(ART_THEMES) as ArtThemeId[]).map((id) => {
+                    const th = ART_THEMES[id];
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => set({ theme: id })}
+                        title={th.label}
+                        className={cn(
+                          "flex items-center gap-2 rounded-full border-2 pl-1 pr-3 py-1 text-xs min-h-0",
+                          spec.theme === id ? "border-primary" : "border-border",
+                        )}
+                      >
+                        <span className="w-6 h-6 rounded-full border" style={{ background: th.bg, boxShadow: `inset 0 0 0 4px ${th.accent}` }} />
+                        {th.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              )}
+
+              <div className="space-y-3">
+                <Label>Fundo</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(Object.keys(ART_BACKGROUNDS) as ArtBackground[]).map((bg) => (
+                    <button
+                      key={bg}
+                      type="button"
+                      onClick={() => set({ background: bg })}
+                      className={cn(
+                        "rounded-lg border-2 px-2 py-2 text-xs font-medium min-h-0",
+                        spec.background === bg ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50",
+                      )}
+                    >
+                      {ART_BACKGROUNDS[bg].label}
+                    </button>
+                  ))}
+                </div>
+                {spec.background !== "cor" && (
+                <>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    if (f) pickPhoto(f);
+                  }}
+                />
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" className="gap-2" disabled={uploading} onClick={() => fileRef.current?.click()}>
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                    {spec.photo ? "Trocar foto" : "Enviar foto"}
+                  </Button>
+                  <DrivePhotoPicker onPick={(url) => set({ photo: { url, x: 50, y: 40 } })} />
+                  {spec.photo && (
+                    <Button type="button" variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive" onClick={() => set({ photo: null })}>
+                      <X className="w-4 h-4" /> Tirar foto
+                    </Button>
+                  )}
+                </div>
+                {spec.photo && (
+                  <>
+                    <p className="text-xs text-muted-foreground">Toque na parte da foto que deve ficar no centro (ex.: o rosto).</p>
+                    <div
+                      className="relative w-fit cursor-crosshair select-none"
+                      onClick={(e) => {
+                        const r = e.currentTarget.getBoundingClientRect();
+                        const x = Math.round(((e.clientX - r.left) / r.width) * 100);
+                        const y = Math.round(((e.clientY - r.top) / r.height) * 100);
+                        set({ photo: { ...spec.photo!, x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) } });
+                      }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={spec.photo.url} alt="" className="max-h-48 max-w-full rounded" draggable={false} />
+                      <span
+                        className="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-[0_0_0_2px_rgba(0,0,0,0.5)] pointer-events-none"
+                        style={{ left: `${spec.photo.x}%`, top: `${spec.photo.y}%` }}
+                      />
+                    </div>
+                  </>
+                )}
+                {spec.background === "imagem" && (
+                  <div className="space-y-3 rounded-lg border p-3 bg-muted/30">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Posição do texto</Label>
+                      <div className="flex gap-2">
+                        {(Object.keys(ART_POSITIONS) as ArtPosition[]).map((pos) => (
+                          <Button key={pos} type="button" size="sm" variant={spec.position === pos ? "default" : "outline"} onClick={() => set({ position: pos })}>
+                            {ART_POSITIONS[pos]}
+                          </Button>
+                        ))}
+                        <Button type="button" size="icon" variant={spec.align === "left" ? "default" : "outline"} onClick={() => set({ align: "left" })} aria-label="Alinhar à esquerda" title="Alinhar à esquerda">
+                          <AlignLeft className="w-4 h-4" />
+                        </Button>
+                        <Button type="button" size="icon" variant={spec.align === "center" ? "default" : "outline"} onClick={() => set({ align: "center" })} aria-label="Centralizar" title="Centralizar">
+                          <AlignCenter className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    {(["textColor", "accentColor"] as const).map((k) => (
+                      <div key={k} className="space-y-1.5">
+                        <Label className="text-xs">{k === "textColor" ? "Cor das letras" : "Cor dos detalhes (linhas e etiqueta)"}</Label>
+                        <div className="flex items-center gap-2">
+                          {QUICK_COLORS.map((c) => (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => set({ [k]: c })}
+                              className={cn("w-7 h-7 rounded-full border-2 min-h-0 min-w-0", spec[k].toLowerCase() === c.toLowerCase() ? "border-primary" : "border-border")}
+                              style={{ background: c }}
+                              aria-label={c}
+                            />
+                          ))}
+                          <input type="color" value={spec[k]} onChange={(e) => set({ [k]: e.target.value })} className="w-9 h-8 rounded border bg-transparent p-0.5 cursor-pointer" aria-label="Outra cor" />
+                        </div>
+                      </div>
+                    ))}
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Escurecer a imagem: {spec.overlay}%</Label>
+                      <Slider min={0} max={85} step={5} value={[spec.overlay]} onValueChange={([v]) => set({ overlay: v })} />
+                    </div>
+                    <label className="flex items-center justify-between gap-2 text-sm">
+                      <span>Mostrar logo e nome da igreja</span>
+                      <Switch checked={spec.showLogo} onCheckedChange={(v) => set({ showLogo: v })} />
+                    </label>
+                  </div>
+                )}
+                </>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
       {/* no celular a prévia vem primeiro, para ver as mudanças sem rolar */}
-      <div className="space-y-3 order-first lg:order-none lg:sticky lg:top-20">
+      <div className="min-w-0 order-first lg:order-none lg:sticky lg:top-20 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(250px,300px)] items-start">
+        <div className="space-y-3 min-w-0">
         <div
           className="relative mx-auto w-full rounded-lg border bg-muted overflow-hidden shadow-sm"
-          style={{ maxWidth: spec.format === "story" ? 380 : 520, aspectRatio: `${fmt.width} / ${fmt.height}` }}
+          style={{
+            // no computador a prévia cabe na altura da tela (sem rolar)
+            maxWidth: `min(${spec.format === "story" ? 380 : 480}px, calc((100vh - 17rem) * ${fmt.width / fmt.height}))`,
+            aspectRatio: `${fmt.width} / ${fmt.height}`,
+          }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {preview && <img src={preview} alt="Prévia da arte" className="w-full h-full object-contain" />}
@@ -574,7 +594,9 @@ export function ArtStudio() {
             </div>
           )}
         </div>
-        <div className="flex gap-2 justify-center">
+        </div>
+        <div className="space-y-3 min-w-0">
+        <div className="flex flex-wrap gap-2 justify-center xl:justify-start">
           <Button onClick={download} disabled={!preview} className="gap-2">
             <Download className="w-4 h-4" /> Baixar imagem
           </Button>
@@ -587,10 +609,11 @@ export function ArtStudio() {
             </Button>
           )}
         </div>
-        <p className="text-xs text-muted-foreground text-center">
+        <p className="text-xs text-muted-foreground text-center xl:text-left">
           {fmt.width} × {fmt.height} px, pronta para o Instagram e o Facebook. No celular, “Compartilhar” abre direto o app.
         </p>
         <CaptionBox key={`${spec.template}-${eventId ?? ""}`} options={captions} />
+        </div>
       </div>
     </div>
     </div>
