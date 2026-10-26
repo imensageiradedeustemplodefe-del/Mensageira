@@ -29,6 +29,11 @@ import {
 } from "@/lib/art/spec";
 import { Slider } from "@/components/ui/slider";
 import { PresetGallery, SavePresetDialog, uploadThumb, type Preset } from "@/components/admin/ArtPresets";
+import { ArtListEditor } from "@/components/admin/art/ArtListEditor";
+import { DrivePhotoPicker } from "@/components/admin/art/DrivePhotoPicker";
+import { CaptionBox } from "@/components/admin/art/CaptionBox";
+import { buildCaption } from "@/lib/art/caption";
+import { useContent } from "@/hooks/useSiteSettings";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
@@ -75,6 +80,8 @@ const EMPTY: ArtSpec = {
   accentColor: "#E8C26A",
   overlay: 40,
   showLogo: true,
+  items: [],
+  page: "",
 };
 
 /** Cores rápidas para as letras sobre imagem de fundo */
@@ -116,6 +123,13 @@ export function ArtStudio() {
   const blobRef = useRef<Blob | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const set = (patch: Partial<ArtSpec>) => setSpec((s) => ({ ...s, ...patch }));
+  // evento escolhido em "Preencher com um evento" (para pôr o link na legenda)
+  const [eventId, setEventId] = useState<string | null>(null);
+  const { text: content } = useContent();
+  const caption = useMemo(
+    () => buildCaption(spec, { eventId: spec.template === "evento" ? eventId : null, hashtags: content("social_hashtags"), closing: content("social_closing") }),
+    [spec, eventId, content],
+  );
 
   useEffect(() => {
     api<EventRow[]>("/api/admin/events")
@@ -180,11 +194,13 @@ export function ArtStudio() {
   const applyPreset = (p: Preset) => {
     setSpec({ ...EMPTY, ...p.spec });
     setActivePreset(p.id);
+    setEventId(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const newArt = () => {
     setSpec({ ...EMPTY, ...ART_DEFAULTS.evento });
     setActivePreset(null);
+    setEventId(null);
   };
   const savePreset = async (mode: "update" | "new", name: string) => {
     try {
@@ -207,6 +223,7 @@ export function ArtStudio() {
     const e = events.find((x) => x.id === id);
     if (!e) return;
     const signup = e.registration_required && !isClosed(e.registrations_closed, e.registrations_close_at);
+    setEventId(e.id);
     set({
       template: "evento",
       tag: spec.tag || "EVENTO",
@@ -396,7 +413,10 @@ export function ArtStudio() {
 
           <div className="space-y-3 border-t pt-4">
             {field("tag", "Etiqueta no alto", { placeholder: "Ex.: EVENTO, HOJE TEM (vazio = sem etiqueta)" })}
-            {spec.template !== "versiculo" && field("title", "Título")}
+            {spec.template !== "versiculo" &&
+              field("title", spec.template === "aniversariantes" ? "Mês" : spec.template === "programacao" ? "Período (ex.: 26 out a 1 nov)" : "Título")}
+            {(spec.template === "programacao" || spec.template === "aniversariantes") && <ArtListEditor spec={spec} set={set} events={events} />}
+            {spec.template === "aniversariantes" && field("text", "Mensagem (opcional)")}
             {spec.template === "evento" && (
               <>
                 <div className="grid grid-cols-[1fr_7rem] gap-2">
@@ -452,6 +472,7 @@ export function ArtStudio() {
                 {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                 {spec.photo ? "Trocar foto" : "Enviar foto"}
               </Button>
+              <DrivePhotoPicker onPick={(url) => set({ photo: { url, x: 50, y: 40 } })} />
               {spec.photo && (
                 <Button type="button" variant="ghost" size="sm" className="gap-1 text-destructive hover:text-destructive" onClick={() => set({ photo: null })}>
                   <X className="w-4 h-4" /> Tirar foto
@@ -561,6 +582,7 @@ export function ArtStudio() {
         <p className="text-xs text-muted-foreground text-center">
           {fmt.width} × {fmt.height} px, pronta para o Instagram e o Facebook. No celular, “Compartilhar” abre direto o app.
         </p>
+        <CaptionBox key={`${spec.template}-${eventId ?? ""}`} auto={caption} />
       </div>
     </div>
     </div>

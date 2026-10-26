@@ -132,6 +132,15 @@ export const CONTENT_SECTIONS: ContentSection[] = [
     ],
   },
   {
+    id: "social",
+    title: "Redes sociais",
+    description: "Usado na legenda pronta do gerador de artes.",
+    fields: [
+      t("social_hashtags", "Hashtags padrão", "#IgrejaMensageiraDeDeus #TemploDeFé #Caçador", "Vão no fim de toda legenda."),
+      t("social_closing", "Frase final da legenda", "Te esperamos! 🙏"),
+    ],
+  },
+  {
     id: "footer",
     title: "Rodapé",
     fields: [t("footer_text", "Texto do rodapé", "Mensageira de Deus Templo de Fé", "Aparece depois do © e do ano.")],

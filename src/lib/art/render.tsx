@@ -104,6 +104,42 @@ function Body({ spec, c, center }: { spec: ArtSpec; c: Colors; center: boolean }
     );
   }
 
+  if (spec.template === "programacao" || spec.template === "aniversariantes") {
+    const items = spec.items.filter((i) => i.title || i.label);
+    // lista longa: letras menores para caber
+    const n = Math.max(items.length, 1);
+    const rowSize = story ? (n <= 5 ? 54 : n <= 8 ? 48 : 42) : n <= 4 ? 42 : n <= 6 ? 36 : n <= 8 ? 31 : 27;
+    const gap = story ? (n <= 6 ? 44 : 32) : n <= 5 ? 26 : 16;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: align, gap: 36, width: "100%" }}>
+        {spec.title && (
+          <div style={{ display: "flex", fontFamily: "Playfair", fontWeight: 500, fontSize: Math.min(titleSize(spec.title, story), 96), lineHeight: 1.08, color: c.text, textAlign, justifyContent: align }}>
+            {spec.title}
+          </div>
+        )}
+        {rule}
+        <div style={{ display: "flex", flexDirection: "column", gap, width: "100%" }}>
+          {items.map((it, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 28, width: "100%", justifyContent: center ? "center" : "flex-start" }}>
+              {it.label && (
+                <div style={{ display: "flex", width: Math.round(rowSize * 3.6), flexShrink: 0, fontSize: Math.round(rowSize * 0.72), fontWeight: 700, letterSpacing: 4, color: c.accent }}>
+                  {upper(it.label)}
+                </div>
+              )}
+              <div style={{ display: "flex", flexGrow: 1, fontFamily: "Playfair", fontWeight: 500, fontSize: rowSize, lineHeight: 1.15, color: c.text }}>{it.title}</div>
+              {it.detail && (
+                <div style={{ display: "flex", flexShrink: 0, fontSize: Math.round(rowSize * 0.72), fontWeight: 500, letterSpacing: 3, color: c.muted }}>{upper(it.detail)}</div>
+              )}
+            </div>
+          ))}
+        </div>
+        {spec.text && (
+          <div style={{ display: "flex", fontSize: 32, fontWeight: 500, lineHeight: 1.5, color: c.muted, textAlign, justifyContent: align }}>{spec.text}</div>
+        )}
+      </div>
+    );
+  }
+
   const details = spec.template === "evento" ? [[spec.date, spec.time].filter(Boolean).join("  ·  "), spec.location].filter(Boolean) : [];
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: align, gap: 40 }}>
@@ -198,7 +234,7 @@ export async function renderArt(spec: ArtSpec): Promise<Buffer> {
   const c: Colors = full
     ? { text: spec.textColor, muted: alpha(spec.textColor, 0.85), accent: spec.accentColor }
     : { text: theme.text, muted: theme.muted, accent: theme.accent };
-  const center = full ? spec.align === "center" : spec.template === "versiculo" || spec.template === "capa";
+  const center = full ? spec.align === "center" : spec.template === "versiculo" || spec.template === "capa" || spec.template === "aniversariantes";
   const justify = !full ? "center" : spec.position === "topo" ? "flex-start" : spec.position === "base" ? "flex-end" : "center";
   const showLogo = full ? spec.showLogo : true;
 
@@ -208,14 +244,19 @@ export async function renderArt(spec: ArtSpec): Promise<Buffer> {
       <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: 7, color: c.accent }}>{upper(spec.tag)}</div>
     </div>
   ) : null;
-  const footer = showLogo ? (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: center ? "center" : "flex-start", gap: 18 }}>
+  const brand = showLogo ? (
+    <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={logo} width={64} height={64} alt="" style={{ borderRadius: 999, background: "#fff" }} />
       <div style={{ display: "flex", fontSize: 24, fontWeight: 500, letterSpacing: 4, color: c.muted }}>{upper("Igreja Mensageira de Deus")}</div>
     </div>
-  ) : (
-    <div style={{ display: "flex" }} />
+  ) : null;
+  // rodapé: logo e, no carrossel, o número da página ("2/5") à direita
+  const footer = (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: spec.page ? "space-between" : center ? "center" : "flex-start", minHeight: 64 }}>
+      {brand ?? <div style={{ display: "flex" }} />}
+      {spec.page && <div style={{ display: "flex", fontSize: 26, fontWeight: 700, letterSpacing: 4, color: c.accent }}>{spec.page}</div>}
+    </div>
   );
   // cor lisa: etiqueta no alto; com foto em cima ou imagem de fundo: junto do texto
   const tagOnTop = !photoH && !full;

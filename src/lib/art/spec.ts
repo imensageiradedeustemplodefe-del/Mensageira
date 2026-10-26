@@ -14,6 +14,8 @@ export const ART_TEMPLATES = {
   versiculo: { label: "Versículo", description: "Texto bíblico com a referência" },
   aviso: { label: "Aviso", description: "Título e um texto curto" },
   capa: { label: "Capa (reels / story)", description: "Título grande no centro" },
+  programacao: { label: "Programação", description: "Lista de cultos e eventos da semana ou do mês" },
+  aniversariantes: { label: "Aniversariantes", description: "Aniversariantes do mês, puxados do cadastro" },
 } as const;
 export type ArtTemplate = keyof typeof ART_TEMPLATES;
 
@@ -77,6 +79,13 @@ export const artSpecSchema = z.object({
   accentColor: z.string().regex(/^#[0-9a-f]{6}$/i).default("#E8C26A"),
   overlay: z.number().int().min(0).max(85).default(40),
   showLogo: z.boolean().default(true),
+  // programação / aniversariantes: linhas da lista (ex.: "DOM 26" · "Culto da Família" · "19h")
+  items: z
+    .array(z.object({ label: text(20), title: text(80), detail: text(30) }))
+    .max(12)
+    .default([]),
+  // carrossel: número da página ("2/5"), no canto de baixo
+  page: text(10),
 });
 export type ArtSpec = z.infer<typeof artSpecSchema>;
 
@@ -92,4 +101,14 @@ export const ART_DEFAULTS: Record<ArtTemplate, Partial<ArtSpec>> = {
   },
   aviso: { tag: "AVISO", title: "Título do aviso", text: "Escreva aqui o texto do aviso para a igreja." },
   capa: { tag: "", title: "Título do vídeo", text: "" },
+  programacao: {
+    tag: "PROGRAMAÇÃO DA SEMANA",
+    title: "Esta semana",
+    items: [
+      { label: "QUA", title: "Culto de Oração", detail: "19h30" },
+      { label: "SEX", title: "Culto de Cura e Libertação", detail: "20h" },
+      { label: "DOM", title: "Culto da Família", detail: "19h" },
+    ],
+  },
+  aniversariantes: { tag: "ANIVERSARIANTES", title: "Novembro", text: "Parabéns! Que Deus abençoe a sua vida.", items: [] },
 };
