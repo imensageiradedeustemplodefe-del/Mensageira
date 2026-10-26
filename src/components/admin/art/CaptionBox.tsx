@@ -6,20 +6,32 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-/** Legenda pronta para o post: muda junto com a arte até alguém editar; "Refazer" volta à automática
- * e "Outra sugestão" alterna entre as opções de texto. */
-export function CaptionBox({ options }: { options: string[] }) {
-  // null = segue a legenda automática; texto = a pessoa editou
-  const [custom, setCustom] = useState<string | null>(null);
-  const [pick, setPick] = useState(0);
+/**
+ * Estado da legenda pronta: segue a sugestão automática até alguém editar; "Outra sugestão" alterna
+ * entre as opções. Quando `resetKey` muda (outro modelo, outro evento), volta à primeira sugestão.
+ */
+export function useCaption(options: string[], resetKey = "") {
+  const [state, setState] = useState<{ key: string; custom: string | null; pick: number }>({ key: resetKey, custom: null, pick: 0 });
+  const cur = state.key === resetKey ? state : { key: resetKey, custom: null, pick: 0 };
+  const auto = options[cur.pick % Math.max(options.length, 1)] ?? "";
+  return {
+    text: cur.custom ?? auto,
+    edited: cur.custom !== null,
+    many: options.length > 1,
+    edit: (text: string) => setState({ ...cur, custom: text }),
+    next: () => setState({ ...cur, custom: null, pick: (cur.pick + 1) % Math.max(options.length, 1) }),
+    reset: () => setState({ ...cur, custom: null }),
+  };
+}
+export type CaptionState = ReturnType<typeof useCaption>;
+
+/** Caixa da legenda pronta, com copiar, "Outra sugestão" e "Refazer". */
+export function CaptionBox({ caption }: { caption: CaptionState }) {
   const [copied, setCopied] = useState(false);
-  const auto = options[pick % options.length] ?? "";
-  const text = custom ?? auto;
-  const edited = custom !== null;
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(caption.text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -32,28 +44,13 @@ export function CaptionBox({ options }: { options: string[] }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Label htmlFor="art-caption" className="whitespace-nowrap">Legenda pronta</Label>
         <div className="flex flex-wrap justify-end gap-1">
-          {edited && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="gap-1 h-8"
-              onClick={() => setCustom(null)}
-            >
+          {caption.edited && (
+            <Button type="button" variant="ghost" size="sm" className="gap-1 h-8" onClick={caption.reset}>
               <RotateCcw className="w-3.5 h-3.5" /> Refazer
             </Button>
           )}
-          {options.length > 1 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="gap-1 h-8"
-              onClick={() => {
-                setCustom(null);
-                setPick((i) => (i + 1) % options.length);
-              }}
-            >
+          {caption.many && (
+            <Button type="button" variant="outline" size="sm" className="gap-1 h-8" onClick={caption.next}>
               <Shuffle className="w-3.5 h-3.5" /> Outra sugestão
             </Button>
           )}
@@ -63,13 +60,7 @@ export function CaptionBox({ options }: { options: string[] }) {
           </Button>
         </div>
       </div>
-      <Textarea
-        id="art-caption"
-        rows={7}
-        value={text}
-        onChange={(e) => setCustom(e.target.value)}
-        className="text-sm"
-      />
+      <Textarea id="art-caption" rows={7} value={caption.text} onChange={(e) => caption.edit(e.target.value)} className="text-sm" />
       <p className="text-[11px] text-muted-foreground">Hashtags e frase final: Configurações → Conteúdo do site → Redes sociais.</p>
     </div>
   );

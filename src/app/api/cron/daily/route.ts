@@ -2,6 +2,7 @@ import { handler, json, error } from "@/lib/api";
 import { runDailyNotifications } from "@/lib/daily-notifications";
 import { isCronAuthorized } from "@/lib/cron-auth";
 import { cleanupRateLimits } from "@/lib/rate-limit";
+import { publishDuePublications } from "@/lib/social-publish";
 
 export const maxDuration = 60;
 
@@ -11,5 +12,7 @@ export const GET = handler(async (req) => {
   if (!isCronAuthorized(req)) return error("Não autorizado", 401);
   const results = await runDailyNotifications("cron");
   await cleanupRateLimits();
-  return json({ ok: true, ...results });
+  // reserva: se o agendador de poucos em poucos minutos falhar, o que estava agendado sai aqui
+  const published = await publishDuePublications().catch((err) => [{ error: String(err) }]);
+  return json({ ok: true, ...results, published });
 });

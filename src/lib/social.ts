@@ -12,7 +12,7 @@ const ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://imensageiradedeus.c
 
 export const socialConfigured = () => !!process.env.META_PAGE_ID?.trim() && !!process.env.META_PAGE_TOKEN?.trim();
 
-async function graph<T>(path: string, params: Record<string, string>, method: "GET" | "POST" = "POST"): Promise<T> {
+export async function graph<T>(path: string, params: Record<string, string>, method: "GET" | "POST" = "POST"): Promise<T> {
   const body = new URLSearchParams({ ...params, access_token: process.env.META_PAGE_TOKEN!.trim() });
   const res = await fetch(method === "GET" ? `${GRAPH}/${path}?${body}` : `${GRAPH}/${path}`, {
     method,
@@ -25,9 +25,9 @@ async function graph<T>(path: string, params: Record<string, string>, method: "G
   return data;
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function instagramUserId() {
+export async function instagramUserId() {
   const fromEnv = process.env.META_IG_USER_ID?.trim();
   if (fromEnv) return fromEnv;
   const page = await graph<{ instagram_business_account?: { id: string } }>(process.env.META_PAGE_ID!.trim(), { fields: "instagram_business_account" }, "GET");

@@ -5,14 +5,16 @@ import { ArtStudio } from "@/components/admin/ArtStudio";
 import { CarouselStudio } from "@/components/admin/art/CarouselStudio";
 import { PostCalendar } from "@/components/admin/art/PostCalendar";
 import { BrandGuide } from "@/components/admin/art/BrandGuide";
+import { PublicationsList } from "@/components/admin/art/PublicationsList";
 
-/** Aba "Artes para redes": criar arte, carrossel, calendário de posts e guia da identidade. */
+/** Aba "Artes para redes": criar arte, carrossel, publicações nas redes, calendário de posts e guia da identidade. */
 export function ArtHub() {
   return (
     <Tabs defaultValue="arte" className="space-y-4">
       <TabsList className="flex flex-wrap h-auto w-full justify-start sm:w-auto">
         <TabsTrigger value="arte">Criar arte</TabsTrigger>
         <TabsTrigger value="carrossel">Carrossel</TabsTrigger>
+        <TabsTrigger value="publicacoes">Publicações</TabsTrigger>
         <TabsTrigger value="calendario">Calendário de posts</TabsTrigger>
         <TabsTrigger value="guia">Guia da identidade</TabsTrigger>
       </TabsList>
@@ -21,6 +23,9 @@ export function ArtHub() {
       </TabsContent>
       <TabsContent value="carrossel" className="mt-0">
         <CarouselStudio />
+      </TabsContent>
+      <TabsContent value="publicacoes" className="mt-0">
+        <PublicationsList />
       </TabsContent>
       <TabsContent value="calendario" className="mt-0">
         <PostCalendar />

@@ -229,8 +229,8 @@
     outline-offset: 3px;
   }
 
-  /* Accessibility: Minimum touch target size (44x44px). Chaves (switch) têm desenho próprio e ficam fora. */
-  button:not([role="switch"]),
+  /* Accessibility: Minimum touch target size (44x44px). Chaves (switch), caixas de marcar e botões de opção do Radix têm desenho próprio e ficam fora (o rótulo ao lado é a área de toque). */
+  button:not([role="switch"]):not([role="checkbox"]):not([role="radio"]),
   a,
   [role="button"],
   input[type="checkbox"],

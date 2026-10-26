@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, Download, Loader2, Plus, Share2, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Download, Loader2, Plus, Send, Share2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { api } from "@/lib/fetcher";
 import { artSpecSchema, ART_FORMATS, ART_THEMES, type ArtFormat, type ArtSpec, type ArtThemeId } from "@/lib/art/spec";
 import { useContent } from "@/hooks/useSiteSettings";
-import { CaptionBox } from "@/components/admin/art/CaptionBox";
+import { CaptionBox, useCaption } from "@/components/admin/art/CaptionBox";
+import { PublishDialog } from "@/components/admin/art/PublishDialog";
 import { carouselCaptions } from "@/lib/art/caption";
 import type { Preset } from "@/components/admin/ArtPresets";
 import { cn } from "@/lib/utils";
@@ -153,6 +154,8 @@ export function CarouselStudio() {
     },
     [slides, content],
   );
+  const caption = useCaption(captions);
+  const [publishOpen, setPublishOpen] = useState(false);
 
   const fmt = ART_FORMATS[base.format];
   return (
@@ -291,7 +294,7 @@ export function CarouselStudio() {
             </div>
           ))}
         </div>
-        <div className="flex gap-2 justify-center">
+        <div className="flex flex-wrap gap-2 justify-center">
           <Button onClick={downloadAll} disabled={rendering || previews.length !== slides.length} className="gap-2">
             <Download className="w-4 h-4" /> Baixar todos
           </Button>
@@ -300,8 +303,19 @@ export function CarouselStudio() {
               <Share2 className="w-4 h-4" /> Compartilhar
             </Button>
           )}
+          <Button variant="outline" onClick={() => setPublishOpen(true)} disabled={rendering || previews.length !== slides.length} className="gap-2">
+            <Send className="w-4 h-4" /> Publicar nas redes
+          </Button>
+          <PublishDialog
+            key={publishOpen ? "aberto" : "fechado"}
+            open={publishOpen}
+            onOpenChange={setPublishOpen}
+            title={slides[0]?.title || "Carrossel"}
+            specs={specs}
+            caption={caption.text}
+          />
         </div>
-        <CaptionBox options={captions} />
+        <CaptionBox caption={caption} />
       </div>
     </div>
   );

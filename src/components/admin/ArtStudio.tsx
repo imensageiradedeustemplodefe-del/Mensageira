@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AlignCenter, AlignLeft, Camera, Download, Loader2, Save, Share2, X } from "lucide-react";
+import { AlignCenter, AlignLeft, Camera, Download, Loader2, Save, Send, Share2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +31,8 @@ import { Slider } from "@/components/ui/slider";
 import { PresetGallery, SavePresetDialog, uploadThumb, type Preset } from "@/components/admin/ArtPresets";
 import { ArtListEditor } from "@/components/admin/art/ArtListEditor";
 import { DrivePhotoPicker } from "@/components/admin/art/DrivePhotoPicker";
-import { CaptionBox } from "@/components/admin/art/CaptionBox";
+import { CaptionBox, useCaption } from "@/components/admin/art/CaptionBox";
+import { PublishDialog } from "@/components/admin/art/PublishDialog";
 import { buildCaptions } from "@/lib/art/caption";
 import { useContent } from "@/hooks/useSiteSettings";
 import { Switch } from "@/components/ui/switch";
@@ -139,6 +140,8 @@ export function ArtStudio() {
       closing: content("social_closing"),
     });
   }, [spec, eventId, events, content]);
+  const caption = useCaption(captions, `${spec.template}-${eventId ?? ""}`);
+  const [publishOpen, setPublishOpen] = useState(false);
 
   useEffect(() => {
     api<EventRow[]>("/api/admin/events")
@@ -608,11 +611,22 @@ export function ArtStudio() {
               <Share2 className="w-4 h-4" /> Compartilhar
             </Button>
           )}
+          <Button variant="outline" onClick={() => setPublishOpen(true)} disabled={!preview} className="gap-2">
+            <Send className="w-4 h-4" /> Publicar nas redes
+          </Button>
+          <PublishDialog
+            key={publishOpen ? "aberto" : "fechado"}
+            open={publishOpen}
+            onOpenChange={setPublishOpen}
+            title={spec.title || spec.reference || ART_TEMPLATES[spec.template].label}
+            specs={[spec]}
+            caption={caption.text}
+          />
         </div>
         <p className="text-xs text-muted-foreground text-center xl:text-left">
           {fmt.width} × {fmt.height} px, pronta para o Instagram e o Facebook. No celular, “Compartilhar” abre direto o app.
         </p>
-        <CaptionBox key={`${spec.template}-${eventId ?? ""}`} options={captions} />
+        <CaptionBox caption={caption} />
         </div>
       </div>
     </div>

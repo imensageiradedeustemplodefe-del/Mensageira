@@ -539,3 +539,27 @@ model SocialPost {
   @@index([date])
   @@map("social_posts")
 }
+
+/// Publicação de uma arte (ou carrossel) no Facebook e no Instagram, na hora ou agendada.
+/// As imagens já ficam geradas (site_images) quando a publicação é criada.
+model SocialPublication {
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String
+  // feed | story | carrossel
+  kind        String    @default("feed")
+  /// endereços /api/images/<id> das imagens, na ordem
+  images      String[]
+  caption     String    @default("")
+  /// facebook, instagram
+  networks    String[]
+  publishAt   DateTime  @map("publish_at")
+  // agendado | publicando | publicado | parcial | erro | cancelado
+  status      String    @default("agendado")
+  result      String?
+  publishedAt DateTime? @map("published_at")
+  createdBy   String?   @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([status, publishAt])
+  @@map("social_publications")
+}

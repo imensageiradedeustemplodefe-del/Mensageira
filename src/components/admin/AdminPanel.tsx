@@ -67,7 +67,7 @@ const DESCRIPTIONS: Record<string, string> = {
   members: "Cadastro de membros, quem trabalha na obra, grupos e carteirinhas",
   certificates: "Emita certificados e imprima ou salve em PDF",
   users: "Quem entra no painel e o que cada um pode acessar",
-  art: "Artes, carrosséis, calendário de posts e o guia da identidade visual da igreja",
+  art: "Artes, carrosséis, publicação no Facebook e no Instagram, calendário de posts e o guia da identidade visual da igreja",
   settings: "Textos, contatos, horários e integrações",
 };
 
