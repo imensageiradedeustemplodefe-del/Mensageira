@@ -29,6 +29,7 @@ import { SiteSettingsManager } from "@/components/admin/SiteSettingsManager";
 import { MembersManager } from "@/components/admin/MembersManager";
 import { CertificatesManager } from "@/components/admin/CertificatesManager";
 import { UsersManager } from "@/components/admin/UsersManager";
+import { ArtStudio } from "@/components/admin/ArtStudio";
 import { ChangePasswordDialog } from "@/components/admin/ChangePasswordDialog";
 import { canSeeTab, homeTab, ROLE_LABELS, type StaffRole } from "@/lib/roles";
 
@@ -47,6 +48,7 @@ const TITLES: Record<string, string> = {
   members: "Membros",
   certificates: "Certificados",
   users: "Usuários",
+  art: "Artes para as redes",
   settings: "Configurações do Site",
 };
 
@@ -65,6 +67,7 @@ const DESCRIPTIONS: Record<string, string> = {
   members: "Cadastro de membros, quem trabalha na obra, grupos e carteirinhas",
   certificates: "Emita certificados e imprima ou salve em PDF",
   users: "Quem entra no painel e o que cada um pode acessar",
+  art: "Posts de feed, story e capa de reels com a identidade visual da igreja",
   settings: "Textos, contatos, horários e integrações",
 };
 
@@ -155,6 +158,7 @@ export function AdminPanel({ user }: { user: PanelUser }) {
                 {show("members") && <MembersManager />}
                 {show("certificates") && <CertificatesManager />}
                 {show("users") && <UsersManager currentUserId={user.id} />}
+                {show("art") && <ArtStudio />}
               </div>
             </div>
           </div>

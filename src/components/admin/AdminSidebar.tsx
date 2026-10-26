@@ -18,6 +18,7 @@ import {
   Image,
   Inbox,
   MessageCircle,
+  Palette,
   Music,
   Radio,
   Search,
@@ -89,6 +90,7 @@ const menuItems: { title?: string; icon?: typeof Calendar; items: MenuItem[] }[]
       { title: "Galeria (Drive)", value: "drive", icon: Cloud, description: "Álbuns de fotos e vídeos" },
       { title: "Mídia e Rádios", value: "media", icon: Music, description: "Rádios, vídeos e áudios" },
       { title: "Transmissões", value: "live", icon: Radio, description: "Culto ao vivo", badgeKey: "live" },
+      { title: "Artes para redes", value: "art", icon: Palette, description: "Posts de feed, story e reels" },
     ],
   },
   {

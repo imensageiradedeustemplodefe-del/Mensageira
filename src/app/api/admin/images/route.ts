@@ -2,7 +2,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { handler, json, error, parseBody, requireAdmin } from "@/lib/api";
 
-// Envio de imagem do conteúdo do site (já reduzida no navegador). Só o admin (rota fora das liberadas a outros papéis).
+// Envio de imagem (já reduzida no navegador): fotos do conteúdo do site (admin) e fundos das artes (admin e mídia).
 const MAX_BYTES = 1_500_000;
 
 export const POST = handler(async (req) => {

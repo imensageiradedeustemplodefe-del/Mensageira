@@ -12,7 +12,7 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
 
 export const ROLE_DESCRIPTIONS: Record<StaffRole, string> = {
   admin: "Acesso a tudo, inclusive usuários e configurações",
-  midia: "Eventos e inscrições, comunidade (orações, mensagens, testemunhos, notificações), mídia, transmissões e sincronizar a galeria",
+  midia: "Eventos e inscrições, comunidade (orações, mensagens, testemunhos, notificações), mídia, transmissões, artes para as redes e sincronizar a galeria",
   secretaria: "Membros, carteirinhas e certificados",
 };
 
@@ -25,7 +25,7 @@ const TABS: Record<Exclude<StaffRole, "admin">, string[]> = {
   midia: [
     "events", "registrations", "templates",
     "prayers", "contact", "testimonies", "notifications",
-    "drive", "media", "live",
+    "drive", "media", "live", "art",
   ],
   secretaria: ["members", "certificates"],
 };
@@ -49,6 +49,8 @@ const API: Record<Exclude<StaffRole, "admin">, string[]> = {
     "/api/admin/custom-notifications", "/api/admin/push", "/api/admin/push-alerts", "/api/admin/badges",
     // conteúdo: na galeria, só sincronizar (a configuração do Drive é do admin)
     "/api/admin/albums/sync", "/api/admin/media", "/api/admin/live",
+    // artes para as redes (e as fotos de fundo delas)
+    "/api/admin/art", "/api/admin/images",
   ],
   secretaria: ["/api/admin/members", "/api/admin/certificates"],
 };
