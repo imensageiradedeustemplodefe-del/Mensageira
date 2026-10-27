@@ -13,6 +13,6 @@ export const GET = handler(async (req) => {
   const results = await runDailyNotifications("cron");
   await cleanupRateLimits();
   // reserva: se o agendador de poucos em poucos minutos falhar, o que estava agendado sai aqui
-  const published = await publishDuePublications().catch((err) => [{ error: String(err) }]);
+  const published = await publishDuePublications({ force: true }).catch((err) => [{ error: String(err) }]);
   return json({ ok: true, ...results, published });
 });

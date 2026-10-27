@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendPushToAdmins } from "@/lib/push";
 import { graph, instagramUserId, sleep, socialConfigured } from "@/lib/social";
+import { publicCache, refreshPublicData } from "@/lib/public-cache";
 
 const ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://imensageiradedeus.com.br").replace(/\/$/, "");
 
@@ -112,8 +113,23 @@ export async function runPublication(id: string) {
   return row;
 }
 
-/** Publica o que estava agendado e já chegou a hora (chamado pelo agendador a cada poucos minutos e pelo cron diário). */
-export async function publishDuePublications() {
+// O agendador roda a cada poucos minutos e o banco cobra por consulta (cota mensal do plano grátis):
+// o horário do próximo agendamento fica em cache, e só se consulta o banco quando ele chegou.
+// Agendar ou cancelar pelo painel limpa o cache (toda alteração em /api/admin limpa).
+const nextScheduledAt = publicCache("next-publication", 6 * 3600, async () => {
+  const next = await prisma.socialPublication.findFirst({ where: { status: { in: ["agendado", "publicando"] } }, orderBy: { publishAt: "asc" }, select: { publishAt: true } });
+  return next?.publishAt.toISOString() ?? null;
+});
+
+/**
+ * Publica o que estava agendado e já chegou a hora. O agendador de poucos em poucos minutos só olha o cache;
+ * o cron diário passa `force` e confere o banco de verdade.
+ */
+export async function publishDuePublications({ force = false } = {}) {
+  if (!force) {
+    const next = await nextScheduledAt();
+    if (!next || new Date(next).getTime() > Date.now()) return [];
+  }
   // publicação que ficou presa em "publicando" (a função caiu no meio): marca como erro para a equipe ver
   await prisma.socialPublication.updateMany({
     where: { status: "publicando", publishAt: { lt: new Date(Date.now() - 15 * 60_000) } },
@@ -126,6 +142,7 @@ export async function publishDuePublications() {
     select: { id: true },
   });
   const done = [];
+  if (due.length) refreshPublicData(); // o próximo agendamento muda
   for (const { id } of due) {
     const row = await runPublication(id);
     if (!row) continue;
