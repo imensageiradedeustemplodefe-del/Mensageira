@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mensageira-app-v2.4';
+const CACHE_NAME = 'mensageira-app-v2.5';
 const OFFLINE_URL = '/offline.html';
 // Ícones das notificações (pombinha): ficam guardados para não depender da internet quando o aviso chega
 const NOTIFICATION_ICON = '/icons/notification-192.png';
@@ -191,17 +191,31 @@ self.addEventListener('push', (event) => {
 
 // O navegador pode trocar a assinatura (expiração/rotação). Re-inscreve e avisa o servidor,
 // senão os envios passam a ir para um endpoint morto e a pessoa para de receber.
+// O navegador trocou (ou venceu) a inscrição: inscreve de novo sozinho e avisa o servidor, que passa
+// os avisos do endereço antigo para o novo. Sem isso o aparelho parava de receber em silêncio.
 self.addEventListener('pushsubscriptionchange', (event) => {
   const oldSub = event.oldSubscription;
-  const key = (oldSub && oldSub.options && oldSub.options.applicationServerKey) || undefined;
+  const oldKey = oldSub && oldSub.options && oldSub.options.applicationServerKey;
+  const toBytes = (b64) => {
+    const s = (b64 + '='.repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/');
+    return Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  };
   event.waitUntil(
-    self.registration.pushManager
-      .subscribe({ userVisibleOnly: true, applicationServerKey: key })
+    (oldKey
+      ? Promise.resolve(oldKey)
+      : fetch('/api/push/subscribe').then((r) => r.json()).then((d) => (d.key ? toBytes(d.key) : undefined))
+    )
+      .then((key) => (event.newSubscription ? event.newSubscription : self.registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key })))
       .then((sub) =>
         fetch('/api/push/subscribe', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ user_id: '00000000-0000-4000-8000-000000000000', silent: true, subscription: sub.toJSON() }),
+          body: JSON.stringify({
+            user_id: '00000000-0000-4000-8000-000000000000',
+            silent: true,
+            replaces: oldSub ? oldSub.endpoint : undefined,
+            subscription: sub.toJSON(),
+          }),
         })
       )
       .catch(() => {})

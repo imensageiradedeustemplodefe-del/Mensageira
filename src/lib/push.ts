@@ -54,7 +54,7 @@ export async function sendPushTo(sub: Sub, payload: PushPayload) {
   } catch (err: unknown) {
     const status = (err as { statusCode?: number }).statusCode;
     if (status === 404 || status === 410) {
-      await prisma.pushSubscription.updateMany({ where: { id: sub.id }, data: { isActive: false } });
+      await prisma.pushSubscription.updateMany({ where: { id: sub.id }, data: { isActive: false, expiredAt: new Date() } });
     }
     return false;
   }
@@ -95,7 +95,7 @@ export async function sendPushToAll(payload: PushPayload, source = "manual") {
   );
 
   if (dead.length) {
-    await prisma.pushSubscription.updateMany({ where: { id: { in: dead } }, data: { isActive: false } });
+    await prisma.pushSubscription.updateMany({ where: { id: { in: dead } }, data: { isActive: false, expiredAt: new Date() } });
   }
   try {
     await prisma.pushLog.create({ data: { source, title: payload.title, body: payload.body.slice(0, 500), sent, failed } });

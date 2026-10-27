@@ -400,6 +400,8 @@ model PushSubscription {
   isActive  Boolean  @default(true) @map("is_active")
   // aparelho da equipe: recebe avisos do painel (novas inscrições, PIX informado)
   notifyAdmin Boolean @default(false) @map("notify_admin")
+  /// quando o serviço de push respondeu que a inscrição venceu (404/410); o aparelho troca por uma nova
+  expiredAt DateTime? @map("expired_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
