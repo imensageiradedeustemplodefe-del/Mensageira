@@ -51,7 +51,10 @@ export function PresetGallery({
   onNew,
   setPresets,
   grid = false,
+  hideNew = false,
 }: {
+  /** sem o bloco "Arte nova" (quando a tela já oferece outro jeito de começar) */
+  hideNew?: boolean;
   /** grade de 3 colunas (dentro do painel da arte) em vez da faixa com rolagem lateral */
   grid?: boolean;
   presets: Preset[];
@@ -110,27 +113,29 @@ export function PresetGallery({
   return (
     <div className="space-y-1.5">
       {grid ? (
-        <p className="text-xs text-muted-foreground">Toque para abrir. Monte uma arte e use “Salvar como modelo” para criar outro.</p>
+        <p className="text-xs text-muted-foreground">Abre com o visual e os textos do modelo; é só trocar o que mudar. Para criar outro, use “Salvar como modelo” no fim.</p>
       ) : (
         <div className="flex items-baseline justify-between gap-2">
           <h3 className="font-semibold">Modelos salvos</h3>
           <span className="text-xs text-muted-foreground">Toque para abrir. Monte uma arte e use “Salvar como modelo” para criar outro.</span>
         </div>
       )}
-      <div className={grid ? "grid grid-cols-3 gap-2" : "flex gap-3 overflow-x-auto pb-2 snap-x"}>
-        <button
-          type="button"
-          onClick={onNew}
-          className={cn(
-            grid ? "w-full" : "snap-start shrink-0 w-24",
-            "rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground hover:border-primary hover:text-primary min-h-0",
-            activeId === null && "border-primary text-primary",
-          )}
-          style={{ height: 108 }}
-        >
-          <Plus className="w-5 h-5" />
-          Arte nova
-        </button>
+      <div className={grid ? "grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3" : "flex gap-3 overflow-x-auto pb-2 snap-x"}>
+        {!hideNew && (
+          <button
+            type="button"
+            onClick={onNew}
+            className={cn(
+              grid ? "w-full" : "snap-start shrink-0 w-24",
+              "rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground hover:border-primary hover:text-primary min-h-0",
+              activeId === null && "border-primary text-primary",
+            )}
+            style={{ height: 108 }}
+          >
+            <Plus className="w-5 h-5" />
+            Arte nova
+          </button>
+        )}
         {presets.map((p) => {
           const fmt = ART_FORMATS[p.spec.format] ?? ART_FORMATS.feed;
           const thumb = thumbOf(p);
@@ -141,7 +146,7 @@ export function PresetGallery({
                 type="button"
                 onClick={() => onOpen(p)}
                 className={cn("block w-full rounded-xl border-2 overflow-hidden bg-muted min-h-0", active ? "border-primary ring-2 ring-primary/30" : "border-transparent hover:border-primary/50")}
-                style={{ height: 108 }}
+                style={grid ? { aspectRatio: "4 / 5" } : { height: 108 }}
                 title={`Abrir ${p.name}`}
               >
                 {thumb ? (
