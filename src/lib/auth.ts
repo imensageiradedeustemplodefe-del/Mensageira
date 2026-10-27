@@ -57,6 +57,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const ipKey = `login-ip:${clientIp(request)}`;
         const userKey = `login-user:${login}`;
         if ((await overLimit(ipKey, 10)) || (await overLimit(userKey, 30))) throw new TooManyAttempts();
+        // Tentativas disparadas ao mesmo tempo passariam pela conferência acima antes de qualquer erro ser
+        // contado: este contador soma TODA tentativa do IP na hora (certa ou errada), com folga para a equipe.
+        if (!(await hit(`login-try:${clientIp(request)}`, 20, 900))) throw new TooManyAttempts();
         const failed = async () => {
           await hit(ipKey, 10, 900);
           await hit(userKey, 30, 3600);

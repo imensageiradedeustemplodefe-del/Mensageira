@@ -32,7 +32,10 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   }
 
   const cell = (v: unknown) => {
-    const s = v === null || v === undefined ? "" : Array.isArray(v) ? v.join(", ") : typeof v === "boolean" ? (v ? "Sim" : "Não") : String(v);
+    let s = v === null || v === undefined ? "" : Array.isArray(v) ? v.join(", ") : typeof v === "boolean" ? (v ? "Sim" : "Não") : String(v);
+    // texto digitado na inscrição que começa como fórmula (=, +, -, @) viraria fórmula no Excel/Planilhas
+    // (ex.: =HYPERLINK para um site malicioso): o apóstrofo faz a planilha mostrar como texto
+    if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
     return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const fmt = (d: Date) => d.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });

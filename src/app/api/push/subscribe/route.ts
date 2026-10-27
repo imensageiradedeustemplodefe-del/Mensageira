@@ -39,6 +39,8 @@ export const POST = handler(async (req) => {
   });
   if (old) {
     await prisma.organizerAlert.updateMany({ where: { subscriptionId: old.id }, data: { subscriptionId: sub.id } }).catch(() => {});
+    // inscrições em eventos que avisam este aparelho ("pagamento confirmado")
+    await prisma.eventRegistration.updateMany({ where: { pushEndpoint: old.endpoint }, data: { pushEndpoint: sub.endpoint } }).catch(() => {});
     // a antiga não serve mais para nada: sai do banco (os avisos dela já passaram para a nova)
     await prisma.pushSubscription.delete({ where: { id: old.id } }).catch(() => {});
   }

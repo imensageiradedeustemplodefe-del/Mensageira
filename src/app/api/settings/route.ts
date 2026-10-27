@@ -5,7 +5,7 @@ import { publicCache } from "@/lib/public-cache";
 // Public site settings. Integration URLs (Apps Script etc.) are never exposed here.
 const getSettings = publicCache("settings", 600, async () => {
   const settings = await prisma.siteSetting.findMany({
-    where: { category: { not: "integrations" } },
+    where: { category: { notIn: ["integrations", "system"] } },
     select: { settingKey: true, settingValue: true },
   });
   return settings.map((s) => ({ setting_key: s.settingKey, setting_value: s.settingValue }));
