@@ -104,3 +104,14 @@ export async function sendPushToAll(payload: PushPayload, source = "manual") {
   }
   return { sent, failed, skipped: false };
 }
+
+/**
+ * Apaga as inscrições vencidas há mais de 60 dias (aparelhos que nunca mais abriram o site).
+ * Antes disso ficam guardadas: se o aparelho voltar, o site percebe que a inscrição venceu e troca por uma nova.
+ */
+export async function cleanupExpiredSubscriptions() {
+  const { count } = await prisma.pushSubscription.deleteMany({
+    where: { isActive: false, expiredAt: { lt: new Date(Date.now() - 60 * 86400_000) } },
+  });
+  return count;
+}

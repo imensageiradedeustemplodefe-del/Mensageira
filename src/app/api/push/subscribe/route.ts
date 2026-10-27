@@ -39,7 +39,8 @@ export const POST = handler(async (req) => {
   });
   if (old) {
     await prisma.organizerAlert.updateMany({ where: { subscriptionId: old.id }, data: { subscriptionId: sub.id } }).catch(() => {});
-    await prisma.pushSubscription.update({ where: { id: old.id }, data: { isActive: false, expiredAt: old.expiredAt ?? new Date() } });
+    // a antiga não serve mais para nada: sai do banco (os avisos dela já passaram para a nova)
+    await prisma.pushSubscription.delete({ where: { id: old.id } }).catch(() => {});
   }
 
   // Mensagem de boas-vindas ao ativar (ou reativar) — serve de teste imediato para a pessoa
