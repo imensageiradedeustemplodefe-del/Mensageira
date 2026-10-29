@@ -27,6 +27,18 @@ export async function graph<T>(path: string, params: Record<string, string>, met
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/**
+ * O Facebook apaga as linhas em branco dos posts feitos pela API (o Instagram mantém). Uma linha com o
+ * "espaço em branco" Braille (U+2800), invisível, ele não apaga: o espaçamento fica igual ao do Instagram.
+ */
+export function facebookText(caption: string) {
+  return caption
+    .trim()
+    .split("\n")
+    .map((line) => (line.trim() === "" ? "\u2800" : line))
+    .join("\n");
+}
+
 export async function instagramUserId() {
   const fromEnv = process.env.META_IG_USER_ID?.trim();
   if (fromEnv) return fromEnv;
@@ -97,7 +109,7 @@ export async function publishTodayEventsToSocial(events: Parameters<typeof capti
     const imageUrl = `${ORIGIN}/api/social/event-image/${event.id}`;
     const r = { facebook: "ok", instagram: "ok" };
     try {
-      await graph(`${process.env.META_PAGE_ID!.trim()}/photos`, { url: imageUrl, caption: text });
+      await graph(`${process.env.META_PAGE_ID!.trim()}/photos`, { url: imageUrl, caption: facebookText(text) });
     } catch (err) {
       r.facebook = err instanceof Error ? err.message : String(err);
     }

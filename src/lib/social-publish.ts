@@ -2,7 +2,7 @@
 // na hora ou agendado. Usa a mesma conexão com a Meta da publicação automática dos eventos (lib/social).
 import { prisma } from "@/lib/prisma";
 import { sendPushToAdmins } from "@/lib/push";
-import { graph, instagramUserId, sleep, socialConfigured } from "@/lib/social";
+import { facebookText, graph, instagramUserId, sleep, socialConfigured } from "@/lib/social";
 import { after } from "next/server";
 import { publicCache, refreshPublicData } from "@/lib/public-cache";
 
@@ -41,7 +41,8 @@ async function waitReady(creationId: string) {
   throw new Error("o Instagram demorou demais para processar a imagem");
 }
 
-async function toFacebook(kind: PublicationKind, images: string[], caption: string) {
+async function toFacebook(kind: PublicationKind, images: string[], rawCaption: string) {
+  const caption = facebookText(rawCaption);
   if (kind === "story") {
     const { id } = await graph<{ id: string }>(`${pageId()}/photos`, { url: abs(images[0]), published: "false" });
     await graph(`${pageId()}/photo_stories`, { photo_id: id });
