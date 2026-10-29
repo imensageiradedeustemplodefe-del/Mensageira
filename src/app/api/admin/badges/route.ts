@@ -1,9 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { handler, json, requireAdmin } from "@/lib/api";
+import { kickScheduler } from "@/lib/social-publish";
 
 // Contadores do menu do painel (o que está esperando alguém olhar).
+export const maxDuration = 60; // o agendador de publicações roda depois da resposta (kickScheduler)
+
 export const GET = handler(async () => {
   await requireAdmin();
+  kickScheduler();
   const contact = await prisma.contactMessage.count({ where: { isRead: false } });
   const prayers = await prisma.prayerRequest.count({ where: { isApproved: false, isCompleted: false } });
   const testimonies = await prisma.testimony.count({ where: { isApproved: false } });

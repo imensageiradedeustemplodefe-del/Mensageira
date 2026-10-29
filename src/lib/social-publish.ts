@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendPushToAdmins } from "@/lib/push";
 import { graph, instagramUserId, sleep, socialConfigured } from "@/lib/social";
+import { after } from "next/server";
 import { publicCache, refreshPublicData } from "@/lib/public-cache";
 
 const ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://imensageiradedeus.com.br").replace(/\/$/, "");
@@ -144,6 +145,21 @@ const nextScheduledAt = publicCache("next-publication", 6 * 3600, async () => {
   return next?.publishAt.toISOString() ?? null;
 });
 
+const LATE_LIMIT_MS = 6 * 3600_000;
+
+/**
+ * Dispara o agendador depois de responder (sem atrasar a resposta). Chamado por rotas acessadas com
+ * frequência (menu do painel a cada minuto, notificações do site), além do agendador externo: assim o
+ * agendado sai na hora mesmo se o agendador externo falhar. Sem nada vencido, só lê o cache.
+ */
+export function kickScheduler() {
+  try {
+    after(() => publishDuePublications().catch((err) => console.error("[agendador]", err)));
+  } catch {
+    /* fora de uma requisição */
+  }
+}
+
 /**
  * Publica o que estava agendado e já chegou a hora. O agendador de poucos em poucos minutos só olha o cache;
  * o cron diário passa `force` e confere o banco de verdade.
@@ -158,6 +174,13 @@ export async function publishDuePublications({ force = false } = {}) {
     where: { status: "publicando", publishAt: { lt: new Date(Date.now() - 15 * 60_000) } },
     data: { status: "erro", result: "a publicação foi interrompida; confira nas redes e publique de novo se precisar" },
   });
+  // atrasou demais (o agendador não passou na hora): não publica sozinho conteúdo vencido ("Hoje tem culto"
+  // de madrugada); vira erro e a equipe decide com "Tentar de novo"
+  const late = await prisma.socialPublication.updateMany({
+    where: { status: "agendado", publishAt: { lt: new Date(Date.now() - LATE_LIMIT_MS) } },
+    data: { status: "erro", result: "não saiu no horário (o agendador não rodou a tempo); use “Tentar de novo” se ainda fizer sentido publicar" },
+  });
+  if (late.count) refreshPublicData();
   const due = await prisma.socialPublication.findMany({
     where: { status: "agendado", publishAt: { lte: new Date() } },
     orderBy: { publishAt: "asc" },

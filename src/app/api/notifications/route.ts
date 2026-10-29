@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { handler, json } from "@/lib/api";
 import { sanitizeName } from "@/lib/prayers";
 import { publicCache } from "@/lib/public-cache";
+import { kickScheduler } from "@/lib/social-publish";
 
 export type NotificationType =
   | "daily_verse"
@@ -211,4 +212,10 @@ const buildNotifications = publicCache("notifications", 300, async (): Promise<I
   return unique.slice(0, NOTIFICATION_LIMIT);
 });
 
-export const GET = handler(async () => json(await buildNotifications()));
+export const maxDuration = 60; // o agendador de publicações roda depois da resposta (kickScheduler)
+
+export const GET = handler(async () => {
+  // aparelhos com o site aberto consultam a cada 5 min: aproveita para publicar o que estiver agendado
+  kickScheduler();
+  return json(await buildNotifications());
+});
