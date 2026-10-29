@@ -33,6 +33,7 @@ import { ArtListEditor } from "@/components/admin/art/ArtListEditor";
 import { DrivePhotoPicker } from "@/components/admin/art/DrivePhotoPicker";
 import { CaptionBox, useCaption } from "@/components/admin/art/CaptionBox";
 import { PublishForm } from "@/components/admin/art/PublishDialog";
+import { PostPreview } from "@/components/admin/art/PostPreview";
 import { buildCaptions } from "@/lib/art/caption";
 import { useContent } from "@/hooks/useSiteSettings";
 import { Switch } from "@/components/ui/switch";
@@ -726,11 +727,8 @@ export function ArtStudio() {
 
       {step === "finalizar" && (
         <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(320px,460px)] gap-4 items-start">
-          <div className="min-w-0 space-y-3 lg:sticky lg:top-20">
-            {previewBox("100vh - 19rem", spec.format === "story" ? 360 : 480)}
-            <p className="text-xs text-muted-foreground text-center">
-              {fmt.width} × {fmt.height} px, pronta para o Instagram e o Facebook.
-            </p>
+          <div className="min-w-0 space-y-3">
+            <PostPreview images={[preview]} ratio={fmt.width / fmt.height} caption={caption.text} story={spec.format === "story"} />
           </div>
 
           <div className="space-y-4 min-w-0">

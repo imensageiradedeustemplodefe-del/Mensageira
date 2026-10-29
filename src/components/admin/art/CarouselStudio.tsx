@@ -14,6 +14,7 @@ import { artSpecSchema, ART_FORMATS, ART_THEMES, type ArtFormat, type ArtSpec, t
 import { useContent } from "@/hooks/useSiteSettings";
 import { CaptionBox, useCaption } from "@/components/admin/art/CaptionBox";
 import { PublishDialog } from "@/components/admin/art/PublishDialog";
+import { PostPreview } from "@/components/admin/art/PostPreview";
 import { carouselCaptions } from "@/lib/art/caption";
 import type { Preset } from "@/components/admin/ArtPresets";
 import { cn } from "@/lib/utils";
@@ -316,6 +317,9 @@ export function CarouselStudio() {
           />
         </div>
         <CaptionBox caption={caption} />
+        {previews.length === slides.length && previews.every(Boolean) && (
+          <PostPreview images={previews} ratio={fmt.width / fmt.height} caption={caption.text} />
+        )}
       </div>
     </div>
   );
