@@ -5,7 +5,7 @@ import { snake } from "@/lib/case";
 import { artSpecSchema } from "@/lib/art/spec";
 import { renderArt } from "@/lib/art/render";
 import { socialConfigured } from "@/lib/social";
-import { NETWORKS, publicationSelect, runPublication } from "@/lib/social-publish";
+import { NETWORKS, checkConnection, publicationSelect, runPublication } from "@/lib/social-publish";
 
 // Publicar artes no Facebook e no Instagram (admin e mídia): na hora ou agendado.
 export const maxDuration = 60;
@@ -19,10 +19,19 @@ const bodySchema = z.object({
   publish_at: z.iso.datetime({ offset: true }).nullish(),
 });
 
-export const GET = handler(async () => {
+// GET ?month=2026-11: as publicações do mês (com a semana antes e depois), para o calendário de posts
+export const GET = handler(async (req) => {
   await requireAdmin();
-  const rows = await prisma.socialPublication.findMany({ orderBy: { publishAt: "desc" }, take: 40, select: publicationSelect });
-  return json({ configured: socialConfigured(), items: snake(rows) });
+  const m = (new URL(req.url).searchParams.get("month") ?? "").match(/^(\d{4})-(\d{2})$/);
+  const rows = await prisma.socialPublication.findMany({
+    where: m ? { publishAt: { gte: new Date(Date.UTC(+m[1], +m[2] - 1, 1) - 7 * 86400000), lt: new Date(Date.UTC(+m[1], +m[2], 1) + 7 * 86400000) } } : undefined,
+    orderBy: { publishAt: m ? "asc" : "desc" },
+    take: m ? 200 : 40,
+    select: publicationSelect,
+  });
+  // ?check=1: confere o token na Meta (a aba Publicações e o formulário de publicar avisam se venceu)
+  const connection = new URL(req.url).searchParams.get("check") ? await checkConnection() : undefined;
+  return json({ configured: socialConfigured(), connection, items: snake(rows) });
 });
 
 export const POST = handler(async (req) => {

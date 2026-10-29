@@ -79,8 +79,31 @@ async function toInstagram(kind: PublicationKind, images: string[], caption: str
 
 const errText = (err: unknown) => {
   const msg = err instanceof Error ? err.message : String(err);
-  return /fetch failed|timeout|aborted/i.test(msg) ? "sem resposta da Meta, tente de novo" : msg;
+  if (/fetch failed|timeout|aborted/i.test(msg)) return "sem resposta da Meta, tente de novo";
+  if (/access token|session has expired|OAuthException/i.test(msg))
+    return "o token da Meta venceu ou é inválido: o administrador precisa gerar o token da PÁGINA que não expira e trocar o META_PAGE_TOKEN na Vercel";
+  return msg;
 };
+
+/** Confere se o token da Meta está funcionando (nome da página), para o painel avisar antes de publicar. */
+export async function checkConnection(): Promise<{ ok: boolean; page?: string; error?: string }> {
+  if (!socialConfigured()) return { ok: false, error: "não configurada" };
+  try {
+    const r = await graph<{ name?: string }>(pageId(), { fields: "name" }, "GET");
+    return { ok: true, page: r.name };
+  } catch (err) {
+    return { ok: false, error: errText(err) };
+  }
+}
+
+/** Publica de novo uma publicação que deu erro; na "publicado em parte", só nas redes que falharam. */
+export async function retryPublication(id: string) {
+  const pub = await prisma.socialPublication.findUnique({ where: { id } });
+  if (!pub || (pub.status !== "erro" && pub.status !== "parcial")) return null;
+  const failed = pub.status === "parcial" ? (pub.networks as Network[]).filter((n) => new RegExp(`${n === "facebook" ? "Facebook" : "Instagram"}: erro`).test(pub.result ?? "")) : pub.networks;
+  await prisma.socialPublication.update({ where: { id }, data: { status: "agendado", networks: failed.length ? failed : pub.networks, publishAt: new Date(), result: null } });
+  return runPublication(id);
+}
 
 /** Publica agora uma publicação já gravada e guarda o resultado (uma rede pode dar certo e a outra não). */
 export async function runPublication(id: string) {

@@ -58,11 +58,15 @@ export function PublishForm({
   const [date, setDate] = useState(today);
   const [time, setTime] = useState("19:00");
   const [configured, setConfigured] = useState<boolean | null>(null);
+  const [connError, setConnError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    api<{ configured: boolean }>("/api/admin/art/publish")
-      .then((r) => setConfigured(r.configured))
+    api<{ configured: boolean; connection?: { ok: boolean; error?: string } }>("/api/admin/art/publish?check=1")
+      .then((r) => {
+        setConfigured(r.configured);
+        if (r.configured && r.connection && !r.connection.ok) setConnError(r.connection.error ?? "erro");
+      })
       .catch(() => setConfigured(false));
   }, []);
 
@@ -89,7 +93,7 @@ export function PublishForm({
     }
   };
 
-  const nowBlocked = when === "agora" && configured === false;
+  const nowBlocked = when === "agora" && (configured === false || !!connError);
   return (
     <div className="space-y-4">
       {configured === false && (
@@ -98,6 +102,15 @@ export function PublishForm({
           <span>
             A conexão com o Facebook e o Instagram ainda não foi configurada pelo administrador. Dá para deixar agendado: sai sozinho quando a conexão
             estiver pronta e o horário chegar.
+          </span>
+        </div>
+      )}
+      {connError && (
+        <div className="flex gap-2 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:bg-red-950/40 dark:text-red-200">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>
+            A conexão com o Facebook e o Instagram não está funcionando ({connError}). Dá para deixar agendado, mas só sai depois que o token for
+            trocado.
           </span>
         </div>
       )}
