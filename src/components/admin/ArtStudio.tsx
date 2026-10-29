@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AlignCenter, AlignLeft, ArrowLeft, ArrowRight, BookOpen, Cake, CalendarDays, Camera, Check, Clapperboard, Download, ListChecks, Loader2, Megaphone, Save, Send, Share2, X, type LucideIcon } from "lucide-react";
+import { AlignCenter, AlignLeft, ArrowLeft, ArrowRight, BookOpen, Cake, CalendarDays, Camera, Clapperboard, Download, ListChecks, Loader2, Megaphone, Save, Send, Share2, X, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +34,7 @@ import { DrivePhotoPicker } from "@/components/admin/art/DrivePhotoPicker";
 import { CaptionBox, useCaption } from "@/components/admin/art/CaptionBox";
 import { PublishForm } from "@/components/admin/art/PublishDialog";
 import { PostPreview } from "@/components/admin/art/PostPreview";
+import { StepBar } from "@/components/admin/art/StepBar";
 import { buildCaptions } from "@/lib/art/caption";
 import { useContent } from "@/hooks/useSiteSettings";
 import { Switch } from "@/components/ui/switch";
@@ -349,55 +350,23 @@ export function ArtStudio() {
       />
 
       {/* etapas: dá para voltar a qualquer uma já visitada; avançar/voltar ficam sempre à vista */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-      <ol className="flex items-center gap-1 sm:gap-2 text-sm" aria-label="Etapas">
-        {STEPS.map((s, i) => {
-          const idx = STEPS.findIndex((x) => x.id === step);
-          const done = i < idx;
-          const can = i <= idx || (s.id === "finalizar" && step === "editar" && fileReady);
-          return (
-            <li key={s.id} className="flex items-center gap-1 sm:gap-2 min-w-0">
-              {i > 0 && <span className={cn("h-px w-4 sm:w-10 shrink-0", done || s.id === step ? "bg-primary" : "bg-border")} />}
-              <button
-                type="button"
-                disabled={!can}
-                onClick={() => go(s.id)}
-                aria-current={s.id === step ? "step" : undefined}
-                className={cn(
-                  "flex items-center gap-2 rounded-full px-2 sm:px-3 py-1.5 min-h-0 min-w-0 transition-colors",
-                  s.id === step ? "bg-primary text-primary-foreground" : done ? "text-primary hover:bg-primary/10" : "text-muted-foreground",
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                    s.id === step ? "bg-primary-foreground/20" : done ? "bg-primary text-primary-foreground" : "border",
-                  )}
-                >
-                  {done ? <Check className="w-3.5 h-3.5" /> : i + 1}
-                </span>
-                <span className={cn("truncate font-medium", s.id !== step && "hidden sm:inline")}>{s.label}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-      {step === "editar" && (
-        <div className="flex gap-2 ml-auto">
-          <Button variant="outline" onClick={() => go("comecar")} className="gap-2">
-            <ArrowLeft className="w-4 h-4" /> Voltar
+      <StepBar steps={STEPS} current={step} onGo={go} canGo={(id) => id === "finalizar" && step === "editar" && fileReady}>
+        {step === "editar" && (
+          <>
+            <Button variant="outline" onClick={() => go("comecar")} className="gap-2">
+              <ArrowLeft className="w-4 h-4" /> Voltar
+            </Button>
+            <Button onClick={() => go("finalizar")} disabled={!fileReady} className="gap-2">
+              Arte pronta, continuar <ArrowRight className="w-4 h-4" />
+            </Button>
+          </>
+        )}
+        {step === "finalizar" && (
+          <Button variant="outline" onClick={() => go("editar")} className="gap-2">
+            <ArrowLeft className="w-4 h-4" /> Editar a arte
           </Button>
-          <Button onClick={() => go("finalizar")} disabled={!fileReady} className="gap-2">
-            Arte pronta, continuar <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-      )}
-      {step === "finalizar" && (
-        <Button variant="outline" onClick={() => go("editar")} className="gap-2 ml-auto">
-          <ArrowLeft className="w-4 h-4" /> Editar a arte
-        </Button>
-      )}
-      </div>
+        )}
+      </StepBar>
 
       {step === "comecar" && (
         <div className="space-y-6">

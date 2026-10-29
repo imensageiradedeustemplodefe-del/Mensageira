@@ -52,7 +52,10 @@ export function PresetGallery({
   setPresets,
   grid = false,
   hideNew = false,
+  hint = "Abre com o visual e os textos do modelo; é só trocar o que mudar. Para criar outro, use “Salvar como modelo” no fim.",
 }: {
+  /** texto de ajuda acima da grade (null = sem) */
+  hint?: string | null;
   /** sem o bloco "Arte nova" (quando a tela já oferece outro jeito de começar) */
   hideNew?: boolean;
   /** grade de 3 colunas (dentro do painel da arte) em vez da faixa com rolagem lateral */
@@ -113,7 +116,7 @@ export function PresetGallery({
   return (
     <div className="space-y-1.5">
       {grid ? (
-        <p className="text-xs text-muted-foreground">Abre com o visual e os textos do modelo; é só trocar o que mudar. Para criar outro, use “Salvar como modelo” no fim.</p>
+        hint && <p className="text-xs text-muted-foreground">{hint}</p>
       ) : (
         <div className="flex items-baseline justify-between gap-2">
           <h3 className="font-semibold">Modelos salvos</h3>
