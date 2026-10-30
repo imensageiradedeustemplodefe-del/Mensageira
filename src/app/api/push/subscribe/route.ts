@@ -25,7 +25,9 @@ export const POST = handler(async (req) => {
 
   // Venceu (o serviço de push respondeu 404/410): não adianta reativar este endereço. O aparelho pede
   // outro ao navegador e manda de novo com `replaces`.
-  if (existing && !existing.isActive && existing.expiredAt) return json({ success: true, was_expired: true });
+  // Se o aparelho já renovou (veio com `replaces`) e o navegador devolveu o mesmo endereço, reativa: pedir de
+  // novo não adiantaria e o aparelho ficaria sem receber.
+  if (existing && !existing.isActive && existing.expiredAt && !replaces) return json({ success: true, was_expired: true });
 
   // Renovação: a inscrição nova herda o dono e os avisos da antiga ("Avisar este aparelho", organizadoras)
   const old =
