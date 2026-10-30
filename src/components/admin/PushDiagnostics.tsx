@@ -32,6 +32,7 @@ interface Stats {
 }
 
 const SOURCE_LABEL: Record<string, string> = {
+  social: "Redes sociais (07:00)",
   cron: "Automático (07:00)",
   manual: "Envio diário manual",
   teste: "Teste",
@@ -182,8 +183,9 @@ export function PushDiagnostics() {
                   {stats.logs.map((l) => (
                     <div key={l.id} className="p-3 text-sm flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-medium truncate">{l.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">{l.body}</p>
+                        {/* post automático do evento nas redes: o título guardado é o id do evento (evita postar duas vezes) */}
+                        <p className="font-medium truncate">{l.source === "social" ? "📣 Evento do dia publicado nas redes" : l.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{l.source === "social" ? l.body.replace("facebook:", "Facebook:").replace("instagram:", "Instagram:").replace(/\bok\b/g, "publicado") : l.body}</p>
                         <p className="text-xs text-muted-foreground mt-1">
                           {format(new Date(l.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })} • {SOURCE_LABEL[l.source] ?? l.source}
                         </p>
