@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { AlertTriangle, CheckCircle2, Clock, Loader2, RotateCcw, Trash2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { api } from "@/lib/fetcher";
 import type { Publication } from "@/components/admin/art/PublishDialog";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,8 @@ export function PublicationsList() {
   const [configured, setConfigured] = useState(true);
   const [connection, setConnection] = useState<{ ok: boolean; page?: string; error?: string } | null>(null);
   const [retrying, setRetrying] = useState<string | null>(null);
+  // publicação automática dos eventos do dia às 7h (null = carregando)
+  const [auto, setAuto] = useState<boolean | null>(null);
 
   useEffect(() => {
     api<{ configured: boolean; connection?: { ok: boolean; page?: string; error?: string }; items: Publication[] }>("/api/admin/art/publish?check=1")
@@ -34,7 +37,22 @@ export function PublicationsList() {
         setConnection(r.connection ?? null);
       })
       .catch(() => setItems([]));
+    api<{ enabled: boolean }>("/api/admin/art/auto")
+      .then((r) => setAuto(r.enabled))
+      .catch(() => {});
   }, []);
+
+  const toggleAuto = async (enabled: boolean) => {
+    const before = auto;
+    setAuto(enabled);
+    try {
+      await api("/api/admin/art/auto", { method: "PUT", json: { enabled } });
+      toast.success(enabled ? "Publicação automática dos eventos ligada" : "Publicação automática dos eventos pausada");
+    } catch (err) {
+      setAuto(before);
+      toast.error(err instanceof Error ? err.message : "Não foi possível alterar");
+    }
+  };
 
   const remove = async (p: Publication) => {
     const msg = p.status === "agendado" ? `Cancelar o agendamento de "${p.title}"?` : `Tirar "${p.title}" da lista? (o que já foi publicado continua nas redes)`;
@@ -137,6 +155,19 @@ export function PublicationsList() {
           </span>
         </div>
       )}
+      <Card>
+        <CardContent className="p-4 flex items-start justify-between gap-4">
+          <label htmlFor="auto-events" className="space-y-0.5 cursor-pointer">
+            <span className="block font-medium">Publicar os eventos do dia às 7h</span>
+            <span className="block text-sm text-muted-foreground">
+              {auto === false
+                ? "Pausada: os folders dos eventos não vão sozinhos para o Facebook e o Instagram. As artes agendadas aqui continuam saindo."
+                : "Todo dia às 7h, o folder de cada evento publicado do dia vai sozinho para o Facebook e o Instagram."}
+            </span>
+          </label>
+          <Switch id="auto-events" checked={auto ?? true} disabled={auto === null} onCheckedChange={toggleAuto} aria-label="Publicar os eventos do dia às 7h" />
+        </CardContent>
+      </Card>
       <section className="space-y-2">
         <h3 className="font-semibold">Agendadas</h3>
         {scheduled.length ? scheduled.map(row) : <p className="text-sm text-muted-foreground">Nada agendado. Use “Publicar nas redes” em Criar arte ou Carrossel.</p>}

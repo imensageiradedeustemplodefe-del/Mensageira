@@ -96,8 +96,18 @@ function caption(event: {
  * Publica os eventos de hoje no Facebook e no Instagram (uma vez por evento) e avisa os celulares da equipe
  * ("Avisar este aparelho" no painel) do resultado.
  */
+/** Chave (site_settings) que liga/desliga a publicação automática dos eventos do dia às 7h. */
+export const AUTO_EVENTS_KEY = "social_auto_events";
+
+/** A equipe pode pausar a publicação automática pelo painel (aba Publicações). Sem a chave: ligada. */
+export async function autoEventsEnabled() {
+  const row = await prisma.siteSetting.findUnique({ where: { settingKey: AUTO_EVENTS_KEY }, select: { settingValue: true } });
+  return row?.settingValue !== "off";
+}
+
 export async function publishTodayEventsToSocial(events: Parameters<typeof caption>[0][]) {
   if (!socialConfigured() || events.length === 0) return { skipped: !socialConfigured() ? "não configurado" : "sem eventos" };
+  if (!(await autoEventsEnabled())) return { skipped: "pausada pela equipe" };
   const results: Record<string, { facebook: string; instagram: string }> = {};
 
   for (const event of events) {
