@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="text-center space-y-2">
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} {text("footer_text")} | Desenvolvido por{" "}
-            <span className="font-medium text-primary">Palavra Viva</span>
+            <span className="font-medium text-primary">PR Tech Solutions</span>
           </p>
           <p className="text-xs text-muted-foreground">
             <Link href="/privacidade" className="hover:text-primary transition-colors underline-offset-4 hover:underline">

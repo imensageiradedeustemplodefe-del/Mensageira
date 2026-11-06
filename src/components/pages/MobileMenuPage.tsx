@@ -90,7 +90,7 @@ export function MobileMenuPage() {
           <div className="text-center text-muted-foreground">
             <p className="text-xs">
               © {new Date().getFullYear()} Mensageira de Deus Templo de Fé | Desenvolvido por{" "}
-              <span className="font-medium text-primary">Palavra Viva</span>
+              <span className="font-medium text-primary">PR Tech Solutions</span>
             </p>
           </div>
         </div>

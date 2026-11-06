@@ -90,6 +90,7 @@ export function AdminLoginPage() {
 
             <div className="text-center text-sm text-muted-foreground">
               <p>Acesso de Uso Exclusivo Para Palavra Viva</p>
+              <p className="mt-2 text-xs">Desenvolvido por PR Tech Solutions</p>
             </div>
           </form>
         </CardContent>

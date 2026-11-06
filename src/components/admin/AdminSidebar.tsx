@@ -257,6 +257,7 @@ export function AdminSidebar({ activeTab, onTabChange, role }: AdminSidebarProps
             <ExternalLink className="w-4 h-4" />
             <span className="flex-1">Ver o site</span>
           </a>
+          <p className="px-2 pt-1 text-[11px] text-sidebar-foreground/50">Desenvolvido por PR Tech Solutions</p>
         </SidebarFooter>
       )}
     </Sidebar>
